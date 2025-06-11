@@ -3,8 +3,13 @@
   <entry>
     <title>配置终端代理</title>
     <url>/2025/04/13/%E9%85%8D%E7%BD%AE%E7%BB%88%E7%AB%AF%E4%BB%A3%E7%90%86/</url>
-    <content><![CDATA[<h2 id="Power-shell"><a href="#Power-shell" class="headerlink" title="Power shell"></a>Power shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"><span class="variable">$env</span>:https_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy</span><br><span class="line"><span class="variable">$env</span>:https_proxy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清除</span></span><br><span class="line">Remove-Item Env:http_proxy</span><br><span class="line">Remove-Item Env:https_proxy</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="配置git终端代理（常用）"><a href="#配置git终端代理（常用）" class="headerlink" title="配置git终端代理（常用）"></a>配置git终端代理（常用）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置代理</span></span><br><span class="line">git config --global http.proxy <span class="string">&quot;http://127.0.0.1:10809&quot;</span></span><br><span class="line">git config --global https.proxy <span class="string">&quot;https://127.0.0.1:10809&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消代理</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
+
+<h2 id="Power-shell"><a href="#Power-shell" class="headerlink" title="Power shell"></a>Power shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"><span class="variable">$env</span>:https_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy</span><br><span class="line"><span class="variable">$env</span>:https_proxy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清除</span></span><br><span class="line">Remove-Item Env:http_proxy</span><br><span class="line">Remove-Item Env:https_proxy</span><br></pre></td></tr></table></figure>
 ]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
       <tags>
         <tag>vpn</tag>
         <tag>git</tag>
@@ -142,6 +147,199 @@
       </categories>
       <tags>
         <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>CMake备忘单</title>
+    <url>/2025/06/11/CMake%E5%A4%87%E5%BF%98%E5%8D%95/</url>
+    <content><![CDATA[<h2 id="file"><a href="#file" class="headerlink" title="file"></a>file</h2><p><code>file</code> 命令用于执行各种文件和目录操作，例如创建目录、复制文件、读取文件内容等。它的功能非常强大，支持多种操作模式。  </p>
+<h3 id="file常见用法"><a href="#file常见用法" class="headerlink" title="file常见用法"></a>file常见用法</h3><ol>
+<li><p><strong>创建目录</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(<span class="keyword">MAKE_DIRECTORY</span> path1 path2 ...)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>创建一个或多个目录。如果目录已存在，则不会报错。</li>
+</ul>
+</li>
+<li><p><strong>复制文件</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(COPY file1 file2 ... DESTINATION directory)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将文件从源路径复制到目标目录。</li>
+</ul>
+</li>
+<li><p><strong>写入文件</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(WRITE <span class="keyword">file</span> <span class="string">&quot;message to write&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将内容写入文件。如果文件已存在，则会覆盖原有内容。</li>
+</ul>
+</li>
+<li><p><strong>追加内容到文件</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(APPEND <span class="keyword">file</span> <span class="string">&quot;message to append&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将内容追加到文件末尾。</li>
+</ul>
+</li>
+<li><p><strong>读取文件内容</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(READ <span class="keyword">file</span> variable)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将文件内容读取到变量中。</li>
+</ul>
+</li>
+<li><p><strong>删除文件或目录</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(<span class="keyword">REMOVE</span> file1 file2 ...)</span><br><span class="line"><span class="keyword">file</span>(REMOVE_RECURSE directory1 directory2 ...)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>删除文件或目录。<code>REMOVE_RECURSE</code> 可以递归删除目录及其内容。</li>
+</ul>
+</li>
+<li><p><strong>获取文件列表</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">file</span>(GLOB variable [RELATIVE path] [globbing expressions])</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>获取匹配特定模式的文件列表。<code>RELATIVE</code> 参数可以指定相对路径。</li>
+</ul>
+</li>
+</ol>
+<h3 id="file示例"><a href="#file示例" class="headerlink" title="file示例"></a>file示例</h3><figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建目录</span></span><br><span class="line"><span class="keyword">file</span>(<span class="keyword">MAKE_DIRECTORY</span> <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 复制文件</span></span><br><span class="line"><span class="keyword">file</span>(COPY <span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>/input.txt DESTINATION <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 写入文件</span></span><br><span class="line"><span class="keyword">file</span>(WRITE <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output/<span class="keyword">message</span>.txt <span class="string">&quot;Hello, World!&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 追加内容到文件</span></span><br><span class="line"><span class="keyword">file</span>(APPEND <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output/<span class="keyword">message</span>.txt <span class="string">&quot;\nThis is an appended line.&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 读取文件内容</span></span><br><span class="line"><span class="keyword">file</span>(READ <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output/<span class="keyword">message</span>.txt CONTENT)</span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">&quot;File content: $&#123;CONTENT&#125;&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 删除文件</span></span><br><span class="line"><span class="keyword">file</span>(<span class="keyword">REMOVE</span> <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/output/<span class="keyword">message</span>.txt)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 获取文件列表</span></span><br><span class="line"><span class="keyword">file</span>(GLOB INPUT_FILES RELATIVE <span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span> <span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>/*.txt)</span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">&quot;Input files: $&#123;INPUT_FILES&#125;&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<h2 id="configure-file"><a href="#configure-file" class="headerlink" title="configure_file"></a>configure_file</h2><p><code>configure_file</code> 命令用于将文件从源路径复制到目标路径，并可以选择性地对文件内容进行变量替换。它常用于生成配置文件或复制资源文件。</p>
+<h3 id="configure-file常见用法"><a href="#configure-file常见用法" class="headerlink" title="configure_file常见用法"></a>configure_file常见用法</h3><ol>
+<li><p><strong>简单复制文件</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">configure_file</span>(source destination COPYONLY)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将源文件直接复制到目标路径，不进行任何处理。</li>
+</ul>
+</li>
+<li><p><strong>变量替换</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">configure_file</span>(source destination)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>将源文件复制到目标路径，并对文件中的变量进行替换。变量格式为 <code>$&#123;VARIABLE_NAME&#125;</code>。</li>
+</ul>
+</li>
+<li><p><strong>指定文件权限</strong>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="keyword">configure_file</span>(source destination [NEWLINE_STYLE style] [PERMISSIONS permissions...])</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>可以指定文件的换行风格（如 <code>UNIX</code> 或 <code>WIN32</code>）和权限。</li>
+</ul>
+</li>
+</ol>
+<h3 id="configure-file示例"><a href="#configure-file示例" class="headerlink" title="configure_file示例"></a>configure_file示例</h3><p>假设你有一个配置文件 <code>config.in</code>，内容如下：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line"># config.in</span><br><span class="line">The value of MY_VARIABLE is $&#123;MY_VARIABLE&#125;.</span><br></pre></td></tr></table></figure>
+
+<p>在 <code>CMakeLists.txt</code> 中，你可以这样使用 <code>configure_file</code>：  </p>
+<figure class="highlight cmake"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置变量</span></span><br><span class="line"><span class="keyword">set</span>(MY_VARIABLE <span class="string">&quot;Hello, CMake!&quot;</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 配置文件</span></span><br><span class="line"><span class="keyword">configure_file</span>(<span class="variable">$&#123;CMAKE_SOURCE_DIR&#125;</span>/config.in <span class="variable">$&#123;CMAKE_BINARY_DIR&#125;</span>/config.txt)</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看生成的文件</span></span><br><span class="line"><span class="keyword">message</span>(STATUS <span class="string">&quot;Config file generated at $&#123;CMAKE_BINARY_DIR&#125;/config.txt&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+<p>生成的 <code>config.txt</code> 文件内容将是：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">The value of MY_VARIABLE is Hello, CMake!.</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>cmake</tag>
+        <tag>c++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>简单CPU设计实践</title>
+    <url>/2025/04/22/%E7%AE%80%E5%8D%95CPU%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<p>博客参考：<a href="https://lianera.github.io/post/2014/cpu-step-by-step/#:~:text=%E6%9C%AC%E6%96%87%E5%B0%86%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E4%BB%8B%E7%BB%8D%E5%A4%84%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E6%9E%B6%E6%9E%84%EF%BC%8C%E5%B9%B6%E4%B8%94%E7%94%A8%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%B5%E8%B7%AF%E6%90%AD%E5%BB%BA%E6%96%B9%E5%BC%8F%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E7%AE%80%E5%8D%95%E7%9A%848%20bit,CPU%E3%80%82%20%E7%94%B1%E4%BA%8E%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%86%85%E5%AE%B9%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%E4%BC%97%E5%A4%9A%EF%BC%8C%E5%B9%B6%E4%B8%94%E5%A4%A7%E5%A4%9A%E6%95%B0%E4%B8%93%E4%B8%9A%E5%BC%80%E8%AE%BE%E8%BF%87%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%EF%BC%8C%E6%89%80%E4%BB%A5%E5%9C%A8%E6%AD%A4%E7%95%A5%E8%BF%87%E6%95%B0%E7%94%B5%E7%9A%84%E7%9F%A5%E8%AF%86%EF%BC%8C%E5%A6%82%E6%9E%9C%E5%AF%B9%E6%95%B0%E7%94%B5%E6%9C%89%E4%BA%9B%E4%B8%8D%E6%98%8E%E7%99%BD%E7%9A%84%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%8F%82%E8%80%83%E5%85%B6%E4%BB%96%E6%95%B0%E7%94%B5%E6%95%99%E7%A8%8B%E3%80%82">简单CPU设计实践 - Lianera</a></p>
+<p>感谢每一位无私分享知识的笔者。  </p>
+<h2 id="一、基础"><a href="#一、基础" class="headerlink" title="一、基础"></a>一、基础</h2><h3 id="基本逻辑门"><a href="#基本逻辑门" class="headerlink" title="基本逻辑门"></a>基本逻辑门</h3><p>（严格意义上，只有不可分割的与、或、非门是基本逻辑门）  </p>
+<p>AND(与)、OR(或)、NOT(非)、NAND(与非)、NOR(或非)、XOR(异或)、XNOR（同或）  </p>
+<p><img src="/../images/cpu-1-%E5%9F%BA%E6%9C%AC%E9%80%BB%E8%BE%91%E9%97%A8.png" alt="基本逻辑门">  </p>
+<p>以上门电路真值表可查阅：<a href="https://blog.csdn.net/weixin_52487896/article/details/125889966">常见七种逻辑门真值表 - Star、H</a>  </p>
+<h3 id="组合逻辑电路分析设计方法"><a href="#组合逻辑电路分析设计方法" class="headerlink" title="组合逻辑电路分析设计方法"></a>组合逻辑电路分析设计方法</h3><p>分三步，需求分析-&gt;方案设计-&gt;电路实现  </p>
+<p><strong>第一步：需求分析-&gt;真值表</strong>  </p>
+<table>
+<thead>
+<tr>
+<th align="center">A</th>
+<th align="center">B</th>
+<th align="center">C</th>
+<th align="center">F</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<p>需要列举出所有可能（2^N行，N是输入参数个数），其中ABC是输入，F是输出  </p>
+<p><strong>第二步：化简逻辑-&gt;卡诺图</strong>  </p>
+<p>卡诺图是用来化简表达式的工具  </p>
+<ol>
+<li>把真值表中F&#x3D;1的项标在卡诺图里  </li>
+<li>圈出最大的相邻1的矩形（2×2、1×4等）  </li>
+<li>写出化简后的表达式</li>
+</ol>
+<p>比如上边真值表的例子，化简出来的表达式是：<br>F &#x3D; AB + AC + BC  </p>
+<p>这就好像是有一个仅有三道题的考试（ABC），任意写对两道题，最后的结果就是通过考试  </p>
+<p><strong>第三步：电路实现-&gt;表达式变电路</strong>  </p>
+<p>现在把表达式变成电路，还是上面的例子，<strong>AB + AC + BC</strong>，这个表达式怎么处理？  </p>
+<p>实际上这里的关系很清晰简单，只有AND和OR  </p>
+<p>第一层：用AND门做AB、AC和BC<br>第二层：用OR门把三个AND结果合并  </p>
+<h3 id="编码器"><a href="#编码器" class="headerlink" title="编码器"></a>编码器</h3><p>高低电平信号向二进制数的转换  </p>
+<p>普通编码器：任何时刻只允许有一个信号输入<br>优先编码器：允许同时输入两个以上的编码信号，只对其中优先权最高的一个进行编码  </p>
+<p>博客资料：<a href="https://zhuanlan.zhihu.com/p/569801290">自上而下理解优先编码器</a>  </p>
+<h3 id="译码器"><a href="#译码器" class="headerlink" title="译码器"></a>译码器</h3><p>二进制数向高低电平信号的转换  </p>
+<h3 id="数据选择器"><a href="#数据选择器" class="headerlink" title="数据选择器"></a>数据选择器</h3><h3 id="比较器"><a href="#比较器" class="headerlink" title="比较器"></a>比较器</h3><h3 id="加法器"><a href="#加法器" class="headerlink" title="加法器"></a>加法器</h3><h3 id="三态门"><a href="#三态门" class="headerlink" title="三态门"></a>三态门</h3><h3 id="基本触发器"><a href="#基本触发器" class="headerlink" title="基本触发器"></a>基本触发器</h3><h3 id="锁存器"><a href="#锁存器" class="headerlink" title="锁存器"></a>锁存器</h3><h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><h3 id="移位寄存器"><a href="#移位寄存器" class="headerlink" title="移位寄存器"></a>移位寄存器</h3><h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3>]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>cpu</tag>
       </tags>
   </entry>
 </search>

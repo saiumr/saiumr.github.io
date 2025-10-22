@@ -445,4 +445,36 @@ M&#x27; = (M^{-1})^T
         <tag>OpenGL</tag>
       </tags>
   </entry>
+  <entry>
+    <title>理解镜面反射反光度和风氏模型反射缺陷</title>
+    <url>/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/</url>
+    <content><![CDATA[<p>在风氏模型中，计算镜面反射最后要用物体<strong>反光度</strong>作为指数，对视觉中看到的<strong>光强</strong>进行<strong>幂运算</strong>得到最终结果。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> spec = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(view_direction, light_reflect_direction), <span class="number">0.0</span>f), material.shininess);</span><br></pre></td></tr></table></figure>
+
+<p>shininess（反光度）是控制镜面高光 “锐利程度” 的核心参数。  </p>
+<p>我们把上面的语句拆开：  </p>
+<ul>
+<li><p><code>dot(view_direction, light_reflect_direction)</code>，这计算的是视线方向与反射光方向夹角的余弦值（范围 [-1, 1]），我们在外层加了个<code>max(..., 0)</code>是默认当反射光和视线成钝角时（余弦值为负数），相当于光线没进入人眼，反光强度为0（通过学习<strong>Blinn-Phong模型</strong>我们知道这并不自然）  </p>
+</li>
+<li><p><code>pow(..., shininess)</code>，pow函数作为一个衰减函数，在反光度shininess<strong>很小</strong>时会衰减得很慢，例如，<code>0.8^1 = 0.8</code>，<code>0.5^1 = 0.5</code>，意味着<strong>较大范围的角度都能贡献明显的高光</strong>（高光区域大而模糊）；而反光度shininess<strong>很大</strong>时会衰减得很快，例如，<code>8^100 ≈ 0，0.95^100 ≈ 0.6</code>，意味着<strong>只有视线与反射光方向非常接近时（夹角极小）才有高光</strong>（高光区域小而锐利）</p>
+</li>
+</ul>
+<p>所以反光度某种意义上是一个用来模拟表面的粗糙 &#x2F; 光滑程度的参数，反光度越小，物体表面越粗糙，越大越光滑（下面两个参数资料来自AI回答）。  </p>
+<ul>
+<li>低 shininess（如 1～32）：模拟粗糙表面（如木头、石头、磨砂塑料）。<br>这类表面会把光线向四面八方散射，所以镜面高光范围大、边缘模糊，亮度随角度变化平缓。</li>
+<li>高 shininess（如 64～1024）：模拟光滑表面（如金属、镜子、抛光塑料）。<br>这类表面的反射更集中，只有在视线接近反射光方向时才能看到高光，所以高光区域小、边缘锐利，亮度随角度变化剧烈。</li>
+</ul>
+<p>由此引申出风氏模型计算镜面光的不自然之处，在物体表面粗糙时（反光度小），反光的范围大，在远处表面即使光线和视线形成钝角，我们应该还是能看到一些反射光而不是直接为0。  </p>
+<p>我们可以想象一下为什么风氏模型镜面反射表现不自然；比如我们面前放着一张砂纸，太阳在我们脑后，这时反射光和视线是为钝角的，但我们依然可以看到砂纸表面斑驳的亮点，究其原因就是砂纸表面粗糙，光线在某些地方还是能和视线形成锐角的，而不是超过一定角度就直接变暗。  </p>
+<p>我们在<strong>Blinn-Phong</strong>模型中利用<strong>半程向量</strong>解决了这个问题，但实际上这也只是一种模拟罢了，只是比传统风氏模型更自然点，不会出现在某处光线突然变暗的情况。  </p>
+<p>应该可以这么去理解，真正光滑的表面就是一个表面，而粗糙的表面是由无数细小杂乱的表面组合而成的，要计算<strong>真正的</strong>反射计算量太大，实现也过于复杂。  </p>
+<p>所以微观上可以这样理解反光度shininess，它小，表示无数小平面朝向极乱；它大，表示无数小平面朝向趋于一致。  </p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
 </search>

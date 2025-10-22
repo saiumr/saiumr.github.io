@@ -20,24 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"saiumr.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="热爱技术，崇尚自由">
-<meta property="og:type" content="website">
-<meta property="og:title" content="cola&#39;s blog">
-<meta property="og:url" content="https://saiumr.github.io/archives/index.html">
+    <meta name="description" content="反光度反映物体表面的光滑程度，越大反射光线的能力越强，反射范围越小（集中）。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="理解镜面反射反光度和风氏模型反射缺陷">
+<meta property="og:url" content="https://saiumr.github.io/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/index.html">
 <meta property="og:site_name" content="cola&#39;s blog">
-<meta property="og:description" content="热爱技术，崇尚自由">
+<meta property="og:description" content="反光度反映物体表面的光滑程度，越大反射光线的能力越强，反射范围越小（集中）。">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2025-10-22T07:05:20.000Z">
+<meta property="article:modified_time" content="2025-10-22T07:50:03.731Z">
 <meta property="article:author" content="cola">
+<meta property="article:tag" content="OpenGL">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://saiumr.github.io/archives/">
+<link rel="canonical" href="https://saiumr.github.io/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"archives/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/","path":"2025/10/22/理解镜面反射反光度/","title":"理解镜面反射反光度和风氏模型反射缺陷"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>归档 | cola's blog</title>
+<title>理解镜面反射反光度和风氏模型反射缺陷 | cola's blog</title>
   
 
 
@@ -70,7 +73,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">cola's blog</h1>
+      <p class="site-title">cola's blog</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -182,169 +185,121 @@
 
     </div>
 
-    <div class="main-inner archive posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
-  
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 7 篇日志。 继续努力。</span>
-      </div>
 
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/cola.jpg">
+      <meta itemprop="name" content="cola">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cola's blog">
+      <meta itemprop="description" content="热爱技术，崇尚自由">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="理解镜面反射反光度和风氏模型反射缺陷 | cola's blog">
+      <meta itemprop="description" content="反光度反映物体表面的光滑程度，越大反射光线的能力越强，反射范围越小（集中）。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          理解镜面反射反光度和风氏模型反射缺陷
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
       
-    <div class="collection-year">
-      <span class="collection-header">2025<span class="collection-year-count">7</span></span>
+
+      <time title="创建时间：2025-10-22 15:05:20 / 修改时间：15:50:03" itemprop="dateCreated datePublished" datetime="2025-10-22T15:05:20+08:00">2025-10-22</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">图形学</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">反光度反映物体表面的光滑程度，越大反射光线的能力越强，反射范围越小（集中）。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>在风氏模型中，计算镜面反射最后要用物体<strong>反光度</strong>作为指数，对视觉中看到的<strong>光强</strong>进行<strong>幂运算</strong>得到最终结果。  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> spec = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(view_direction, light_reflect_direction), <span class="number">0.0</span>f), material.shininess);</span><br></pre></td></tr></table></figure>
+
+<p>shininess（反光度）是控制镜面高光 “锐利程度” 的核心参数。  </p>
+<p>我们把上面的语句拆开：  </p>
+<ul>
+<li><p><code>dot(view_direction, light_reflect_direction)</code>，这计算的是视线方向与反射光方向夹角的余弦值（范围 [-1, 1]），我们在外层加了个<code>max(..., 0)</code>是默认当反射光和视线成钝角时（余弦值为负数），相当于光线没进入人眼，反光强度为0（通过学习<strong>Blinn-Phong模型</strong>我们知道这并不自然）  </p>
+</li>
+<li><p><code>pow(..., shininess)</code>，pow函数作为一个衰减函数，在反光度shininess<strong>很小</strong>时会衰减得很慢，例如，<code>0.8^1 = 0.8</code>，<code>0.5^1 = 0.5</code>，意味着<strong>较大范围的角度都能贡献明显的高光</strong>（高光区域大而模糊）；而反光度shininess<strong>很大</strong>时会衰减得很快，例如，<code>8^100 ≈ 0，0.95^100 ≈ 0.6</code>，意味着<strong>只有视线与反射光方向非常接近时（夹角极小）才有高光</strong>（高光区域小而锐利）</p>
+</li>
+</ul>
+<p>所以反光度某种意义上是一个用来模拟表面的粗糙 &#x2F; 光滑程度的参数，反光度越小，物体表面越粗糙，越大越光滑（下面两个参数资料来自AI回答）。  </p>
+<ul>
+<li>低 shininess（如 1～32）：模拟粗糙表面（如木头、石头、磨砂塑料）。<br>这类表面会把光线向四面八方散射，所以镜面高光范围大、边缘模糊，亮度随角度变化平缓。</li>
+<li>高 shininess（如 64～1024）：模拟光滑表面（如金属、镜子、抛光塑料）。<br>这类表面的反射更集中，只有在视线接近反射光方向时才能看到高光，所以高光区域小、边缘锐利，亮度随角度变化剧烈。</li>
+</ul>
+<p>由此引申出风氏模型计算镜面光的不自然之处，在物体表面粗糙时（反光度小），反光的范围大，在远处表面即使光线和视线形成钝角，我们应该还是能看到一些反射光而不是直接为0。  </p>
+<p>我们可以想象一下为什么风氏模型镜面反射表现不自然；比如我们面前放着一张砂纸，太阳在我们脑后，这时反射光和视线是为钝角的，但我们依然可以看到砂纸表面斑驳的亮点，究其原因就是砂纸表面粗糙，光线在某些地方还是能和视线形成锐角的，而不是超过一定角度就直接变暗。  </p>
+<p>我们在<strong>Blinn-Phong</strong>模型中利用<strong>半程向量</strong>解决了这个问题，但实际上这也只是一种模拟罢了，只是比传统风氏模型更自然点，不会出现在某处光线突然变暗的情况。  </p>
+<p>应该可以这么去理解，真正光滑的表面就是一个表面，而粗糙的表面是由无数细小杂乱的表面组合而成的，要计算<strong>真正的</strong>反射计算量太大，实现也过于复杂。  </p>
+<p>所以微观上可以这样理解反光度shininess，它小，表示无数小平面朝向极乱；它大，表示无数小平面朝向趋于一致。  </p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-10-22T15:05:20+08:00"
-              content="2025-10-22">
-          10-22
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/" itemprop="url">
-            <span itemprop="name">理解镜面反射反光度和风氏模型反射缺陷</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+          </div>
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/17/%E6%B3%95%E7%BA%BF%E7%9F%A9%E9%98%B5%E7%9A%84%E6%8E%A8%E5%AF%BC/" rel="prev" title="法线矩阵的推导">
+                  <i class="fa fa-angle-left"></i> 法线矩阵的推导
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-10-17T11:36:38+08:00"
-              content="2025-10-17">
-          10-17
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/10/17/%E6%B3%95%E7%BA%BF%E7%9F%A9%E9%98%B5%E7%9A%84%E6%8E%A8%E5%AF%BC/" itemprop="url">
-            <span itemprop="name">法线矩阵的推导</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-09-12T14:07:47+08:00"
-              content="2025-09-12">
-          09-12
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/09/12/VAO-VBO-EBO%E4%B8%89%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB/" itemprop="url">
-            <span itemprop="name">VAO,VBO,EBO三者的关系</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-06-11T21:30:09+08:00"
-              content="2025-06-11">
-          06-11
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/06/11/CMake%E5%A4%87%E5%BF%98%E5%8D%95/" itemprop="url">
-            <span itemprop="name">CMake备忘单</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-04-22T19:33:53+08:00"
-              content="2025-04-22">
-          04-22
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/04/22/%E7%AE%80%E5%8D%95CPU%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5/" itemprop="url">
-            <span itemprop="name">简单CPU设计实践</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-04-13T02:51:09+08:00"
-              content="2025-04-13">
-          04-13
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/04/13/%E9%85%8D%E7%BD%AE%E7%BB%88%E7%AB%AF%E4%BB%A3%E7%90%86/" itemprop="url">
-            <span itemprop="name">配置终端代理</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
-
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-02-23T18:10:52+08:00"
-              content="2025-02-23">
-          02-23
-        </time>
-      </div>
-
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/02/23/%E5%88%A9%E7%94%A8github%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/" itemprop="url">
-            <span itemprop="name">利用github搭建个人博客（使用hexo）</span>
-          </a>
-      </div>
-
-      
-    </header>
-  </article>
+</div>
 
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
 
 </div>
   </main>

@@ -523,7 +523,7 @@ M&#x27; = (M^{-1})^T
 </annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">ce</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
 
 <p>下面是gamma校正和衰减方程的效果组合，可以看出，不开启gamma校正时，衰减使用双曲线方程更好，开启时选用二次方程效果更好。  </p>
-<p>在Demo <a href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果。</p>
+<p>在Demo <a href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果（有修改，效果可能不同）。</p>
 <table>
 <thead>
 <tr>
@@ -536,6 +536,7 @@ M&#x27; = (M^{-1})^T
 <td><img src="/../images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic4"></td>
 </tr>
 </tbody></table>
+<p>上面的效果，图片的解码是在片段着色器中进行的，后来我修改使用OpenGL内部纹理格式加载纹理，颜色效果和上面的有些区别。  </p>
 <h3 id="引用小结"><a href="#引用小结" class="headerlink" title="引用小结"></a>引用小结</h3><blockquote>
 <p>gamma校正使我们可以在线性空间中进行操作。因为线性空间更符合物理世界，大多数物理公式现在都可以获得较好效果，比如真实的光的衰减。你的光照越真实，使用gamma校正获得漂亮的效果就越容易。这也正是为什么当引进gamma校正时，建议只去调整光照参数的原因。  </p>
 </blockquote>

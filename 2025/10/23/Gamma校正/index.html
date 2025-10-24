@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#222" media="(prefers-color-scheme: dark)"><meta name="generator" content="Hexo 7.3.0">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-cola.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-cola.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-cola.png">
+  <link rel="mask-icon" href="/images/logo-cola.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha256-dABdfBfUoC8vJUBOwGVdm8L9qlMWaHTIfXt+7GnZCIo=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"saiumr.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
+
+    <meta name="description" content="Gamma校正本质是解决 “渲染结果和人眼感知不匹配” 的方式，让画面的明暗过渡更自然，避免过亮或过暗。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Gamma校正">
+<meta property="og:url" content="https://saiumr.github.io/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/index.html">
+<meta property="og:site_name" content="cola&#39;s blog">
+<meta property="og:description" content="Gamma校正本质是解决 “渲染结果和人眼感知不匹配” 的方式，让画面的明暗过渡更自然，避免过亮或过暗。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_2-Gamma%E6%A0%A1%E6%AD%A3.png">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_3-Gamma%E6%A0%A1%E6%AD%A3.png">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_4-1-Gamma%E6%A0%A1%E6%AD%A3.gif">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_4-2-Gamma%E6%A0%A1%E6%AD%A3.gif">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_4-3-Gamma%E6%A0%A1%E6%AD%A3.gif">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif">
+<meta property="article:published_time" content="2025-10-23T08:11:50.000Z">
+<meta property="article:modified_time" content="2025-10-24T03:13:41.479Z">
+<meta property="article:author" content="cola">
+<meta property="article:tag" content="OpenGL">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saiumr.github.io/images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png">
+
+
+<link rel="canonical" href="https://saiumr.github.io/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/","path":"2025/10/23/Gamma校正/","title":"Gamma校正"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Gamma校正 | cola's blog</title>
+  
+
+
+
+
+
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+<!-- hexo injector head_end start --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css" integrity="sha512-fHwaWebuwA7NSF5Qg/af4UeDx9XqUpYpOGgubo3yWu+b2IQR4UeQwbb42Ti7gVAjNtVoI/I9TEoYeu9omwcC6g==" crossorigin="anonymous" referrerpolicy="no-referrer" /><!-- hexo injector head_end end --></head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">cola's blog</p>
+      <i class="logo-line"></i>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+        <i class="fa fa-search fa-fw fa-lg"></i>
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">7</span></a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">8</span></a></li>
+      <li class="menu-item menu-item-search">
+        <a role="button" class="popup-trigger"><i class="fa fa-search fa-fw"></i>搜索
+        </a>
+      </li>
+  </ul>
+</nav>
+
+
+
+  <div class="search-pop-overlay">
+    <div class="popup search-popup">
+      <div class="search-header">
+        <span class="search-icon">
+          <i class="fa fa-search"></i>
+        </span>
+        <div class="search-input-container">
+          <input autocomplete="off" autocapitalize="off" maxlength="80"
+                placeholder="搜索..." spellcheck="false"
+                type="search" class="search-input">
+        </div>
+        <span class="popup-btn-close" role="button">
+          <i class="fa fa-times-circle"></i>
+        </span>
+      </div>
+      <div class="search-result-container">
+        <div class="search-result-icon">
+          <i class="fa fa-spinner fa-pulse fa-5x"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A6%82%E6%8B%AC%E7%90%86%E8%A7%A3Gamma%E6%A0%A1%E6%AD%A3"><span class="nav-number">1.</span> <span class="nav-text">概括理解Gamma校正</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BA%94%E7%94%A8%E4%B8%8E%E6%95%88%E6%9E%9C"><span class="nav-number">2.</span> <span class="nav-text">应用与效果</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#sRGB%E7%BA%B9%E7%90%86%E5%92%8C%E8%A7%A3%E7%A0%81"><span class="nav-number">3.</span> <span class="nav-text">sRGB纹理和解码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%89%E7%85%A7%E8%A1%B0%E5%87%8F"><span class="nav-number">4.</span> <span class="nav-text">光照衰减</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%BC%95%E7%94%A8%E5%B0%8F%E7%BB%93"><span class="nav-number">5.</span> <span class="nav-text">引用小结</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="cola"
+      src="/images/cola.jpg">
+  <p class="site-author-name" itemprop="name">cola</p>
+  <div class="site-description" itemprop="description">热爱技术，崇尚自由</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">8</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">7</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author animated">
+      <span class="links-of-author-item">
+        <a href="https://github.com/saiumr" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;saiumr" rel="noopener me" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+  </div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/cola.jpg">
+      <meta itemprop="name" content="cola">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cola's blog">
+      <meta itemprop="description" content="热爱技术，崇尚自由">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Gamma校正 | cola's blog">
+      <meta itemprop="description" content="Gamma校正本质是解决 “渲染结果和人眼感知不匹配” 的方式，让画面的明暗过渡更自然，避免过亮或过暗。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Gamma校正
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2025-10-23 16:11:50" itemprop="dateCreated datePublished" datetime="2025-10-23T16:11:50+08:00">2025-10-23</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2025-10-24 11:13:41" itemprop="dateModified" datetime="2025-10-24T11:13:41+08:00">2025-10-24</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">图形学</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">Gamma校正本质是解决 “渲染结果和人眼感知不匹配” 的方式，让画面的明暗过渡更自然，避免过亮或过暗。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><h3 id="概括理解Gamma校正"><a href="#概括理解Gamma校正" class="headerlink" title="概括理解Gamma校正"></a>概括理解Gamma校正</h3><p>人眼感受色彩变化是非线性的，对暗的颜色更有辨识度，一旦亮起来感受就不那么明显了；而我们处理光照计算是在线性空间中进行的，这样才能计算得准确，这便有了<strong>Gamma校正</strong>，帮助我们计算出“真正”的颜色。</p>
+<p>现在大多数图片和显示器都遵循 sRGB 色彩空间，而 sRGB 本身就内置了Gamma校正规则（默认 γ≈2.2），即图片保存时已按此规则编码，显示器显示时也会按此规则转换光强。  </p>
+<p>我们在处理图片颜色的时候，需要进行“解码”，“计算”，“编码”三个步骤。解码是把图片中已Gamma编码的非线性 RGB 值（sRGB 格式）转换为线性 RGB 值，方便我们计算光照（计算得准确），而编码是把计算完成的线性 RGB 值，按 sRGB 的Gamma规则转换为非线性 RGB 值，让人眼感官看起来更舒适自然。  </p>
+<p>如果跳过解码，光照计算会用错误的非线性值，导致暗部过暗、亮部过曝；如果跳过编码，线性值会被显示器<strong>二次Gamma处理</strong>，画面整体过亮失真。  </p>
+<p>总的来说，Gamma校正包含“解码”和“编码”这两部分，“解码”是为了将颜色空间从非线性转换到线性空间去“计算”，当然如果颜色空间本身就是线性的就不用解码了，这牵扯到<strong>双重校正</strong>的问题，顾名思义，就是进行了两次gamma校正（本质是进行了两次编码），下面的内容会分析并解决此问题。  </p>
+<h3 id="应用与效果"><a href="#应用与效果" class="headerlink" title="应用与效果"></a>应用与效果</h3><p>(1) 直接使用OpenGL内建的sRGB帧缓冲。请看下面对比图，右图开启Gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glEnable(GL_FRAMEBUFFER_SRGB);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png" alt="GL_FRAMEBUFFER_SRGB">  </p>
+<p>需要注意的是，多渲染目标（多帧缓冲）之间传递时，必须保持线性颜色，不能提前做伽马校正。只有最后一步将颜色输出到屏幕（绑定显示器对应的帧缓冲）时，才需要开启GL_FRAMEBUFFER_SRGB；如果在中间帧缓冲传递时就开启这个选项，会导致中间结果变成非线性颜色，后续再基于这些颜色计算（比如模糊、光效），结果就会出错。  </p>
+<p>(2) 自己在片段着色器中进行gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 在线性空间做炫酷的光照效果</span></span><br><span class="line">    [...]</span><br><span class="line">    <span class="comment">// 应用Gamma校正</span></span><br><span class="line">    <span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line">    <span class="comment">// gamma encode</span></span><br><span class="line">    fragColor.rgb = <span class="built_in">pow</span>(fragColor.rgb, <span class="type">vec3</span>(<span class="number">1.0</span>/gamma));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_2-Gamma%E6%A0%A1%E6%AD%A3.png" alt="片段着色器Gamma校正">  </p>
+<h3 id="sRGB纹理和解码"><a href="#sRGB纹理和解码" class="headerlink" title="sRGB纹理和解码"></a>sRGB纹理和解码</h3><p>我们上面Gamma校正之后的图，有没有感觉过于亮了？因为我们现在用的纹理图片大多是 sRGB 格式，它们在保存时就已经经过一次Gamma编码，而我们又用OpenGL进行了一次Gamma编码，导致画面过曝。也就是说，我们的光照计算实际是在非线性颜色空间中，所以我们需要先解码图片，在线性颜色空间中计算光照后再编码。  </p>
+<p>解码也很简单，只需要对光照颜色进行“<strong>逆</strong>”Gamma校正就能转换其到线性颜色空间了：  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line"><span class="comment">// gamma decode</span></span><br><span class="line"><span class="type">vec3</span> diffuseColor = <span class="built_in">pow</span>(<span class="built_in">texture</span>(diffuse, texCoords).rgb, <span class="type">vec3</span>(gamma));</span><br></pre></td></tr></table></figure>
+
+<p>解码之后再编码便真正只进行一次编码，效果如下：  </p>
+<p><img src="/../images/post/ogl-2_3-Gamma%E6%A0%A1%E6%AD%A3.png" alt="use gamma to decode">  </p>
+<p>除了手动计算，OpenGL还提供了<strong>GL_SRGB</strong>和<strong>GL_SRGB_ALPHA</strong>内部纹理格式让我们加载纹理就自动进行解码。  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, GL_SRGB, width, height, <span class="number">0</span>, GL_RGB, GL_UNSIGNED_BYTE, image);</span><br></pre></td></tr></table></figure>
+
+<p>(需要ALPHA就指定GL_SRGB_ALPHA)  </p>
+<blockquote>
+<p>因为不是所有纹理都是在sRGB空间中的，所以当你把纹理指定为sRGB纹理加载时要格外小心。比如diffuse纹理，这种为物体上色的纹理几乎都是在sRGB空间中的。而为了获取光照参数的纹理，像specular贴图和法线贴图几乎都在线性空间中，所以如果你把它们也配置为sRGB纹理的话，光照就坏掉了。指定sRGB纹理时要当心。  </p>
+</blockquote>
+<p>将diffuse纹理定义为sRGB纹理之后，我们将获得所期望的视觉输出，但这次每个物体都会只进行一次gamma校正。  </p>
+<h3 id="光照衰减"><a href="#光照衰减" class="headerlink" title="光照衰减"></a>光照衰减</h3><p>现实中，光照衰减和光源距离平方成反比：  </p>
+<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">float</span> attenuation = <span class="number">1.0</span> / (<span class="built_in">distance</span> * <span class="built_in">distance</span>);</span><br></pre></td></tr></table></figure>
+
+<p>但在显示器上效果最好的衰减方程，并不是符合物理的。  </p>
+<p>不进行gamma校正（不解码），显示在监视器上的衰减方程实际上将变成：  </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><msup><mi>e</mi><mn>2</mn></msup><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance ^ 2) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">c</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>这时衰减会过于强烈，反而直接使用双曲线方程效果更好：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">ce</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>下面是gamma校正和衰减方程的效果组合，可以看出，不开启gamma校正时，衰减使用双曲线方程更好，开启时选用二次方程效果更好。  </p>
+<p>在Demo <a target="_blank" rel="noopener" href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果。</p>
+<table>
+<thead>
+<tr>
+<th><img src="/../images/post/ogl-2_4-1-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic1"></th>
+<th><img src="/../images/post/ogl-2_4-2-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic2"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="/../images/post/ogl-2_4-3-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic3"></td>
+<td><img src="/../images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic4"></td>
+</tr>
+</tbody></table>
+<h3 id="引用小结"><a href="#引用小结" class="headerlink" title="引用小结"></a>引用小结</h3><blockquote>
+<p>gamma校正使我们可以在线性空间中进行操作。因为线性空间更符合物理世界，大多数物理公式现在都可以获得较好效果，比如真实的光的衰减。你的光照越真实，使用gamma校正获得漂亮的效果就越容易。这也正是为什么当引进gamma校正时，建议只去调整光照参数的原因。  </p>
+</blockquote>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/" rel="prev" title="理解镜面反射反光度和风氏模型反射缺陷">
+                  <i class="fa fa-angle-left"></i> 理解镜面反射反光度和风氏模型反射缺陷
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2025</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">cola</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js" integrity="sha256-XL2inqUJaslATFnHdJOi9GfQ60on8Wx1C2H8DYiN1xY=" crossorigin="anonymous"></script>
+<script src="/js/comments.js"></script><script src="/js/utils.js"></script><script src="/js/motion.js"></script><script src="/js/sidebar.js"></script><script src="/js/next-boot.js"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/hexo-generator-searchdb/1.4.1/search.js" integrity="sha256-1kfA5uHPf65M5cphT2dvymhkuyHPQp5A53EGZOnOLmc=" crossorigin="anonymous"></script>
+<script src="/js/third-party/search/local-search.js"></script>
+
+
+
+
+
+
+
+  
+
+
+
+
+
+</body>
+</html>

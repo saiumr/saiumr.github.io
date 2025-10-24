@@ -477,4 +477,74 @@ M&#x27; = (M^{-1})^T
         <tag>OpenGL</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Gamma校正</title>
+    <url>/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/</url>
+    <content><![CDATA[<h3 id="概括理解Gamma校正"><a href="#概括理解Gamma校正" class="headerlink" title="概括理解Gamma校正"></a>概括理解Gamma校正</h3><p>人眼感受色彩变化是非线性的，对暗的颜色更有辨识度，一旦亮起来感受就不那么明显了；而我们处理光照计算是在线性空间中进行的，这样才能计算得准确，这便有了<strong>Gamma校正</strong>，帮助我们计算出“真正”的颜色。</p>
+<p>现在大多数图片和显示器都遵循 sRGB 色彩空间，而 sRGB 本身就内置了Gamma校正规则（默认 γ≈2.2），即图片保存时已按此规则编码，显示器显示时也会按此规则转换光强。  </p>
+<p>我们在处理图片颜色的时候，需要进行“解码”，“计算”，“编码”三个步骤。解码是把图片中已Gamma编码的非线性 RGB 值（sRGB 格式）转换为线性 RGB 值，方便我们计算光照（计算得准确），而编码是把计算完成的线性 RGB 值，按 sRGB 的Gamma规则转换为非线性 RGB 值，让人眼感官看起来更舒适自然。  </p>
+<p>如果跳过解码，光照计算会用错误的非线性值，导致暗部过暗、亮部过曝；如果跳过编码，线性值会被显示器<strong>二次Gamma处理</strong>，画面整体过亮失真。  </p>
+<p>总的来说，Gamma校正包含“解码”和“编码”这两部分，“解码”是为了将颜色空间从非线性转换到线性空间去“计算”，当然如果颜色空间本身就是线性的就不用解码了，这牵扯到<strong>双重校正</strong>的问题，顾名思义，就是进行了两次gamma校正（本质是进行了两次编码），下面的内容会分析并解决此问题。  </p>
+<h3 id="应用与效果"><a href="#应用与效果" class="headerlink" title="应用与效果"></a>应用与效果</h3><p>(1) 直接使用OpenGL内建的sRGB帧缓冲。请看下面对比图，右图开启Gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glEnable(GL_FRAMEBUFFER_SRGB);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png" alt="GL_FRAMEBUFFER_SRGB">  </p>
+<p>需要注意的是，多渲染目标（多帧缓冲）之间传递时，必须保持线性颜色，不能提前做伽马校正。只有最后一步将颜色输出到屏幕（绑定显示器对应的帧缓冲）时，才需要开启GL_FRAMEBUFFER_SRGB；如果在中间帧缓冲传递时就开启这个选项，会导致中间结果变成非线性颜色，后续再基于这些颜色计算（比如模糊、光效），结果就会出错。  </p>
+<p>(2) 自己在片段着色器中进行gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 在线性空间做炫酷的光照效果</span></span><br><span class="line">    [...]</span><br><span class="line">    <span class="comment">// 应用Gamma校正</span></span><br><span class="line">    <span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line">    <span class="comment">// gamma encode</span></span><br><span class="line">    fragColor.rgb = <span class="built_in">pow</span>(fragColor.rgb, <span class="type">vec3</span>(<span class="number">1.0</span>/gamma));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_2-Gamma%E6%A0%A1%E6%AD%A3.png" alt="片段着色器Gamma校正">  </p>
+<h3 id="sRGB纹理和解码"><a href="#sRGB纹理和解码" class="headerlink" title="sRGB纹理和解码"></a>sRGB纹理和解码</h3><p>我们上面Gamma校正之后的图，有没有感觉过于亮了？因为我们现在用的纹理图片大多是 sRGB 格式，它们在保存时就已经经过一次Gamma编码，而我们又用OpenGL进行了一次Gamma编码，导致画面过曝。也就是说，我们的光照计算实际是在非线性颜色空间中，所以我们需要先解码图片，在线性颜色空间中计算光照后再编码。  </p>
+<p>解码也很简单，只需要对光照颜色进行“<strong>逆</strong>”Gamma校正就能转换其到线性颜色空间了：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line"><span class="comment">// gamma decode</span></span><br><span class="line"><span class="type">vec3</span> diffuseColor = <span class="built_in">pow</span>(<span class="built_in">texture</span>(diffuse, texCoords).rgb, <span class="type">vec3</span>(gamma));</span><br></pre></td></tr></table></figure>
+
+<p>解码之后再编码便真正只进行一次编码，效果如下：  </p>
+<p><img src="/../images/post/ogl-2_3-Gamma%E6%A0%A1%E6%AD%A3.png" alt="use gamma to decode">  </p>
+<p>除了手动计算，OpenGL还提供了<strong>GL_SRGB</strong>和<strong>GL_SRGB_ALPHA</strong>内部纹理格式让我们加载纹理就自动进行解码。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, GL_SRGB, width, height, <span class="number">0</span>, GL_RGB, GL_UNSIGNED_BYTE, image);</span><br></pre></td></tr></table></figure>
+
+<p>(需要ALPHA就指定GL_SRGB_ALPHA)  </p>
+<blockquote>
+<p>因为不是所有纹理都是在sRGB空间中的，所以当你把纹理指定为sRGB纹理加载时要格外小心。比如diffuse纹理，这种为物体上色的纹理几乎都是在sRGB空间中的。而为了获取光照参数的纹理，像specular贴图和法线贴图几乎都在线性空间中，所以如果你把它们也配置为sRGB纹理的话，光照就坏掉了。指定sRGB纹理时要当心。  </p>
+</blockquote>
+<p>将diffuse纹理定义为sRGB纹理之后，我们将获得所期望的视觉输出，但这次每个物体都会只进行一次gamma校正。  </p>
+<h3 id="光照衰减"><a href="#光照衰减" class="headerlink" title="光照衰减"></a>光照衰减</h3><p>现实中，光照衰减和光源距离平方成反比：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> attenuation = <span class="number">1.0</span> / (<span class="built_in">distance</span> * <span class="built_in">distance</span>);</span><br></pre></td></tr></table></figure>
+
+<p>但在显示器上效果最好的衰减方程，并不是符合物理的。  </p>
+<p>不进行gamma校正（不解码），显示在监视器上的衰减方程实际上将变成：  </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><msup><mi>e</mi><mn>2</mn></msup><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance ^ 2) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">c</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>这时衰减会过于强烈，反而直接使用双曲线方程效果更好：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">ce</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>下面是gamma校正和衰减方程的效果组合，可以看出，不开启gamma校正时，衰减使用双曲线方程更好，开启时选用二次方程效果更好。  </p>
+<p>在Demo <a href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果。</p>
+<table>
+<thead>
+<tr>
+<th><img src="/../images/post/ogl-2_4-1-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic1"></th>
+<th><img src="/../images/post/ogl-2_4-2-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic2"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="/../images/post/ogl-2_4-3-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic3"></td>
+<td><img src="/../images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic4"></td>
+</tr>
+</tbody></table>
+<h3 id="引用小结"><a href="#引用小结" class="headerlink" title="引用小结"></a>引用小结</h3><blockquote>
+<p>gamma校正使我们可以在线性空间中进行操作。因为线性空间更符合物理世界，大多数物理公式现在都可以获得较好效果，比如真实的光的衰减。你的光照越真实，使用gamma校正获得漂亮的效果就越容易。这也正是为什么当引进gamma校正时，建议只去调整光照参数的原因。  </p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
 </search>

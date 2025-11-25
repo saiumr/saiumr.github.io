@@ -20,24 +20,29 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"saiumr.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="热爱技术，崇尚自由">
-<meta property="og:type" content="website">
-<meta property="og:title" content="cola&#39;s blog">
-<meta property="og:url" content="https://saiumr.github.io/archives/2025/06/index.html">
+    <meta name="description" content="SSAO本质是以每个像素为中心点采样，判断采样点和相同位置的像素是否有遮挡关系。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SSAO核心思想">
+<meta property="og:url" content="https://saiumr.github.io/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/index.html">
 <meta property="og:site_name" content="cola&#39;s blog">
-<meta property="og:description" content="热爱技术，崇尚自由">
+<meta property="og:description" content="SSAO本质是以每个像素为中心点采样，判断采样点和相同位置的像素是否有遮挡关系。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saiumr.github.io/images/post/ogl-3_1-ssao.png">
+<meta property="article:published_time" content="2025-11-25T06:59:17.000Z">
+<meta property="article:modified_time" content="2025-11-25T07:50:36.931Z">
 <meta property="article:author" content="cola">
+<meta property="article:tag" content="OpenGL">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saiumr.github.io/images/post/ogl-3_1-ssao.png">
 
 
-<link rel="canonical" href="https://saiumr.github.io/archives/2025/06/">
+<link rel="canonical" href="https://saiumr.github.io/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"archives/2025/06/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/","path":"2025/11/25/SSAO核心思想/","title":"SSAO核心思想"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>归档 | cola's blog</title>
+<title>SSAO核心思想 | cola's blog</title>
   
 
 
@@ -70,7 +75,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">cola's blog</h1>
+      <p class="site-title">cola's blog</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -123,7 +128,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -136,6 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">1.</span> <span class="nav-text">核心思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A2%8E%E7%A2%8E%E5%BF%B5%E3%80%81%E4%BD%9C%E5%9B%BE%E3%80%81%E5%88%86%E6%9E%90"><span class="nav-number">2.</span> <span class="nav-text">碎碎念、作图、分析</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -182,49 +188,110 @@
 
     </div>
 
-    <div class="main-inner archive posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
-  
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 10 篇日志。 继续努力。</span>
-      </div>
 
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/cola.jpg">
+      <meta itemprop="name" content="cola">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cola's blog">
+      <meta itemprop="description" content="热爱技术，崇尚自由">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="SSAO核心思想 | cola's blog">
+      <meta itemprop="description" content="SSAO本质是以每个像素为中心点采样，判断采样点和相同位置的像素是否有遮挡关系。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          SSAO核心思想
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
       
-    <div class="collection-year">
-      <span class="collection-header">2025<span class="collection-year-count">10</span></span>
+
+      <time title="创建时间：2025-11-25 14:59:17 / 修改时间：15:50:36" itemprop="dateCreated datePublished" datetime="2025-11-25T14:59:17+08:00">2025-11-25</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">图形学</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">SSAO本质是以每个像素为中心点采样，判断采样点和相同位置的像素是否有遮挡关系。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>LearnOpenGL高级光照，SSAO章节，对我个人而言很难理解，半知半解抄完所有代码之后突然顿悟了，故做个总结。  </p>
+<p>原文：<a target="_blank" rel="noopener" href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/#ssao">SSAO</a>  </p>
+<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>对于屏幕上的每一个像素（它对应着 3D 世界中的一个点 fragPos），我们都在以该点为中心、以法线 normal 为方向的半球内，随机选取 N 个采样点（比如 64 个）。  </p>
+<p>然后，我们去检查这 N 个采样点所对应的位置，在真实的场景中是否被其他物体占据。  </p>
+<p>如果一个采样点的位置被占据了（即有物体比采样点更靠近相机），我们就认为这个采样点对当前像素造成了一次 “遮挡”。  </p>
+<p>最后，通过统计这 N 个采样点中有多少个造成了遮挡，我们就能计算出当前像素的环境光被遮蔽的程度（occlusion）。遮挡的采样点越多，occlusion 值越高，该像素就越暗。</p>
+<h3 id="碎碎念、作图、分析"><a href="#碎碎念、作图、分析" class="headerlink" title="碎碎念、作图、分析"></a>碎碎念、作图、分析</h3><p>这个算法本身不难理解，关键就是“遮挡”二字，只是原文里的图越琢磨脑子越乱。  </p>
+<p>想象一下，正在上课，面前有块黑板，假设你在黑板上画了个圈，你想模拟出那个圈里面的部分黑板表面明暗程度，再假设有个“聚光玻璃罩”，能完全罩住你画的圈，聚集的光完全落在你画的圈里，平时看那块儿是很亮的，但老师来了往前面一站，挡住了一部分光线，那里就暗不少了，因为落进去的光线少了。  </p>
+<p><img src="/../images/post/ogl-3_1-ssao.png" alt="SSAO理解图"></p>
+<p>能想象出这个场景就离理解原文很接近了，按照原文的理解方式，我们以一个像素为球心作一个半球（切面和法线表面法线垂直），在里面均匀放上一些采样点，然后判断遮挡关系决定明暗。相当于把一个点扩散成一片（还是3D的），让这一片被遮挡的程度决定一个点的明暗而已，这样在我们的视线所及之处，邻近物体被遮挡的一方就会暗一些了（多近取决于我们采样半球空间的大小）。</p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-06-11T21:30:09+08:00"
-              content="2025-06-11">
-          06-11
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/06/11/CMake%E5%A4%87%E5%BF%98%E5%8D%95/" itemprop="url">
-            <span itemprop="name">CMake备忘单</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+          </div>
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/" rel="prev" title="透视投影与深度">
+                  <i class="fa fa-angle-left"></i> 透视投影与深度
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
 
 </div>
   </main>

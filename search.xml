@@ -99,6 +99,382 @@
       </tags>
   </entry>
   <entry>
+    <title>Gamma校正</title>
+    <url>/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/</url>
+    <content><![CDATA[<h3 id="概括理解Gamma校正"><a href="#概括理解Gamma校正" class="headerlink" title="概括理解Gamma校正"></a>概括理解Gamma校正</h3><p>人眼感受色彩变化是非线性的，对暗的颜色更有辨识度，一旦亮起来感受就不那么明显了；而我们处理光照计算是在线性空间中进行的，这样才能计算得准确，这便有了<strong>Gamma校正</strong>，帮助我们计算出“真正”的颜色。</p>
+<p>现在大多数图片和显示器都遵循 sRGB 色彩空间，而 sRGB 本身就内置了Gamma校正规则（默认 γ≈2.2），即图片保存时已按此规则编码，显示器显示时也会按此规则转换光强。  </p>
+<p>我们在处理图片颜色的时候，需要进行“解码”，“计算”，“编码”三个步骤。解码是把图片中已Gamma编码的非线性 RGB 值（sRGB 格式）转换为线性 RGB 值，方便我们计算光照（计算得准确），而编码是把计算完成的线性 RGB 值，按 sRGB 的Gamma规则转换为非线性 RGB 值，让人眼感官看起来更舒适自然。  </p>
+<p>如果跳过解码，光照计算会用错误的非线性值，导致暗部过暗、亮部过曝；如果跳过编码，线性值会被显示器<strong>二次Gamma处理</strong>，画面整体过亮失真。  </p>
+<p>总的来说，Gamma校正包含“解码”和“编码”这两部分，“解码”是为了将颜色空间从非线性转换到线性空间去“计算”，当然如果颜色空间本身就是线性的就不用解码了，这牵扯到<strong>双重校正</strong>的问题，顾名思义，就是进行了两次gamma校正（本质是进行了两次编码），下面的内容会分析并解决此问题。  </p>
+<h3 id="应用与效果"><a href="#应用与效果" class="headerlink" title="应用与效果"></a>应用与效果</h3><p>(1) 直接使用OpenGL内建的sRGB帧缓冲。请看下面对比图，右图开启Gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glEnable(GL_FRAMEBUFFER_SRGB);</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png" alt="GL_FRAMEBUFFER_SRGB">  </p>
+<p>需要注意的是，多渲染目标（多帧缓冲）之间传递时，必须保持线性颜色，不能提前做伽马校正。只有最后一步将颜色输出到屏幕（绑定显示器对应的帧缓冲）时，才需要开启GL_FRAMEBUFFER_SRGB；如果在中间帧缓冲传递时就开启这个选项，会导致中间结果变成非线性颜色，后续再基于这些颜色计算（比如模糊、光效），结果就会出错。  </p>
+<p>(2) 自己在片段着色器中进行gamma校正。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 在线性空间做炫酷的光照效果</span></span><br><span class="line">    [...]</span><br><span class="line">    <span class="comment">// 应用Gamma校正</span></span><br><span class="line">    <span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line">    <span class="comment">// gamma encode</span></span><br><span class="line">    fragColor.rgb = <span class="built_in">pow</span>(fragColor.rgb, <span class="type">vec3</span>(<span class="number">1.0</span>/gamma));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><img src="/../images/post/ogl-2_2-Gamma%E6%A0%A1%E6%AD%A3.png" alt="片段着色器Gamma校正">  </p>
+<h3 id="sRGB纹理和解码"><a href="#sRGB纹理和解码" class="headerlink" title="sRGB纹理和解码"></a>sRGB纹理和解码</h3><p>我们上面Gamma校正之后的图，有没有感觉过于亮了？因为我们现在用的纹理图片大多是 sRGB 格式，它们在保存时就已经经过一次Gamma编码，而我们又用OpenGL进行了一次Gamma编码，导致画面过曝。也就是说，我们的光照计算实际是在非线性颜色空间中，所以我们需要先解码图片，在线性颜色空间中计算光照后再编码。  </p>
+<p>解码也很简单，只需要对光照颜色进行“<strong>逆</strong>”Gamma校正就能转换其到线性颜色空间了：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line"><span class="comment">// gamma decode</span></span><br><span class="line"><span class="type">vec3</span> diffuseColor = <span class="built_in">pow</span>(<span class="built_in">texture</span>(diffuse, texCoords).rgb, <span class="type">vec3</span>(gamma));</span><br></pre></td></tr></table></figure>
+
+<p>解码之后再编码便真正只进行一次编码，效果如下：  </p>
+<p><img src="/../images/post/ogl-2_3-Gamma%E6%A0%A1%E6%AD%A3.png" alt="use gamma to decode">  </p>
+<p>除了手动计算，OpenGL还提供了<strong>GL_SRGB</strong>和<strong>GL_SRGB_ALPHA</strong>内部纹理格式让我们加载纹理就自动进行解码。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, GL_SRGB, width, height, <span class="number">0</span>, GL_RGB, GL_UNSIGNED_BYTE, image);</span><br></pre></td></tr></table></figure>
+
+<p>(需要ALPHA就指定GL_SRGB_ALPHA)  </p>
+<blockquote>
+<p>因为不是所有纹理都是在sRGB空间中的，所以当你把纹理指定为sRGB纹理加载时要格外小心。比如diffuse纹理，这种为物体上色的纹理几乎都是在sRGB空间中的。而为了获取光照参数的纹理，像specular贴图和法线贴图几乎都在线性空间中，所以如果你把它们也配置为sRGB纹理的话，光照就坏掉了。指定sRGB纹理时要当心。  </p>
+</blockquote>
+<p>将diffuse纹理定义为sRGB纹理之后，我们将获得所期望的视觉输出，但这次每个物体都会只进行一次gamma校正。  </p>
+<h3 id="光照衰减"><a href="#光照衰减" class="headerlink" title="光照衰减"></a>光照衰减</h3><p>现实中，光照衰减和光源距离平方成反比：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> attenuation = <span class="number">1.0</span> / (<span class="built_in">distance</span> * <span class="built_in">distance</span>);</span><br></pre></td></tr></table></figure>
+
+<p>但在显示器上效果最好的衰减方程，并不是符合物理的。  </p>
+<p>不进行gamma校正（不解码），显示在监视器上的衰减方程实际上将变成：  </p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><msup><mi>e</mi><mn>2</mn></msup><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance ^ 2) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">c</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>这时衰减会过于强烈，反而直接使用双曲线方程效果更好：</p>
+<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
+(1.0 / distance) ^ {2.2}
+</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">ce</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
+
+<p>下面是gamma校正和衰减方程的效果组合，可以看出，不开启gamma校正时，衰减使用双曲线方程更好，开启时选用二次方程效果更好。  </p>
+<p>在Demo <a href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果（有修改，效果可能不同）。</p>
+<table>
+<thead>
+<tr>
+<th><img src="/../images/post/ogl-2_4-1-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic1"></th>
+<th><img src="/../images/post/ogl-2_4-2-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic2"></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><img src="/../images/post/ogl-2_4-3-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic3"></td>
+<td><img src="/../images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic4"></td>
+</tr>
+</tbody></table>
+<p>上面的效果，图片的解码是在片段着色器中进行的，后来我修改使用OpenGL内部纹理格式加载纹理，颜色效果和上面的有些区别。  </p>
+<h3 id="引用小结"><a href="#引用小结" class="headerlink" title="引用小结"></a>引用小结</h3><blockquote>
+<p>gamma校正使我们可以在线性空间中进行操作。因为线性空间更符合物理世界，大多数物理公式现在都可以获得较好效果，比如真实的光的衰减。你的光照越真实，使用gamma校正获得漂亮的效果就越容易。这也正是为什么当引进gamma校正时，建议只去调整光照参数的原因。  </p>
+</blockquote>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>VAO,VBO,EBO三者的关系</title>
+    <url>/2025/09/12/VAO-VBO-EBO%E4%B8%89%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB/</url>
+    <content><![CDATA[<p>始终要牢记一点，OpenGL是一个巨大的状态机，当我们绑定VAO，VBO或者EBO时，实际上是在告诉OpenGL当前哪个对象处于活动状态，然后进行的操作都是和这个对象相关联的。  </p>
+<p>先看一张图有个大致理解：  </p>
+<p><img src="/../images/post/ogl-1_1-VAO%E4%B8%8EBUFFER%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt="VAO与BUFFER对象的关系">  </p>
+<p>VAO和VBO相对独立，他们的绑定互不影响，EBO与VAO强相关，它的绑定必须在绑定了一个VAO之后，VAO之中要记录EBO的状态信息，意思就是，EBO要在设置哪个VAO时激活（绑定）。  </p>
+<p>之所以这样设计，是因为索引信息和我们的顶点对象强相关，也就是说，顶点对象是个什么玩意儿某种意义上就是看EBO的，VBO是可以复用的，他就是一堆不同坐标顶点而已。  </p>
+<p>同理，EBO解绑也必须要在他相关的VAO解绑之后进行，因为如果先解绑EBO，VAO中索引信息就不是激活状态了，失效了，这时候渲染找不到索引信息会出现问题，程序甚至卡死。  </p>
+<p>当然，解绑VBO，EBO的操作不是必须的，后面会说明。  </p>
+<p>总体的关系说完了，接下来讲讲细节。  </p>
+<p>生成VAO，VBO和EBO，就是生成不同对象的句柄，这些对象逻辑都在状态机中，绑定不同句柄就能切换不同对象（数据）。</p>
+<p>绑定VAO，就是告诉状态机，我们接下来要设置或应用这个顶点对象了，设置中肯定会有的操作是，设置顶点属性指针，即<code>glVertexAttribPointer</code>，它的四个参数是描述读取顶点的方式：读多少，数据类型，步长（读取完一块每隔多少再读），起始位置；所以这个操作一定在绑定VBO之后（必须得有一个激活的VBO），这些与VBO中的数据息息相关但是对它本身毫无影响，说白了就像是设置一个指向数据的指针，按照设置的方式去读取数据，我们绑定不同的VBO可以应用不同的数据，只是不切换绑定VAO的话读取方式是固定的；  </p>
+<p>绑定VBO，EBO，顾名思义，Buffer Object，我们所使用的数据真正存在于此，肯定会有的操作是，从CPU上传顶点数据到GPU，即<code>glBufferData</code>，不同的是EBO必须在绑定VAO之后绑定，解绑同样如此。如果说VAO是通过指针应用VBO的数据，那么对EBO数据的使用，就如同直接使用，不需要任何媒介，所以并不需要设置一系列信息告诉状态机怎么用EBO中的数据，它们俩是强相关的，原因前面解释过了不再赘述。</p>
+<p>然后是解绑操作，所有的显式解绑都不是必须的，因为绑定到另一个VAO，VBO或者EBO，旧的绑定会自动解绑，但我们仍然推崇显式解绑，因为这样代码的边界更清晰。  </p>
+<p>下面是设置两个VAO一般的步骤，可以尝试自行调换函数执行顺序看看自己是否理解到位，至少，在程序执行上不会有逻辑错误，也许细节方面理解会不到位。  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;VAO_);</span><br><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;LightVAO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;VBO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;EBO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind first VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(VAO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set VBO</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ARRAY_BUFFER, <span class="built_in">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// set vertex attribute pointers to VAO</span></span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">1</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">3</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">1</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">2</span>, <span class="number">2</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">6</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">2</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">3</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">8</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set EBO</span></span><br><span class="line"><span class="comment">// EBO must bind after VAO bind</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="built_in">sizeof</span>(indices), indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// unbind VAO, VBO, EBO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind second VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(LightVAO_);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);  <span class="comment">// VBO_ and EBO_ has included buffer data</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);  <span class="comment">// EBO must unbind after VAO unbind</span></span><br></pre></td></tr></table></figure>
+
+<p>代码中30和35行可以同时去除，因为VAO和VBO绑定独立，只要不解绑VBO，后面用的数据还是原先VBO的，但是，31和36行同时去除将会执行失败，因为VAO中要存储EBO的绑定状态，所以36行不能去除，每设置一个VAO就要绑定一个EBO。  </p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>SSAO核心思想</title>
+    <url>/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/</url>
+    <content><![CDATA[<p>LearnOpenGL高级光照，SSAO章节，对我个人而言很难理解，半知半解抄完所有代码之后突然顿悟了，故做个总结。  </p>
+<p>原文：<a href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/#ssao">SSAO</a>  </p>
+<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>对于屏幕上的每一个像素（它对应着 3D 世界中的一个点 fragPos），我们都在以该点为中心、以法线 normal 为方向的半球内，随机选取 N 个采样点（比如 64 个）。  </p>
+<p>然后，我们去检查这 N 个采样点所对应的位置，在真实的场景中是否被其他物体占据。  </p>
+<p>如果一个采样点的位置被占据了（即有物体比采样点更靠近相机），我们就认为这个采样点对当前像素造成了一次 “遮挡”。  </p>
+<p>最后，通过统计这 N 个采样点中有多少个造成了遮挡，我们就能计算出当前像素的环境光被遮蔽的程度（occlusion）。遮挡的采样点越多，occlusion 值越高，该像素就越暗。</p>
+<h3 id="碎碎念、作图、分析"><a href="#碎碎念、作图、分析" class="headerlink" title="碎碎念、作图、分析"></a>碎碎念、作图、分析</h3><p>这个算法本身不难理解，关键就是“遮挡”二字，只是原文里的图越琢磨脑子越乱。  </p>
+<p>想象一下，正在上课，面前有块黑板，假设你在黑板上画了个圈，你想模拟出那个圈里面的部分黑板表面明暗程度，再假设有个“聚光玻璃罩”，能完全罩住你画的圈，聚集的光完全落在你画的圈里，平时看那块儿是很亮的，但老师来了往前面一站，挡住了一部分光线，那里就暗不少了，因为落进去的光线少了。  </p>
+<p><img src="/../images/post/ogl-3_1-ssao.png" alt="SSAO理解图"></p>
+<p>能想象出这个场景就离理解原文很接近了，按照原文的理解方式，我们以一个像素为球心作一个半球（切面和法线表面法线垂直），在里面均匀放上一些采样点，然后判断遮挡关系决定明暗。相当于把一个点扩散成一片（还是3D的），让这一片被遮挡的程度决定一个点的明暗而已，这样在我们的视线所及之处，邻近物体被遮挡的一方就会暗一些了（多近取决于我们采样半球空间的大小）。</p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>理解镜面反射反光度和风氏模型反射缺陷</title>
+    <url>/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/</url>
+    <content><![CDATA[<p>在风氏模型中，计算镜面反射最后要用物体<strong>反光度</strong>作为指数，对视觉中看到的<strong>光强</strong>进行<strong>幂运算</strong>得到最终结果。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> spec = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(view_direction, light_reflect_direction), <span class="number">0.0</span>f), material.shininess);</span><br></pre></td></tr></table></figure>
+
+<p>shininess（反光度）是控制镜面高光 “锐利程度” 的核心参数。  </p>
+<p>我们把上面的语句拆开：  </p>
+<ul>
+<li><p><code>dot(view_direction, light_reflect_direction)</code>，这计算的是视线方向与反射光方向夹角的余弦值（范围 [-1, 1]），我们在外层加了个<code>max(..., 0)</code>是默认当反射光和视线成钝角时（余弦值为负数），相当于光线没进入人眼，反光强度为0（通过学习<strong>Blinn-Phong模型</strong>我们知道这并不自然）  </p>
+</li>
+<li><p><code>pow(..., shininess)</code>，pow函数作为一个衰减函数，在反光度shininess<strong>很小</strong>时会衰减得很慢，例如，<code>0.8^1 = 0.8</code>，<code>0.5^1 = 0.5</code>，意味着<strong>较大范围的角度都能贡献明显的高光</strong>（高光区域大而模糊）；而反光度shininess<strong>很大</strong>时会衰减得很快，例如，<code>8^100 ≈ 0，0.95^100 ≈ 0.6</code>，意味着<strong>只有视线与反射光方向非常接近时（夹角极小）才有高光</strong>（高光区域小而锐利）</p>
+</li>
+</ul>
+<p>所以反光度某种意义上是一个用来模拟表面的粗糙 &#x2F; 光滑程度的参数，反光度越小，物体表面越粗糙，越大越光滑（下面两个参数资料来自AI回答）。  </p>
+<ul>
+<li>低 shininess（如 1～32）：模拟粗糙表面（如木头、石头、磨砂塑料）。<br>这类表面会把光线向四面八方散射，所以镜面高光范围大、边缘模糊，亮度随角度变化平缓。</li>
+<li>高 shininess（如 64～1024）：模拟光滑表面（如金属、镜子、抛光塑料）。<br>这类表面的反射更集中，只有在视线接近反射光方向时才能看到高光，所以高光区域小、边缘锐利，亮度随角度变化剧烈。</li>
+</ul>
+<p>由此引申出风氏模型计算镜面光的不自然之处，在物体表面粗糙时（反光度小），反光的范围大，在远处表面即使光线和视线形成钝角，我们应该还是能看到一些反射光而不是直接为0。  </p>
+<p>我们可以想象一下为什么风氏模型镜面反射表现不自然；比如我们面前放着一张砂纸，太阳在我们脑后，这时反射光和视线是为钝角的，但我们依然可以看到砂纸表面斑驳的亮点，究其原因就是砂纸表面粗糙，光线在某些地方还是能和视线形成锐角的，而不是超过一定角度就直接变暗。  </p>
+<p>我们在<strong>Blinn-Phong</strong>模型中利用<strong>半程向量</strong>解决了这个问题，但实际上这也只是一种模拟罢了，只是比传统风氏模型更自然点，不会出现在某处光线突然变暗的情况。  </p>
+<p>应该可以这么去理解，真正光滑的表面就是一个表面，而粗糙的表面是由无数细小杂乱的表面组合而成的，要计算<strong>真正的</strong>反射计算量太大，实现也过于复杂。  </p>
+<p>所以微观上可以这样理解反光度shininess，它小，表示无数小平面朝向极乱；它大，表示无数小平面朝向趋于一致。  </p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>透视投影与深度</title>
+    <url>/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/</url>
+    <content><![CDATA[<p>先记录两篇博客：  </p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/122411512">推导投影矩阵</a>  </li>
+<li><a href="https://zhuanlan.zhihu.com/p/718895401">3DGS学习笔记-透视投影矩阵推导</a></li>
+</ul>
+<p>这两篇笔记都是推导透视投影矩阵的，通过第二篇文章可知第一篇文章的推导是基于<strong>左手坐标系</strong>的，最明显的区别就在于，透视投影矩阵的<strong>第四行</strong>是<code>(0,0,1,0)</code>还是<code>(0,0,-1,0)</code>，前者是左手坐标系，后者是右手坐标系。  </p>
+<p>相机空间点 <code>(x_cam, y_cam, z_cam, 1)</code>（z_cam 为负，因为在相机前方）→ 透视投影矩阵变换 → 裁剪空间点 <code>(x_clip, y_clip, z_clip, w_clip=-z_cam)</code> → 透视除法 <code>(x_clip/w_clip, y_clip/w_clip, z_clip/w_clip)</code> → NDC。</p>
+<p>经过透视投影之后，观察空间转换到裁剪空间，OpenGL采用右手坐标系，<code>w_clip = -z_cam</code>，如果是左手坐标系，<code>w_clip = z_cam</code>。  </p>
+<p>注意是裁剪空间中的w与观察空间中z的关系。  </p>
+<p>这个关系是透视除法的关键，因为 <strong>w_clip</strong> 恰好是物体到相机的距离，我们经过透视除法能营造出“<strong>近大远小</strong>”的效果。  </p>
+<p>透视投影还会改变坐标系手性，注意看透视投影矩阵第三行，把z轴翻了个面，所以透视投影之后的裁剪空间，NDC，视口变换都在左手坐标系中。  </p>
+<p>我们可以利用透视除法（齐次除法），将裁剪空间转换为NDC（Normalized Device Coordinates，标准化设备坐标），NDC中xyz的范围都是<code>[-1,1]</code>，其z值就是<strong>规范化的深度值</strong>，超出这个范围的顶点将被裁剪不做渲染。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">vec3</span> ndc = <span class="built_in">gl_Position</span>.xyz / <span class="built_in">gl_Position</span>.w;</span><br></pre></td></tr></table></figure>
+
+<p>手动计算 NDC 一般都是为了获取规范化的深度值做一些渲染工作。  </p>
+<p>需要注意 NDC 的 z 轴方向符合左手系特性（+z指向屏幕内）。  </p>
+<p>在OpenGL渲染管线中，裁剪之后会自动执行透视除法转换到NDC。这里要提及一件事，就是<strong>深度缓冲的取值范围是[0,1]</strong>，深度缓冲中的深度值才是真正的深度值，但是“值越小越近”的逻辑和前面是一样的，切忌和规范化的深度值产生混淆。  </p>
+<p>计算深度缓冲：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">depth = (z_ndc + <span class="number">1</span>) / <span class="number">2</span>;    <span class="comment">// 将[-1,1]转换到[0, 1]</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>简单CPU设计实践</title>
+    <url>/2025/04/22/%E7%AE%80%E5%8D%95CPU%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<p>博客参考：<a href="https://lianera.github.io/post/2014/cpu-step-by-step/#:~:text=%E6%9C%AC%E6%96%87%E5%B0%86%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E4%BB%8B%E7%BB%8D%E5%A4%84%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E6%9E%B6%E6%9E%84%EF%BC%8C%E5%B9%B6%E4%B8%94%E7%94%A8%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%B5%E8%B7%AF%E6%90%AD%E5%BB%BA%E6%96%B9%E5%BC%8F%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E7%AE%80%E5%8D%95%E7%9A%848%20bit,CPU%E3%80%82%20%E7%94%B1%E4%BA%8E%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%86%85%E5%AE%B9%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%E4%BC%97%E5%A4%9A%EF%BC%8C%E5%B9%B6%E4%B8%94%E5%A4%A7%E5%A4%9A%E6%95%B0%E4%B8%93%E4%B8%9A%E5%BC%80%E8%AE%BE%E8%BF%87%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%EF%BC%8C%E6%89%80%E4%BB%A5%E5%9C%A8%E6%AD%A4%E7%95%A5%E8%BF%87%E6%95%B0%E7%94%B5%E7%9A%84%E7%9F%A5%E8%AF%86%EF%BC%8C%E5%A6%82%E6%9E%9C%E5%AF%B9%E6%95%B0%E7%94%B5%E6%9C%89%E4%BA%9B%E4%B8%8D%E6%98%8E%E7%99%BD%E7%9A%84%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%8F%82%E8%80%83%E5%85%B6%E4%BB%96%E6%95%B0%E7%94%B5%E6%95%99%E7%A8%8B%E3%80%82">简单CPU设计实践 - Lianera</a></p>
+<p>感谢每一位无私分享知识的笔者。  </p>
+<h2 id="一、基础"><a href="#一、基础" class="headerlink" title="一、基础"></a>一、基础</h2><h3 id="基本逻辑门"><a href="#基本逻辑门" class="headerlink" title="基本逻辑门"></a>基本逻辑门</h3><p>（严格意义上，只有不可分割的与、或、非门是基本逻辑门）  </p>
+<p>AND(与)、OR(或)、NOT(非)、NAND(与非)、NOR(或非)、XOR(异或)、XNOR（同或）  </p>
+<p><img src="/../images/post/cpu-1-%E5%9F%BA%E6%9C%AC%E9%80%BB%E8%BE%91%E9%97%A8.png" alt="基本逻辑门">  </p>
+<p>以上门电路真值表可查阅：<a href="https://blog.csdn.net/weixin_52487896/article/details/125889966">常见七种逻辑门真值表 - Star、H</a>  </p>
+<h3 id="组合逻辑电路分析设计方法"><a href="#组合逻辑电路分析设计方法" class="headerlink" title="组合逻辑电路分析设计方法"></a>组合逻辑电路分析设计方法</h3><p>分三步，需求分析-&gt;方案设计-&gt;电路实现  </p>
+<p><strong>第一步：需求分析-&gt;真值表</strong>  </p>
+<table>
+<thead>
+<tr>
+<th align="center">A</th>
+<th align="center">B</th>
+<th align="center">C</th>
+<th align="center">F</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">0</td>
+<td align="center">0</td>
+</tr>
+<tr>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">0</td>
+<td align="center">1</td>
+</tr>
+<tr>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+<td align="center">1</td>
+</tr>
+</tbody></table>
+<p>需要列举出所有可能（2^N行，N是输入参数个数），其中ABC是输入，F是输出  </p>
+<p><strong>第二步：化简逻辑-&gt;卡诺图</strong>  </p>
+<p>卡诺图是用来化简表达式的工具  </p>
+<ol>
+<li>把真值表中F&#x3D;1的项标在卡诺图里  </li>
+<li>圈出最大的相邻1的矩形（2×2、1×4等）  </li>
+<li>写出化简后的表达式</li>
+</ol>
+<p>比如上边真值表的例子，化简出来的表达式是：<br>F &#x3D; AB + AC + BC  </p>
+<p>这就好像是有一个仅有三道题的考试（ABC），任意写对两道题，最后的结果就是通过考试  </p>
+<p><strong>第三步：电路实现-&gt;表达式变电路</strong>  </p>
+<p>现在把表达式变成电路，还是上面的例子，<strong>AB + AC + BC</strong>，这个表达式怎么处理？  </p>
+<p>实际上这里的关系很清晰简单，只有AND和OR  </p>
+<p>第一层：用AND门做AB、AC和BC<br>第二层：用OR门把三个AND结果合并  </p>
+<h3 id="编码器"><a href="#编码器" class="headerlink" title="编码器"></a>编码器</h3><p>高低电平信号向二进制数的转换  </p>
+<p>普通编码器：任何时刻只允许有一个信号输入<br>优先编码器：允许同时输入两个以上的编码信号，只对其中优先权最高的一个进行编码  </p>
+<p>博客资料：<a href="https://zhuanlan.zhihu.com/p/569801290">自上而下理解优先编码器</a>  </p>
+<h3 id="译码器"><a href="#译码器" class="headerlink" title="译码器"></a>译码器</h3><p>二进制数向高低电平信号的转换  </p>
+<h3 id="数据选择器"><a href="#数据选择器" class="headerlink" title="数据选择器"></a>数据选择器</h3><h3 id="比较器"><a href="#比较器" class="headerlink" title="比较器"></a>比较器</h3><h3 id="加法器"><a href="#加法器" class="headerlink" title="加法器"></a>加法器</h3><h3 id="三态门"><a href="#三态门" class="headerlink" title="三态门"></a>三态门</h3><h3 id="基本触发器"><a href="#基本触发器" class="headerlink" title="基本触发器"></a>基本触发器</h3><h3 id="锁存器"><a href="#锁存器" class="headerlink" title="锁存器"></a>锁存器</h3><h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><h3 id="移位寄存器"><a href="#移位寄存器" class="headerlink" title="移位寄存器"></a>移位寄存器</h3><h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3>]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>cpu</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>配置终端代理</title>
+    <url>/2025/04/13/%E9%85%8D%E7%BD%AE%E7%BB%88%E7%AB%AF%E4%BB%A3%E7%90%86/</url>
+    <content><![CDATA[<h2 id="配置git终端代理（常用）"><a href="#配置git终端代理（常用）" class="headerlink" title="配置git终端代理（常用）"></a>配置git终端代理（常用）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置代理</span></span><br><span class="line">git config --global http.proxy <span class="string">&quot;http://127.0.0.1:10809&quot;</span></span><br><span class="line">git config --global https.proxy <span class="string">&quot;https://127.0.0.1:10809&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消代理</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
+
+<h2 id="Power-shell"><a href="#Power-shell" class="headerlink" title="Power shell"></a>Power shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"><span class="variable">$env</span>:https_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy</span><br><span class="line"><span class="variable">$env</span>:https_proxy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清除</span></span><br><span class="line">Remove-Item Env:http_proxy</span><br><span class="line">Remove-Item Env:https_proxy</span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>vpn</tag>
+        <tag>git</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>模板</title>
+    <url>/2025/12/04/%E6%A8%A1%E6%9D%BF/</url>
+    <content><![CDATA[<h3 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h3><p>普通函数其参数是特定类型  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>, <span class="type">double</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>利用函数模板我们可以让编译器根据实参推断参数类型</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// typename 关键字换 class 也行</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> R&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T, R)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>比如写一个把传进参数+1的函数，我们可以对<strong>任意类型</strong>调用（如果可以+1的话）</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">add_one</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>编译期看到调用点，才根据实参 <strong>自动生成</strong> 对应函数。  </li>
+<li>如果 T 不支持 +1，编译直接报错，而不是运行期崩溃。</li>
+</ul>
+<p>我们试着调用<code>add_one</code>  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 打印2,3,3</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">1</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0f</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0</span>) &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译报错，string不支持+int</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(std::<span class="built_in">string</span>(<span class="string">&quot;hello&quot;</span>)) &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
+
+<h3 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h3><p>和函数模板如出一辙，可以泛化类型，让我们写一个能构造任意类型数组的一个类  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 两个模板参数：类型 + 大小</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::<span class="type">size_t</span> N&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyArray</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">MyArray</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;MyArray&lt;&quot;</span> &lt;&lt; <span class="built_in">typeid</span>(T).<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot;,&quot;</span> &lt;&lt; N &lt;&lt; <span class="string">&quot;&gt;\n&quot;</span>; &#125;</span><br><span class="line">    T data[N];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    MyArray&lt;<span class="type">int</span>, <span class="number">5</span>&gt;    a;   <span class="comment">// 生成一份 int[5] 的代码</span></span><br><span class="line">    MyArray&lt;<span class="type">double</span>, <span class="number">3</span>&gt; b;   <span class="comment">// 再生成一份 double[3] 的代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="模板参数包"><a href="#模板参数包" class="headerlink" title="模板参数包"></a>模板参数包</h3><p>模板参数包是接受 <strong>任意参数类型和任意参数个数</strong> 的一个特性，使用的时候涉及到打包和解包两个操作  </p>
+<h4 id="函数模板-参数包"><a href="#函数模板-参数包" class="headerlink" title="函数模板+参数包"></a>函数模板+参数包</h4><p>我们写一个log函数，打印接收到的所有参数  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Args&gt;  <span class="comment">// 打包</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(Args... args)</span>      <span class="comment">// 解包</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ((std::cout &lt;&lt; args &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...);  <span class="comment">// fold expression, since c++17</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">log</span>(<span class="number">2025</span>, <span class="string">&quot;price=&quot;</span>, <span class="number">19.9</span>, <span class="string">&#x27;$&#x27;</span>);   <span class="comment">// 任意个数、任意类型</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的 <strong>右折表达式</strong> 会在编译期把参数包内容展开成前面操作的形式  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一元右折表达式展开</span></span><br><span class="line">((std::cout &lt;&lt; arg1 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line"> ((std::cout &lt;&lt; arg2 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line">  ((std::cout &lt;&lt; arg3 &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line">std::cout &lt;&lt; a1 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a2 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a3 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们使用递归调用来设计功能一样的log  </p>
+<p>需要注意的事，设计递归，就需要终止条件，而递归函数模板也不例外  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 终止条件</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;[log end]&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(<span class="type">const</span> Head&amp; h, Args... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; h &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">log</span>(args...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>终止条件必须写在递归函数模板之前</strong>，必须让编译器先看到递归终止条件，在递归调用到0参数时，才会调用终止条件的函数；把终止条件写在后面和不写的效果是一样的，都会编译报错，因为编译器找不到0参数函数实例，就会照着模板生成一个，然后发现模板至少需要一个参数（typename Head限制至少需要一个参数），就会生成实例失败  </p>
+<p>另外，如果存在多个可推导模板，比如上面两个log，一个用折叠表达式，一个用递归，编译器是看哪个模板更特殊决定使用哪个模板的，更特殊大致的意思是“约束更严格、匹配范围更小”，这里选用的是后面的递归形式，因为它限制了至少要有一个参数  </p>
+<h4 id="类模板-参数包"><a href="#类模板-参数包" class="headerlink" title="类模板+参数包"></a>类模板+参数包</h4><p>我们来写一个简单的tuple类，用类模板递归把参数包拆成“头+尾”，这也是标准库std::tuple的核心思想，把数据一层层存储  </p>
+<p>需要注意的是，设计递归，就需要终止条件，而递归类模板也不例外（重要的事情说两遍）  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 需要此前向声明，因为Tuple内部还使用了Tuple&lt;Tail...&gt;</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 递归的终止条件（全特化），拆包结束</span></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                   <span class="comment">// 0 个参数时的特化</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建tuple类</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Tail&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;Head, Tail...&gt;               <span class="comment">// 至少 1 个参数</span></span><br><span class="line">&#123;</span><br><span class="line">    Head value;                          <span class="comment">// 存为头部数据</span></span><br><span class="line">    Tuple&lt;Tail...&gt; tail;                 <span class="comment">// 剩下的再打包一层</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Tuple</span>(Head h, Tail... t)             <span class="comment">// 构造：把参数包一层层剥开</span></span><br><span class="line">        : <span class="built_in">value</span>(h), <span class="built_in">tail</span>(t...) &#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span>                   <span class="comment">// 递归打印</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        std::cout &lt;&lt; value &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">        tail.<span class="built_in">print</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">Tuple&lt;<span class="type">int</span>, <span class="type">double</span>, <span class="type">char</span>&gt; <span class="title">t</span><span class="params">(<span class="number">42</span>, <span class="number">3.14</span>, <span class="string">&#x27;X&#x27;</span>)</span></span>;</span><br><span class="line">    t.<span class="built_in">print</span>();                           <span class="comment">// 42 3.14 X</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="完美转发"><a href="#完美转发" class="headerlink" title="完美转发"></a>完美转发</h3><p>完美转发即把收到的实参<strong>原汁原味</strong>地转给另一段代码，既不掉引用，也不掉 const&#x2F;volatile&#96;，更不掉<strong>右值性</strong>  </p>
+<p>我们先看看普通的传参  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T arg)</span>          <span class="comment">// 按值传</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">foo</span>(arg);                <span class="comment">// 这里 arg 永远是左值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们foo函数只有一个接收右值的定义，上面的代码就会编译报错了  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp;)</span> </span>&#123;  &#125;  <span class="comment">// 右值引用</span></span><br></pre></td></tr></table></figure>
+
+<p>使用std::forward进行完美转发，保留值性  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span>   <span class="comment">// std::forward</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 三个重载</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp; x)</span>  </span>&#123; std::cout &lt;&lt; <span class="string">&quot;lvalue int&amp;        : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;rvalue int&amp;&amp;       : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">int</span>&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;const lvalue const int&amp; : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 完美转发包装器</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T&amp;&amp; arg)</span> </span>&#123;          <span class="comment">// 万能引用，仅模板推导+&amp;&amp;才是万能，这里有个引用折叠的知识点就不多说了</span></span><br><span class="line">    <span class="built_in">foo</span>(std::forward&lt;T&gt;(arg));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span>  a = <span class="number">1</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> b = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">wrapper</span>(a);        <span class="comment">// lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(b);        <span class="comment">// const lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(<span class="number">3</span>);        <span class="comment">// rvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(std::<span class="built_in">move</span>(a)); <span class="comment">// rvalue (forced transform)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>典型应用：工厂函数  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function">T* <span class="title">create</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">T</span>(std::forward&lt;Args&gt;(args)...);   <span class="comment">// 完美转发给构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="函数模板全特化"><a href="#函数模板全特化" class="headerlink" title="函数模板全特化"></a>函数模板全特化</h3><p>全特化和偏特化的概念很简单，前者是将全部模板参数定义为特定类型，后者是将部分定义为特定类型  </p>
+<p>有人可能会好奇，编译器不是会自动推断吗？干嘛还要特化这种东西  </p>
+<p>其实特化主要是针对特定类型，我们能做的事情不同，意思就是针对特定类型，函数的定义选为另一套，参数类型推导可不会改函数定义，所以这两个是完全不同的东西，别混淆了  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could calculate&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">bool</span>)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could judgement&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>*)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could read&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span>    a  &#123; <span class="number">1</span> &#125;;</span><br><span class="line">    <span class="type">float</span>  b  &#123; <span class="number">2.0f</span>&#125;;</span><br><span class="line">    <span class="type">double</span> c  &#123; <span class="number">3.0</span> &#125;;</span><br><span class="line">    <span class="type">bool</span>   e  &#123; <span class="literal">false</span> &#125;;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* d &#123; <span class="string">&quot;hello&quot;</span> &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">foo</span>(a);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(b);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(c);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(d);  <span class="comment">// could read</span></span><br><span class="line">    <span class="built_in">foo</span>(e);  <span class="comment">// could judgement</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先提及两个注意点：  </p>
+<ul>
+<li><strong>全特化不参与重载</strong>，只是给已经生成的模板实例打补丁。  </li>
+<li>如果把它写成重载函数而不是全特化，行为会不同（重载优先级更高）。</li>
+</ul>
+<p>这也是 “模板全特化 vs 重载” 经典面试题。</p>
+<p>在上面的代码中加上一个重载函数，那么最终调用的是这个重载函数，打印出”hello”  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* s)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; s &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果你喜欢先看看目录再看文章，可能发现了函数模板只提到了全特化，没错，因为函数模板不允许偏特化，这和函数重载决议有关系  </p>
+<p>说白了c++压根没考虑过两个完全一样的签名在重载决议时出现，我们的通用模板和偏特化模板可能会实例化出完全一样的函数签名，这时候就没法抉择了  </p>
+<p>而全特化的函数模板，在编译器眼里就是一个普通函数，编译器给他改了函数签名让他不参与重载决议，所以函数模板全特化是允许的，在调用点处，编译器会先看有没有普通函数可以用，再用通用模板匹配，匹配推导类型成功后再看有没有全特化的函数，这样全特化函数即使改了签名还是能被调用到  </p>
+<h3 id="类模板全特化与偏特化"><a href="#类模板全特化与偏特化" class="headerlink" title="类模板全特化与偏特化"></a>类模板全特化与偏特化</h3><p>类模板的全特化写法  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                       <span class="comment">// 全特化：两个参数全部给出具体类型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, <span class="type">double</span>&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+double Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">double</span>&gt; f2;</span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类模板的偏特化写法  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 只指定第一个，第二个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">U</span>&gt;                <span class="comment">// 注意：这里还有一个模板参数 U</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, U&gt; &#123;              <span class="comment">// 模式：只要第一实参是 int 就命中</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+? Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 指定第二个为指针，第一个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;                <span class="comment">// 仍有模板参数 T</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;T, T*&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;?+T* Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>*&gt;  f2;</span><br><span class="line">    Foo&lt;<span class="type">float</span>, <span class="type">float</span>*&gt;   f3;</span><br><span class="line">    <span class="comment">// Foo&lt;int, int*&gt;   f4;</span></span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">3.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面注释了一个f4，如果取消注释就会发现有编译错误，原因是两个偏特化都能推导定义并且编译器无法判定谁更特殊，就不知道用哪个模板生成了，解决方案也很多，去掉一个偏特化或者加一个全特化之类的，这里只是说明一下问题希望用模板时多多思考，规则有点多  </p>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>c++</tag>
+        <tag>泛型编程</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>利用github搭建个人博客（使用hexo）</title>
     <url>/2025/02/23/%E5%88%A9%E7%94%A8github%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</url>
     <content><![CDATA[<p>写在前面  </p>
@@ -233,143 +609,6 @@
       </tags>
   </entry>
   <entry>
-    <title>VAO,VBO,EBO三者的关系</title>
-    <url>/2025/09/12/VAO-VBO-EBO%E4%B8%89%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB/</url>
-    <content><![CDATA[<p>始终要牢记一点，OpenGL是一个巨大的状态机，当我们绑定VAO，VBO或者EBO时，实际上是在告诉OpenGL当前哪个对象处于活动状态，然后进行的操作都是和这个对象相关联的。  </p>
-<p>先看一张图有个大致理解：  </p>
-<p><img src="/../images/post/ogl-1_1-VAO%E4%B8%8EBUFFER%E5%AF%B9%E8%B1%A1%E7%9A%84%E5%85%B3%E7%B3%BB.png" alt="VAO与BUFFER对象的关系">  </p>
-<p>VAO和VBO相对独立，他们的绑定互不影响，EBO与VAO强相关，它的绑定必须在绑定了一个VAO之后，VAO之中要记录EBO的状态信息，意思就是，EBO要在设置哪个VAO时激活（绑定）。  </p>
-<p>之所以这样设计，是因为索引信息和我们的顶点对象强相关，也就是说，顶点对象是个什么玩意儿某种意义上就是看EBO的，VBO是可以复用的，他就是一堆不同坐标顶点而已。  </p>
-<p>同理，EBO解绑也必须要在他相关的VAO解绑之后进行，因为如果先解绑EBO，VAO中索引信息就不是激活状态了，失效了，这时候渲染找不到索引信息会出现问题，程序甚至卡死。  </p>
-<p>当然，解绑VBO，EBO的操作不是必须的，后面会说明。  </p>
-<p>总体的关系说完了，接下来讲讲细节。  </p>
-<p>生成VAO，VBO和EBO，就是生成不同对象的句柄，这些对象逻辑都在状态机中，绑定不同句柄就能切换不同对象（数据）。</p>
-<p>绑定VAO，就是告诉状态机，我们接下来要设置或应用这个顶点对象了，设置中肯定会有的操作是，设置顶点属性指针，即<code>glVertexAttribPointer</code>，它的四个参数是描述读取顶点的方式：读多少，数据类型，步长（读取完一块每隔多少再读），起始位置；所以这个操作一定在绑定VBO之后（必须得有一个激活的VBO），这些与VBO中的数据息息相关但是对它本身毫无影响，说白了就像是设置一个指向数据的指针，按照设置的方式去读取数据，我们绑定不同的VBO可以应用不同的数据，只是不切换绑定VAO的话读取方式是固定的；  </p>
-<p>绑定VBO，EBO，顾名思义，Buffer Object，我们所使用的数据真正存在于此，肯定会有的操作是，从CPU上传顶点数据到GPU，即<code>glBufferData</code>，不同的是EBO必须在绑定VAO之后绑定，解绑同样如此。如果说VAO是通过指针应用VBO的数据，那么对EBO数据的使用，就如同直接使用，不需要任何媒介，所以并不需要设置一系列信息告诉状态机怎么用EBO中的数据，它们俩是强相关的，原因前面解释过了不再赘述。</p>
-<p>然后是解绑操作，所有的显式解绑都不是必须的，因为绑定到另一个VAO，VBO或者EBO，旧的绑定会自动解绑，但我们仍然推崇显式解绑，因为这样代码的边界更清晰。  </p>
-<p>下面是设置两个VAO一般的步骤，可以尝试自行调换函数执行顺序看看自己是否理解到位，至少，在程序执行上不会有逻辑错误，也许细节方面理解会不到位。  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;VAO_);</span><br><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;LightVAO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;VBO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;EBO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind first VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(VAO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set VBO</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ARRAY_BUFFER, <span class="built_in">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// set vertex attribute pointers to VAO</span></span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">1</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">3</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">1</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">2</span>, <span class="number">2</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">6</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">2</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">3</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">8</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set EBO</span></span><br><span class="line"><span class="comment">// EBO must bind after VAO bind</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="built_in">sizeof</span>(indices), indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// unbind VAO, VBO, EBO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind second VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(LightVAO_);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);  <span class="comment">// VBO_ and EBO_ has included buffer data</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);  <span class="comment">// EBO must unbind after VAO unbind</span></span><br></pre></td></tr></table></figure>
-
-<p>代码中30和35行可以同时去除，因为VAO和VBO绑定独立，只要不解绑VBO，后面用的数据还是原先VBO的，但是，31和36行同时去除将会执行失败，因为VAO中要存储EBO的绑定状态，所以36行不能去除，每设置一个VAO就要绑定一个EBO。  </p>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>简单CPU设计实践</title>
-    <url>/2025/04/22/%E7%AE%80%E5%8D%95CPU%E8%AE%BE%E8%AE%A1%E5%AE%9E%E8%B7%B5/</url>
-    <content><![CDATA[<p>博客参考：<a href="https://lianera.github.io/post/2014/cpu-step-by-step/#:~:text=%E6%9C%AC%E6%96%87%E5%B0%86%E4%BB%8E%E9%9B%B6%E5%BC%80%E5%A7%8B%E4%BB%8B%E7%BB%8D%E5%A4%84%E7%90%86%E5%99%A8%E7%9A%84%E5%9F%BA%E6%9C%AC%E5%8E%9F%E7%90%86%E5%92%8C%E6%9E%B6%E6%9E%84%EF%BC%8C%E5%B9%B6%E4%B8%94%E7%94%A8%E7%AE%80%E5%8D%95%E7%9A%84%E7%94%B5%E8%B7%AF%E6%90%AD%E5%BB%BA%E6%96%B9%E5%BC%8F%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E9%9D%9E%E5%B8%B8%E7%AE%80%E5%8D%95%E7%9A%848%20bit,CPU%E3%80%82%20%E7%94%B1%E4%BA%8E%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%E5%86%85%E5%AE%B9%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99%E4%BC%97%E5%A4%9A%EF%BC%8C%E5%B9%B6%E4%B8%94%E5%A4%A7%E5%A4%9A%E6%95%B0%E4%B8%93%E4%B8%9A%E5%BC%80%E8%AE%BE%E8%BF%87%E6%95%B0%E5%AD%97%E7%94%B5%E8%B7%AF%EF%BC%8C%E6%89%80%E4%BB%A5%E5%9C%A8%E6%AD%A4%E7%95%A5%E8%BF%87%E6%95%B0%E7%94%B5%E7%9A%84%E7%9F%A5%E8%AF%86%EF%BC%8C%E5%A6%82%E6%9E%9C%E5%AF%B9%E6%95%B0%E7%94%B5%E6%9C%89%E4%BA%9B%E4%B8%8D%E6%98%8E%E7%99%BD%E7%9A%84%EF%BC%8C%E5%8F%AF%E4%BB%A5%E5%8F%82%E8%80%83%E5%85%B6%E4%BB%96%E6%95%B0%E7%94%B5%E6%95%99%E7%A8%8B%E3%80%82">简单CPU设计实践 - Lianera</a></p>
-<p>感谢每一位无私分享知识的笔者。  </p>
-<h2 id="一、基础"><a href="#一、基础" class="headerlink" title="一、基础"></a>一、基础</h2><h3 id="基本逻辑门"><a href="#基本逻辑门" class="headerlink" title="基本逻辑门"></a>基本逻辑门</h3><p>（严格意义上，只有不可分割的与、或、非门是基本逻辑门）  </p>
-<p>AND(与)、OR(或)、NOT(非)、NAND(与非)、NOR(或非)、XOR(异或)、XNOR（同或）  </p>
-<p><img src="/../images/post/cpu-1-%E5%9F%BA%E6%9C%AC%E9%80%BB%E8%BE%91%E9%97%A8.png" alt="基本逻辑门">  </p>
-<p>以上门电路真值表可查阅：<a href="https://blog.csdn.net/weixin_52487896/article/details/125889966">常见七种逻辑门真值表 - Star、H</a>  </p>
-<h3 id="组合逻辑电路分析设计方法"><a href="#组合逻辑电路分析设计方法" class="headerlink" title="组合逻辑电路分析设计方法"></a>组合逻辑电路分析设计方法</h3><p>分三步，需求分析-&gt;方案设计-&gt;电路实现  </p>
-<p><strong>第一步：需求分析-&gt;真值表</strong>  </p>
-<table>
-<thead>
-<tr>
-<th align="center">A</th>
-<th align="center">B</th>
-<th align="center">C</th>
-<th align="center">F</th>
-</tr>
-</thead>
-<tbody><tr>
-<td align="center">0</td>
-<td align="center">0</td>
-<td align="center">0</td>
-<td align="center">0</td>
-</tr>
-<tr>
-<td align="center">0</td>
-<td align="center">0</td>
-<td align="center">1</td>
-<td align="center">0</td>
-</tr>
-<tr>
-<td align="center">0</td>
-<td align="center">1</td>
-<td align="center">0</td>
-<td align="center">0</td>
-</tr>
-<tr>
-<td align="center">1</td>
-<td align="center">0</td>
-<td align="center">0</td>
-<td align="center">0</td>
-</tr>
-<tr>
-<td align="center">0</td>
-<td align="center">1</td>
-<td align="center">1</td>
-<td align="center">1</td>
-</tr>
-<tr>
-<td align="center">1</td>
-<td align="center">0</td>
-<td align="center">1</td>
-<td align="center">1</td>
-</tr>
-<tr>
-<td align="center">1</td>
-<td align="center">1</td>
-<td align="center">0</td>
-<td align="center">1</td>
-</tr>
-<tr>
-<td align="center">1</td>
-<td align="center">1</td>
-<td align="center">1</td>
-<td align="center">1</td>
-</tr>
-</tbody></table>
-<p>需要列举出所有可能（2^N行，N是输入参数个数），其中ABC是输入，F是输出  </p>
-<p><strong>第二步：化简逻辑-&gt;卡诺图</strong>  </p>
-<p>卡诺图是用来化简表达式的工具  </p>
-<ol>
-<li>把真值表中F&#x3D;1的项标在卡诺图里  </li>
-<li>圈出最大的相邻1的矩形（2×2、1×4等）  </li>
-<li>写出化简后的表达式</li>
-</ol>
-<p>比如上边真值表的例子，化简出来的表达式是：<br>F &#x3D; AB + AC + BC  </p>
-<p>这就好像是有一个仅有三道题的考试（ABC），任意写对两道题，最后的结果就是通过考试  </p>
-<p><strong>第三步：电路实现-&gt;表达式变电路</strong>  </p>
-<p>现在把表达式变成电路，还是上面的例子，<strong>AB + AC + BC</strong>，这个表达式怎么处理？  </p>
-<p>实际上这里的关系很清晰简单，只有AND和OR  </p>
-<p>第一层：用AND门做AB、AC和BC<br>第二层：用OR门把三个AND结果合并  </p>
-<h3 id="编码器"><a href="#编码器" class="headerlink" title="编码器"></a>编码器</h3><p>高低电平信号向二进制数的转换  </p>
-<p>普通编码器：任何时刻只允许有一个信号输入<br>优先编码器：允许同时输入两个以上的编码信号，只对其中优先权最高的一个进行编码  </p>
-<p>博客资料：<a href="https://zhuanlan.zhihu.com/p/569801290">自上而下理解优先编码器</a>  </p>
-<h3 id="译码器"><a href="#译码器" class="headerlink" title="译码器"></a>译码器</h3><p>二进制数向高低电平信号的转换  </p>
-<h3 id="数据选择器"><a href="#数据选择器" class="headerlink" title="数据选择器"></a>数据选择器</h3><h3 id="比较器"><a href="#比较器" class="headerlink" title="比较器"></a>比较器</h3><h3 id="加法器"><a href="#加法器" class="headerlink" title="加法器"></a>加法器</h3><h3 id="三态门"><a href="#三态门" class="headerlink" title="三态门"></a>三态门</h3><h3 id="基本触发器"><a href="#基本触发器" class="headerlink" title="基本触发器"></a>基本触发器</h3><h3 id="锁存器"><a href="#锁存器" class="headerlink" title="锁存器"></a>锁存器</h3><h3 id="寄存器"><a href="#寄存器" class="headerlink" title="寄存器"></a>寄存器</h3><h3 id="移位寄存器"><a href="#移位寄存器" class="headerlink" title="移位寄存器"></a>移位寄存器</h3><h3 id="计数器"><a href="#计数器" class="headerlink" title="计数器"></a>计数器</h3>]]></content>
-      <categories>
-        <category>随想</category>
-      </categories>
-      <tags>
-        <tag>cpu</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>配置终端代理</title>
-    <url>/2025/04/13/%E9%85%8D%E7%BD%AE%E7%BB%88%E7%AB%AF%E4%BB%A3%E7%90%86/</url>
-    <content><![CDATA[<h2 id="配置git终端代理（常用）"><a href="#配置git终端代理（常用）" class="headerlink" title="配置git终端代理（常用）"></a>配置git终端代理（常用）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置代理</span></span><br><span class="line">git config --global http.proxy <span class="string">&quot;http://127.0.0.1:10809&quot;</span></span><br><span class="line">git config --global https.proxy <span class="string">&quot;https://127.0.0.1:10809&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消代理</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
-
-<h2 id="Power-shell"><a href="#Power-shell" class="headerlink" title="Power shell"></a>Power shell</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"><span class="variable">$env</span>:https_proxy = <span class="string">&quot;http://代理服务器地址:端口&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看</span></span><br><span class="line"><span class="variable">$env</span>:http_proxy</span><br><span class="line"><span class="variable">$env</span>:https_proxy</span><br><span class="line"></span><br><span class="line"><span class="comment"># 清除</span></span><br><span class="line">Remove-Item Env:http_proxy</span><br><span class="line">Remove-Item Env:https_proxy</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>随想</category>
-      </categories>
-      <tags>
-        <tag>vpn</tag>
-        <tag>git</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>法线矩阵的推导</title>
     <url>/2025/10/17/%E6%B3%95%E7%BA%BF%E7%9F%A9%E9%98%B5%E7%9A%84%E6%8E%A8%E5%AF%BC/</url>
     <content><![CDATA[<p>首先明确一点，法线矩阵是计算法线变换的矩阵，使得新的法线仍垂直于原来的平面。因为模型矩阵转化物体到世界坐标时，除了平移和均匀缩放，都可能破坏原法线的垂直性，比如将一个cube绕x轴旋转30度，原来的法线仍在y平面和z平面上，但物体表面已经不再原位置上了，这时我们需要把原法线也绕x轴旋转30度才能保持他们仍是原表面的法线。  </p>
@@ -437,160 +676,6 @@ M&#x27; = (M^{-1})^T
 
 <p>在OpenGL中，我们常常在着色器中这样计算法线矩阵：  </p>
 <figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">Normal = <span class="type">mat3</span>(<span class="built_in">transpose</span>(<span class="built_in">inverse</span>(model))) * aNormal;</span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>理解镜面反射反光度和风氏模型反射缺陷</title>
-    <url>/2025/10/22/%E7%90%86%E8%A7%A3%E9%95%9C%E9%9D%A2%E5%8F%8D%E5%B0%84%E5%8F%8D%E5%85%89%E5%BA%A6/</url>
-    <content><![CDATA[<p>在风氏模型中，计算镜面反射最后要用物体<strong>反光度</strong>作为指数，对视觉中看到的<strong>光强</strong>进行<strong>幂运算</strong>得到最终结果。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> spec = <span class="built_in">pow</span>(<span class="built_in">max</span>(<span class="built_in">dot</span>(view_direction, light_reflect_direction), <span class="number">0.0</span>f), material.shininess);</span><br></pre></td></tr></table></figure>
-
-<p>shininess（反光度）是控制镜面高光 “锐利程度” 的核心参数。  </p>
-<p>我们把上面的语句拆开：  </p>
-<ul>
-<li><p><code>dot(view_direction, light_reflect_direction)</code>，这计算的是视线方向与反射光方向夹角的余弦值（范围 [-1, 1]），我们在外层加了个<code>max(..., 0)</code>是默认当反射光和视线成钝角时（余弦值为负数），相当于光线没进入人眼，反光强度为0（通过学习<strong>Blinn-Phong模型</strong>我们知道这并不自然）  </p>
-</li>
-<li><p><code>pow(..., shininess)</code>，pow函数作为一个衰减函数，在反光度shininess<strong>很小</strong>时会衰减得很慢，例如，<code>0.8^1 = 0.8</code>，<code>0.5^1 = 0.5</code>，意味着<strong>较大范围的角度都能贡献明显的高光</strong>（高光区域大而模糊）；而反光度shininess<strong>很大</strong>时会衰减得很快，例如，<code>8^100 ≈ 0，0.95^100 ≈ 0.6</code>，意味着<strong>只有视线与反射光方向非常接近时（夹角极小）才有高光</strong>（高光区域小而锐利）</p>
-</li>
-</ul>
-<p>所以反光度某种意义上是一个用来模拟表面的粗糙 &#x2F; 光滑程度的参数，反光度越小，物体表面越粗糙，越大越光滑（下面两个参数资料来自AI回答）。  </p>
-<ul>
-<li>低 shininess（如 1～32）：模拟粗糙表面（如木头、石头、磨砂塑料）。<br>这类表面会把光线向四面八方散射，所以镜面高光范围大、边缘模糊，亮度随角度变化平缓。</li>
-<li>高 shininess（如 64～1024）：模拟光滑表面（如金属、镜子、抛光塑料）。<br>这类表面的反射更集中，只有在视线接近反射光方向时才能看到高光，所以高光区域小、边缘锐利，亮度随角度变化剧烈。</li>
-</ul>
-<p>由此引申出风氏模型计算镜面光的不自然之处，在物体表面粗糙时（反光度小），反光的范围大，在远处表面即使光线和视线形成钝角，我们应该还是能看到一些反射光而不是直接为0。  </p>
-<p>我们可以想象一下为什么风氏模型镜面反射表现不自然；比如我们面前放着一张砂纸，太阳在我们脑后，这时反射光和视线是为钝角的，但我们依然可以看到砂纸表面斑驳的亮点，究其原因就是砂纸表面粗糙，光线在某些地方还是能和视线形成锐角的，而不是超过一定角度就直接变暗。  </p>
-<p>我们在<strong>Blinn-Phong</strong>模型中利用<strong>半程向量</strong>解决了这个问题，但实际上这也只是一种模拟罢了，只是比传统风氏模型更自然点，不会出现在某处光线突然变暗的情况。  </p>
-<p>应该可以这么去理解，真正光滑的表面就是一个表面，而粗糙的表面是由无数细小杂乱的表面组合而成的，要计算<strong>真正的</strong>反射计算量太大，实现也过于复杂。  </p>
-<p>所以微观上可以这样理解反光度shininess，它小，表示无数小平面朝向极乱；它大，表示无数小平面朝向趋于一致。  </p>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>Gamma校正</title>
-    <url>/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/</url>
-    <content><![CDATA[<h3 id="概括理解Gamma校正"><a href="#概括理解Gamma校正" class="headerlink" title="概括理解Gamma校正"></a>概括理解Gamma校正</h3><p>人眼感受色彩变化是非线性的，对暗的颜色更有辨识度，一旦亮起来感受就不那么明显了；而我们处理光照计算是在线性空间中进行的，这样才能计算得准确，这便有了<strong>Gamma校正</strong>，帮助我们计算出“真正”的颜色。</p>
-<p>现在大多数图片和显示器都遵循 sRGB 色彩空间，而 sRGB 本身就内置了Gamma校正规则（默认 γ≈2.2），即图片保存时已按此规则编码，显示器显示时也会按此规则转换光强。  </p>
-<p>我们在处理图片颜色的时候，需要进行“解码”，“计算”，“编码”三个步骤。解码是把图片中已Gamma编码的非线性 RGB 值（sRGB 格式）转换为线性 RGB 值，方便我们计算光照（计算得准确），而编码是把计算完成的线性 RGB 值，按 sRGB 的Gamma规则转换为非线性 RGB 值，让人眼感官看起来更舒适自然。  </p>
-<p>如果跳过解码，光照计算会用错误的非线性值，导致暗部过暗、亮部过曝；如果跳过编码，线性值会被显示器<strong>二次Gamma处理</strong>，画面整体过亮失真。  </p>
-<p>总的来说，Gamma校正包含“解码”和“编码”这两部分，“解码”是为了将颜色空间从非线性转换到线性空间去“计算”，当然如果颜色空间本身就是线性的就不用解码了，这牵扯到<strong>双重校正</strong>的问题，顾名思义，就是进行了两次gamma校正（本质是进行了两次编码），下面的内容会分析并解决此问题。  </p>
-<h3 id="应用与效果"><a href="#应用与效果" class="headerlink" title="应用与效果"></a>应用与效果</h3><p>(1) 直接使用OpenGL内建的sRGB帧缓冲。请看下面对比图，右图开启Gamma校正。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glEnable(GL_FRAMEBUFFER_SRGB);</span><br></pre></td></tr></table></figure>
-
-<p><img src="/../images/post/ogl-2_1-Gamma%E6%A0%A1%E6%AD%A3.png" alt="GL_FRAMEBUFFER_SRGB">  </p>
-<p>需要注意的是，多渲染目标（多帧缓冲）之间传递时，必须保持线性颜色，不能提前做伽马校正。只有最后一步将颜色输出到屏幕（绑定显示器对应的帧缓冲）时，才需要开启GL_FRAMEBUFFER_SRGB；如果在中间帧缓冲传递时就开启这个选项，会导致中间结果变成非线性颜色，后续再基于这些颜色计算（比如模糊、光效），结果就会出错。  </p>
-<p>(2) 自己在片段着色器中进行gamma校正。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">void</span> main()</span><br><span class="line">&#123;</span><br><span class="line">    <span class="comment">// 在线性空间做炫酷的光照效果</span></span><br><span class="line">    [...]</span><br><span class="line">    <span class="comment">// 应用Gamma校正</span></span><br><span class="line">    <span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line">    <span class="comment">// gamma encode</span></span><br><span class="line">    fragColor.rgb = <span class="built_in">pow</span>(fragColor.rgb, <span class="type">vec3</span>(<span class="number">1.0</span>/gamma));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><img src="/../images/post/ogl-2_2-Gamma%E6%A0%A1%E6%AD%A3.png" alt="片段着色器Gamma校正">  </p>
-<h3 id="sRGB纹理和解码"><a href="#sRGB纹理和解码" class="headerlink" title="sRGB纹理和解码"></a>sRGB纹理和解码</h3><p>我们上面Gamma校正之后的图，有没有感觉过于亮了？因为我们现在用的纹理图片大多是 sRGB 格式，它们在保存时就已经经过一次Gamma编码，而我们又用OpenGL进行了一次Gamma编码，导致画面过曝。也就是说，我们的光照计算实际是在非线性颜色空间中，所以我们需要先解码图片，在线性颜色空间中计算光照后再编码。  </p>
-<p>解码也很简单，只需要对光照颜色进行“<strong>逆</strong>”Gamma校正就能转换其到线性颜色空间了：  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> gamma = <span class="number">2.2</span>;</span><br><span class="line"><span class="comment">// gamma decode</span></span><br><span class="line"><span class="type">vec3</span> diffuseColor = <span class="built_in">pow</span>(<span class="built_in">texture</span>(diffuse, texCoords).rgb, <span class="type">vec3</span>(gamma));</span><br></pre></td></tr></table></figure>
-
-<p>解码之后再编码便真正只进行一次编码，效果如下：  </p>
-<p><img src="/../images/post/ogl-2_3-Gamma%E6%A0%A1%E6%AD%A3.png" alt="use gamma to decode">  </p>
-<p>除了手动计算，OpenGL还提供了<strong>GL_SRGB</strong>和<strong>GL_SRGB_ALPHA</strong>内部纹理格式让我们加载纹理就自动进行解码。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">glTexImage2D(GL_TEXTURE_2D, <span class="number">0</span>, GL_SRGB, width, height, <span class="number">0</span>, GL_RGB, GL_UNSIGNED_BYTE, image);</span><br></pre></td></tr></table></figure>
-
-<p>(需要ALPHA就指定GL_SRGB_ALPHA)  </p>
-<blockquote>
-<p>因为不是所有纹理都是在sRGB空间中的，所以当你把纹理指定为sRGB纹理加载时要格外小心。比如diffuse纹理，这种为物体上色的纹理几乎都是在sRGB空间中的。而为了获取光照参数的纹理，像specular贴图和法线贴图几乎都在线性空间中，所以如果你把它们也配置为sRGB纹理的话，光照就坏掉了。指定sRGB纹理时要当心。  </p>
-</blockquote>
-<p>将diffuse纹理定义为sRGB纹理之后，我们将获得所期望的视觉输出，但这次每个物体都会只进行一次gamma校正。  </p>
-<h3 id="光照衰减"><a href="#光照衰减" class="headerlink" title="光照衰减"></a>光照衰减</h3><p>现实中，光照衰减和光源距离平方成反比：  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">float</span> attenuation = <span class="number">1.0</span> / (<span class="built_in">distance</span> * <span class="built_in">distance</span>);</span><br></pre></td></tr></table></figure>
-
-<p>但在显示器上效果最好的衰减方程，并不是符合物理的。  </p>
-<p>不进行gamma校正（不解码），显示在监视器上的衰减方程实际上将变成：  </p>
-<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><msup><mi>e</mi><mn>2</mn></msup><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
-(1.0 / distance ^ 2) ^ {2.2}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">c</span><span class="mord"><span class="mord mathnormal">e</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight">2</span></span></span></span></span></span></span></span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
-
-<p>这时衰减会过于强烈，反而直接使用双曲线方程效果更好：</p>
-<span class="katex-display"><span class="katex"><span class="katex-mathml"><math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><semantics><mrow><mo stretchy="false">(</mo><mn>1.0</mn><mi mathvariant="normal">/</mi><mi>d</mi><mi>i</mi><mi>s</mi><mi>t</mi><mi>a</mi><mi>n</mi><mi>c</mi><mi>e</mi><msup><mo stretchy="false">)</mo><mn>2.2</mn></msup></mrow><annotation encoding="application/x-tex">
-(1.0 / distance) ^ {2.2}
-</annotation></semantics></math></span><span class="katex-html" aria-hidden="true"><span class="base"><span class="strut" style="height:1.1141em;vertical-align:-0.25em;"></span><span class="mopen">(</span><span class="mord">1.0/</span><span class="mord mathnormal">d</span><span class="mord mathnormal">i</span><span class="mord mathnormal">s</span><span class="mord mathnormal">t</span><span class="mord mathnormal">an</span><span class="mord mathnormal">ce</span><span class="mclose"><span class="mclose">)</span><span class="msupsub"><span class="vlist-t"><span class="vlist-r"><span class="vlist" style="height:0.8641em;"><span style="top:-3.113em;margin-right:0.05em;"><span class="pstrut" style="height:2.7em;"></span><span class="sizing reset-size6 size3 mtight"><span class="mord mtight"><span class="mord mtight">2.2</span></span></span></span></span></span></span></span></span></span></span></span></span>
-
-<p>下面是gamma校正和衰减方程的效果组合，可以看出，不开启gamma校正时，衰减使用双曲线方程更好，开启时选用二次方程效果更好。  </p>
-<p>在Demo <a href="https://github.com/saiumr/LearnOpenGL">OpenGL27-GammaCorrection</a> 中，我们用键盘上的G和F分别控制这两个效果（有修改，效果可能不同）。</p>
-<table>
-<thead>
-<tr>
-<th><img src="/../images/post/ogl-2_4-1-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic1"></th>
-<th><img src="/../images/post/ogl-2_4-2-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic2"></th>
-</tr>
-</thead>
-<tbody><tr>
-<td><img src="/../images/post/ogl-2_4-3-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic3"></td>
-<td><img src="/../images/post/ogl-2_4-4-Gamma%E6%A0%A1%E6%AD%A3.gif" alt="pic4"></td>
-</tr>
-</tbody></table>
-<p>上面的效果，图片的解码是在片段着色器中进行的，后来我修改使用OpenGL内部纹理格式加载纹理，颜色效果和上面的有些区别。  </p>
-<h3 id="引用小结"><a href="#引用小结" class="headerlink" title="引用小结"></a>引用小结</h3><blockquote>
-<p>gamma校正使我们可以在线性空间中进行操作。因为线性空间更符合物理世界，大多数物理公式现在都可以获得较好效果，比如真实的光的衰减。你的光照越真实，使用gamma校正获得漂亮的效果就越容易。这也正是为什么当引进gamma校正时，建议只去调整光照参数的原因。  </p>
-</blockquote>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>透视投影与深度</title>
-    <url>/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/</url>
-    <content><![CDATA[<p>先记录两篇博客：  </p>
-<ul>
-<li><a href="https://zhuanlan.zhihu.com/p/122411512">推导投影矩阵</a>  </li>
-<li><a href="https://zhuanlan.zhihu.com/p/718895401">3DGS学习笔记-透视投影矩阵推导</a></li>
-</ul>
-<p>这两篇笔记都是推导透视投影矩阵的，通过第二篇文章可知第一篇文章的推导是基于<strong>左手坐标系</strong>的，最明显的区别就在于，透视投影矩阵的<strong>第四行</strong>是<code>(0,0,1,0)</code>还是<code>(0,0,-1,0)</code>，前者是左手坐标系，后者是右手坐标系。  </p>
-<p>相机空间点 <code>(x_cam, y_cam, z_cam, 1)</code>（z_cam 为负，因为在相机前方）→ 透视投影矩阵变换 → 裁剪空间点 <code>(x_clip, y_clip, z_clip, w_clip=-z_cam)</code> → 透视除法 <code>(x_clip/w_clip, y_clip/w_clip, z_clip/w_clip)</code> → NDC。</p>
-<p>经过透视投影之后，观察空间转换到裁剪空间，OpenGL采用右手坐标系，<code>w_clip = -z_cam</code>，如果是左手坐标系，<code>w_clip = z_cam</code>。  </p>
-<p>注意是裁剪空间中的w与观察空间中z的关系。  </p>
-<p>这个关系是透视除法的关键，因为 <strong>w_clip</strong> 恰好是物体到相机的距离，我们经过透视除法能营造出“<strong>近大远小</strong>”的效果。  </p>
-<p>透视投影还会改变坐标系手性，注意看透视投影矩阵第三行，把z轴翻了个面，所以透视投影之后的裁剪空间，NDC，视口变换都在左手坐标系中。  </p>
-<p>我们可以利用透视除法（齐次除法），将裁剪空间转换为NDC（Normalized Device Coordinates，标准化设备坐标），NDC中xyz的范围都是<code>[-1,1]</code>，其z值就是<strong>规范化的深度值</strong>，超出这个范围的顶点将被裁剪不做渲染。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">vec3</span> ndc = <span class="built_in">gl_Position</span>.xyz / <span class="built_in">gl_Position</span>.w;</span><br></pre></td></tr></table></figure>
-
-<p>手动计算 NDC 一般都是为了获取规范化的深度值做一些渲染工作。  </p>
-<p>需要注意 NDC 的 z 轴方向符合左手系特性（+z指向屏幕内）。  </p>
-<p>在OpenGL渲染管线中，裁剪之后会自动执行透视除法转换到NDC。这里要提及一件事，就是<strong>深度缓冲的取值范围是[0,1]</strong>，深度缓冲中的深度值才是真正的深度值，但是“值越小越近”的逻辑和前面是一样的，切忌和规范化的深度值产生混淆。  </p>
-<p>计算深度缓冲：  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">depth = (z_ndc + <span class="number">1</span>) / <span class="number">2</span>;    <span class="comment">// 将[-1,1]转换到[0, 1]</span></span><br></pre></td></tr></table></figure>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SSAO核心思想</title>
-    <url>/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/</url>
-    <content><![CDATA[<p>LearnOpenGL高级光照，SSAO章节，对我个人而言很难理解，半知半解抄完所有代码之后突然顿悟了，故做个总结。  </p>
-<p>原文：<a href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/#ssao">SSAO</a>  </p>
-<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>对于屏幕上的每一个像素（它对应着 3D 世界中的一个点 fragPos），我们都在以该点为中心、以法线 normal 为方向的半球内，随机选取 N 个采样点（比如 64 个）。  </p>
-<p>然后，我们去检查这 N 个采样点所对应的位置，在真实的场景中是否被其他物体占据。  </p>
-<p>如果一个采样点的位置被占据了（即有物体比采样点更靠近相机），我们就认为这个采样点对当前像素造成了一次 “遮挡”。  </p>
-<p>最后，通过统计这 N 个采样点中有多少个造成了遮挡，我们就能计算出当前像素的环境光被遮蔽的程度（occlusion）。遮挡的采样点越多，occlusion 值越高，该像素就越暗。</p>
-<h3 id="碎碎念、作图、分析"><a href="#碎碎念、作图、分析" class="headerlink" title="碎碎念、作图、分析"></a>碎碎念、作图、分析</h3><p>这个算法本身不难理解，关键就是“遮挡”二字，只是原文里的图越琢磨脑子越乱。  </p>
-<p>想象一下，正在上课，面前有块黑板，假设你在黑板上画了个圈，你想模拟出那个圈里面的部分黑板表面明暗程度，再假设有个“聚光玻璃罩”，能完全罩住你画的圈，聚集的光完全落在你画的圈里，平时看那块儿是很亮的，但老师来了往前面一站，挡住了一部分光线，那里就暗不少了，因为落进去的光线少了。  </p>
-<p><img src="/../images/post/ogl-3_1-ssao.png" alt="SSAO理解图"></p>
-<p>能想象出这个场景就离理解原文很接近了，按照原文的理解方式，我们以一个像素为球心作一个半球（切面和法线表面法线垂直），在里面均匀放上一些采样点，然后判断遮挡关系决定明暗。相当于把一个点扩散成一片（还是3D的），让这一片被遮挡的程度决定一个点的明暗而已，这样在我们的视线所及之处，邻近物体被遮挡的一方就会暗一些了（多近取决于我们采样半球空间的大小）。</p>
 ]]></content>
       <categories>
         <category>图形学</category>

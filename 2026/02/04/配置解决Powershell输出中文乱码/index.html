@@ -20,24 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"saiumr.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="热爱技术，崇尚自由">
-<meta property="og:type" content="website">
-<meta property="og:title" content="cola&#39;s blog">
-<meta property="og:url" content="https://saiumr.github.io/archives/2025/09/index.html">
+    <meta name="description" content="介绍Powershell下源码输出和cat(Get-Content)中文输出乱码的解决方式。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="配置解决Powershell输出中文乱码">
+<meta property="og:url" content="https://saiumr.github.io/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/index.html">
 <meta property="og:site_name" content="cola&#39;s blog">
-<meta property="og:description" content="热爱技术，崇尚自由">
+<meta property="og:description" content="介绍Powershell下源码输出和cat(Get-Content)中文输出乱码的解决方式。">
 <meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-02-04T02:29:53.000Z">
+<meta property="article:modified_time" content="2026-02-04T02:50:14.929Z">
 <meta property="article:author" content="cola">
+<meta property="article:tag" content="环境配置">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://saiumr.github.io/archives/2025/09/">
+<link rel="canonical" href="https://saiumr.github.io/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":false,"lang":"zh-CN","comments":"","permalink":"","path":"archives/2025/09/index.html","title":""}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/","path":"2026/02/04/配置解决Powershell输出中文乱码/","title":"配置解决Powershell输出中文乱码"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>归档 | cola's blog</title>
+<title>配置解决Powershell输出中文乱码 | cola's blog</title>
   
 
 
@@ -70,7 +73,7 @@
 
     <a href="/" class="brand" rel="start">
       <i class="logo-line"></i>
-      <h1 class="site-title">cola's blog</h1>
+      <p class="site-title">cola's blog</p>
       <i class="logo-line"></i>
     </a>
   </div>
@@ -182,49 +185,122 @@
 
     </div>
 
-    <div class="main-inner archive posts-collapse">
+    <div class="main-inner post posts-expand">
 
 
   
-  
-  
-  <div class="post-block">
-    <div class="post-content">
-      <div class="collection-title">
-        <span class="collection-header">嗯..! 目前共计 12 篇日志。 继续努力。</span>
-      </div>
 
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/cola.jpg">
+      <meta itemprop="name" content="cola">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="cola's blog">
+      <meta itemprop="description" content="热爱技术，崇尚自由">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="配置解决Powershell输出中文乱码 | cola's blog">
+      <meta itemprop="description" content="介绍Powershell下源码输出和cat(Get-Content)中文输出乱码的解决方式。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          配置解决Powershell输出中文乱码
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
       
-    <div class="collection-year">
-      <span class="collection-header">2025<span class="collection-year-count">11</span></span>
+
+      <time title="创建时间：2026-02-04 10:29:53 / 修改时间：10:50:14" itemprop="dateCreated datePublished" datetime="2026-02-04T10:29:53+08:00">2026-02-04</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E9%9A%8F%E6%83%B3/" itemprop="url" rel="index"><span itemprop="name">随想</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">介绍Powershell下源码输出和cat(Get-Content)中文输出乱码的解决方式。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>把下面的配置添加到Powershell的配置文件中，每次打开Powershell都会自动生效了，当然先建议临时修改看看有没有用。</p>
+<p>打开配置文件：  </p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
+
+<p>添加配置：  </p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># set powershell fileencoding UTF8</span></span><br><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line"><span class="comment"># set Get-Content(cat) fileencoding UTF8</span></span><br><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>我使用neovim编辑，如果没有这个文件可以新建一个：</p>
+<p>powershell管理员模式下：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
+
+<p>或者去<code>C:\Users\[用户名]\Documents\WindowsPowerShell</code>目录下新建一个<code>Microsoft.PowerShell_profile.ps1</code>文件，用记事本编辑。</p>
+<p>乱码多半是文件编码和shell输出编码不匹配的原因，我们统一选择使用<code>utf-8</code>编码，可以先临时配置先看看效果。  </p>
+<p>先查看文件编码是不是utf-8编码，方法非常多，比如用记事本或者其他什么编辑器打开，一般右下角就会有显示。  </p>
+<p>临时设置直接执行命令就好，设置cat(Get-Content)命令使用utf-8编码：  </p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>然后用cat命令检查一下乱码是否好了。</p>
+<p>再就是可执行文件的中文输出，先执行下面的命令再执行可执行文件：</p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br></pre></td></tr></table></figure>
+
+<p>看到修改生效了再写到配置文件中，如果不生效重新启动一个Powershell窗口环境不变，寻找其他方法。  </p>
+
     </div>
 
-  <article itemscope itemtype="http://schema.org/Article">
-    <header class="post-header">
-      <div class="post-meta-container">
-        <time itemprop="dateCreated"
-              datetime="2025-09-12T14:07:47+08:00"
-              content="2025-09-12">
-          09-12
-        </time>
-      </div>
+    
+    
+    
 
-      <div class="post-title">
-          <a class="post-title-link" href="/2025/09/12/VAO-VBO-EBO%E4%B8%89%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB/" itemprop="url">
-            <span itemprop="name">VAO,VBO,EBO三者的关系</span>
-          </a>
-      </div>
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/" rel="tag"># 环境配置</a>
+          </div>
 
-      
-    </header>
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2025/12/04/%E6%A8%A1%E6%9D%BF/" rel="prev" title="模板">
+                  <i class="fa fa-angle-left"></i> 模板
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
   </article>
+</div>
 
 
-    </div>
-  </div>
-  
-  
-  
+
+
+
 
 </div>
   </main>

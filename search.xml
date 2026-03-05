@@ -170,6 +170,166 @@
       </tags>
   </entry>
   <entry>
+    <title>SSAO核心思想</title>
+    <url>/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/</url>
+    <content><![CDATA[<p>LearnOpenGL高级光照，SSAO章节，对我个人而言很难理解，半知半解抄完所有代码之后突然顿悟了，故做个总结。  </p>
+<p>原文：<a href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/#ssao">SSAO</a>  </p>
+<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>对于屏幕上的每一个像素（它对应着 3D 世界中的一个点 fragPos），我们都在以该点为中心、以法线 normal 为方向的半球内，随机选取 N 个采样点（比如 64 个）。  </p>
+<p>然后，我们去检查这 N 个采样点所对应的位置，在真实的场景中是否被其他物体占据。  </p>
+<p>如果一个采样点的位置被占据了（即有物体比采样点更靠近相机），我们就认为这个采样点对当前像素造成了一次 “遮挡”。  </p>
+<p>最后，通过统计这 N 个采样点中有多少个造成了遮挡，我们就能计算出当前像素的环境光被遮蔽的程度（occlusion）。遮挡的采样点越多，occlusion 值越高，该像素就越暗。</p>
+<h3 id="碎碎念、作图、分析"><a href="#碎碎念、作图、分析" class="headerlink" title="碎碎念、作图、分析"></a>碎碎念、作图、分析</h3><p>这个算法本身不难理解，关键就是“遮挡”二字，只是原文里的图越琢磨脑子越乱。  </p>
+<p>想象一下，正在上课，面前有块黑板，假设你在黑板上画了个圈，你想模拟出那个圈里面的部分黑板表面明暗程度，再假设有个“聚光玻璃罩”，能完全罩住你画的圈，聚集的光完全落在你画的圈里，平时看那块儿是很亮的，但老师来了往前面一站，挡住了一部分光线，那里就暗不少了，因为落进去的光线少了。  </p>
+<p><img src="/../images/post/ogl-3_1-ssao.png" alt="SSAO理解图"></p>
+<p>能想象出这个场景就离理解原文很接近了，按照原文的理解方式，我们以一个像素为球心作一个半球（切面和法线表面法线垂直），在里面均匀放上一些采样点，然后判断遮挡关系决定明暗。相当于把一个点扩散成一片（还是3D的），让这一片被遮挡的程度决定一个点的明暗而已，这样在我们的视线所及之处，邻近物体被遮挡的一方就会暗一些了（多近取决于我们采样半球空间的大小）。</p>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>利用github搭建个人博客（使用hexo）</title>
+    <url>/2025/02/23/%E5%88%A9%E7%94%A8github%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</url>
+    <content><![CDATA[<p>写在前面  </p>
+<p>实际上现在github建立博客十分简单了，建立特定名称仓库后，在settings-&gt;pages里面就可以进行部署的操作，参考视频：<a href="https://www.bilibili.com/video/BV12H4y1N7Q4">Github王炸功能Pages</a>  </p>
+<p>配置next主题，可以查看此视频：<a href="https://www.bilibili.com/video/BV16W411t7mq">[馨客栈分享]使用Hexo博客搭建的个人博客</a>  </p>
+<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>下面正式开始本文  </p>
+<p>参考<a href="https://zhuanlan.zhihu.com/p/102592286">从零开始搭建个人博客（超详细）[枫叶 - 知乎]</a>  </p>
+<p><strong>感谢每一位无私分享知识的笔者</strong>  </p>
+<h3 id="注册git账号并绑定到本地"><a href="#注册git账号并绑定到本地" class="headerlink" title="注册git账号并绑定到本地"></a>注册git账号并绑定到本地</h3><p>因为我已经有了，所以这一步骤省略，网上也都是注册和使用教程  </p>
+<h3 id="安装node-js和hexo"><a href="#安装node-js和hexo" class="headerlink" title="安装node.js和hexo"></a>安装node.js和hexo</h3><p>NodeJs官网：<a href="https://nodejs.org/zh-cn">https://nodejs.org/zh-cn</a><br>在官网下载完之后直接安装就了，最好改个非C盘的路径安装，安装完成后在命令行用下面的命令检查一下是否安装成功了  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+
+<p>然后在nodejs安装目录里新建两个文件夹<code>node_cache</code>和<code>node_global</code>，接着我们用下面的命令设置npm安装模块的默认路径（注意要把命令里的路径改成自己的）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config <span class="built_in">set</span> prefix <span class="string">&quot;D:\Software\NodeJS\node_global&quot;</span></span><br><span class="line">npm config <span class="built_in">set</span> cache <span class="string">&quot;D:\Software\NodeJS\node_cache&quot;</span></span><br></pre></td></tr></table></figure>
+
+<p>打开文件管理器，右击此电脑，选择属性，选择高级系统设置配置环境变量，新增一个系统变量<code>NODE_PATH</code>，值是<code>D:\Software\NodeJS\node_modules</code>  </p>
+<p>再修改用户变量里<code>Path</code>中<code>npm</code>的路径，改成<code>D:\Software\NodeJS\node_global</code>  </p>
+<p>这样我们安装模块就会默认安装到node_global里面了  </p>
+<h3 id="修改npm安装源"><a href="#修改npm安装源" class="headerlink" title="修改npm安装源"></a>修改npm安装源</h3><p>查询安装源：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config get registry</span><br></pre></td></tr></table></figure>
+
+<p>设置安装源（下面的是淘宝镜像）：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config <span class="built_in">set</span> registry https://registry.npmmirror.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="开启一个管理员命令行窗口"><a href="#开启一个管理员命令行窗口" class="headerlink" title="开启一个管理员命令行窗口"></a>开启一个管理员命令行窗口</h3><p>后面安装包的命令都需要管理员权限，单独把这个作为一个步骤列举出来，用管理员权限打开命令行窗口  </p>
+<h3 id="安装webpack和hexo-cli"><a href="#安装webpack和hexo-cli" class="headerlink" title="安装webpack和hexo-cli"></a>安装webpack和hexo-cli</h3><p>安装webpack</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install webpack -g</span><br></pre></td></tr></table></figure>
+
+<p>如果前面设置没有问题，我们在自己设置的<code>node_modules</code>目录下应该能看到安装的包，，否则就应该在默认目录下：<code>C:\Users\[用户名]\AppData\Roaming\npm\node_modules</code>  </p>
+<p>如果错了也没关系，用命令<code>npm uninstall webpack</code>就能删除干净  </p>
+<p>接下来安装hexo-cli  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli</span><br></pre></td></tr></table></figure>
+
+<p>然后在你想要建立博客工作目录的地方使用下面的命令初始化，比如我的目录位置是<code>D:\root\blog</code>  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
+
+<p>这一步可能会clone仓库失败，github访问在国内挺随缘的，只能自行上网解决了  </p>
+<p>静态部署网页  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
+
+<p>查看静态网页（可能不会自动打开，在浏览器查看命令行给的地址）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>检查完毕后ctrl+c终止运行  </p>
+<h3 id="建立博客远程仓库"><a href="#建立博客远程仓库" class="headerlink" title="建立博客远程仓库"></a>建立博客远程仓库</h3><p>建立github仓库，需要注意仓库的名称得是<code>[用户名].github.io</code>，这也是我们个人博客的域名  </p>
+<h3 id="将Hexo部署到仓库"><a href="#将Hexo部署到仓库" class="headerlink" title="将Hexo部署到仓库"></a>将Hexo部署到仓库</h3><p>回到blog文件夹，打开<code>_config.yml</code>文件，将最后的<code>deploy</code>部分替换成下面的内容  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repository:</span> <span class="string">https://github.com/[用户名]/[用户名].github.io.git</span>  <span class="comment">#你的仓库地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span></span><br></pre></td></tr></table></figure>
+
+<p>再安装git部署插件  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
+
+<p>然后依次执行下面三条命令  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean   <span class="comment">#清除缓存文件 db.json 和已生成的静态文件 public</span></span><br><span class="line">hexo g       <span class="comment">#生成网站静态文件到默认设置的 public 文件夹(hexo generate 的缩写)</span></span><br><span class="line">hexo d       <span class="comment">#自动生成网站静态文件，并部署到设定的仓库(hexo deploy 的缩写)</span></span><br></pre></td></tr></table></figure>
+
+<p>部署完成后就可以输入你的域名访问自己的博客网站了：[用户名].github.io  </p>
+<h2 id="美化"><a href="#美化" class="headerlink" title="美化"></a>美化</h2><p>hexo主题众多，其中next深得我心，简约大气，我们建立博客是为了写文章做笔记，某种意义上什么主题并不重要，当然你可以找一个自己喜欢的  </p>
+<p>这个是next的示例站点：<a href="https://theme-next.js.org/">https://theme-next.js.org/</a><br>你可以拖到最下面查看他的源代码，找找那些你喜欢的地方是如何修改的  </p>
+<p>我们将主题仓库clone到blog&#x2F;themes&#x2F;next目录下（或者clone之后放到next目录里）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next</span><br></pre></td></tr></table></figure>
+
+<p>完成后我们修改之前改过的配置文件<code>_config.yml</code>  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Site</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">cola&#x27;s</span> <span class="string">blog</span></span><br><span class="line"><span class="attr">subtitle:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">&#x27;hello world&#x27;</span></span><br><span class="line"><span class="attr">keywords:</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">cola</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">zh-CN</span>           <span class="comment">#主题语言</span></span><br><span class="line"><span class="attr">timezone:</span> <span class="string">&#x27;Asia/Shanghai&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">theme:</span> <span class="string">hexo-theme-next</span>  <span class="comment">#主题</span></span><br></pre></td></tr></table></figure>
+
+<p>打开<code>hexo-theme-next</code>下的配置文件<code>_config.yml</code>，对主题本身作一些修改  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Schemes</span></span><br><span class="line"><span class="comment">#scheme: Muse</span></span><br><span class="line"><span class="comment">#scheme: Mist</span></span><br><span class="line"><span class="comment">#scheme: Pisces</span></span><br><span class="line"><span class="attr">scheme:</span> <span class="string">Gemini</span>    <span class="comment">#这是我选的主题</span></span><br></pre></td></tr></table></figure>
+
+<p>然后我们再在命令行输入  </p>
+<p>清理  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
+
+<p>静态部署  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
+
+<p>本地查看（先检查再部署是好习惯）</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>部署（上传到github）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+
+<p>针对主题的修改可以发挥自己的想象力，不只是修改他本身的配置文件，虽然这已经可以做到很多事情了，你可以设置头像，设置座右铭，你也可以写自己的前端代码，定制主题样式，接下来就交给你自己探索吧。  </p>
+<h2 id="如何写文章"><a href="#如何写文章" class="headerlink" title="如何写文章"></a>如何写文章</h2><p>我们的文章默认都在<code>blog/public/_post</code>下面，默认有一篇<code>helloworld.md</code>  </p>
+<p>新建一篇文章  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new post 新文章名</span><br></pre></td></tr></table></figure>
+
+<p>新建一篇草稿（不会显示在站点上）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new draft 草稿文章名</span><br></pre></td></tr></table></figure>
+
+<p>查看草稿</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s --draft</span><br></pre></td></tr></table></figure>
+
+<p>草稿转换成正式文章  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo publish 草稿文章名</span><br></pre></td></tr></table></figure>
+
+<p>简化命令</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 新建正式文章</span></span><br><span class="line">hexo n 文章名</span><br><span class="line"><span class="comment"># 新建草稿文章</span></span><br><span class="line">hexo n draft 草稿文章名</span><br><span class="line"><span class="comment"># 启动本地服务器并显示草稿</span></span><br><span class="line">hexo s -d</span><br></pre></td></tr></table></figure>
+
+<p>写完文章之后用<code>hexo d</code>部署，就可以在网页端看到我们的文章了，当然，先检查再部署才是好习惯。  </p>
+<h2 id="将正式文章转化为草稿"><a href="#将正式文章转化为草稿" class="headerlink" title="将正式文章转化为草稿"></a>将正式文章转化为草稿</h2><p>正常我们新建一个草稿文章，会在<code>source/_drafts</code>目录下，我们只需要手动将文章移动到这里即可。最好是用<code>hexo n draft xxx</code>让hexo自动创建这个目录。  </p>
+<h2 id="如何删除文章"><a href="#如何删除文章" class="headerlink" title="如何删除文章"></a>如何删除文章</h2><p>如果文章还没有发布到git，直接删除_post文件夹下的源文件之后，执行  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
+
+<p>如果你的文章已经发布到git，还需要删除<code>.deploy_git</code>文件夹，再执行上面的命令，究其原因就是hexo clean并没有将发布内容清除  </p>
+<h2 id="如何创建页面"><a href="#如何创建页面" class="headerlink" title="如何创建页面"></a>如何创建页面</h2><p>我们可以打开next主题的menu，比如下面我启用了四个页面  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">menu:</span></span><br><span class="line">  <span class="attr">home:</span> <span class="string">/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-home</span></span><br><span class="line">  <span class="comment">#about: /about/ || fa fa-user</span></span><br><span class="line">  <span class="attr">tags:</span> <span class="string">/tags/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-tags</span></span><br><span class="line">  <span class="attr">categories:</span> <span class="string">/categories/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-th</span></span><br><span class="line">  <span class="attr">archives:</span> <span class="string">/archives/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-archive</span></span><br><span class="line">  <span class="comment">#schedule: /schedule/ || fa fa-calendar</span></span><br><span class="line">  <span class="comment">#sitemap: /sitemap.xml || fa fa-sitemap</span></span><br><span class="line">  <span class="comment">#commonweal: /404/ || fa fa-heartbeat</span></span><br></pre></td></tr></table></figure>
+
+<p>但是实际点击会发现<code>标签</code>和<code>分类</code>页面会错误，因为我们还没有创建这两个页面  </p>
+<p>创建标签页  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
+
+<p>创建分类页  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page categories</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们就会看到<code>_posts</code>所在目录下多了两个文件夹，并且其中都有<code>index.md</code>文件，我们修改一下  </p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 标签</span><br><span class="line">date: 2025-02-23 18:38:08</span><br><span class="line"><span class="section">type: &quot;tags&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 分类</span><br><span class="line">date: 2025-02-23 18:38:08</span><br><span class="line"><span class="section">type: &quot;categories&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<p>我们在文章头信息可以自定义标签和分类，这也是本文章的分类和标签，你可以在相关的地方找到，文章头中我们写了描述信息，这会自动折叠文章，打开时会自动为文章创建目录  </p>
+<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 利用github搭建个人博客（使用hexo）</span><br><span class="line">date: 2025-02-23 18:10:52</span><br><span class="line">categories: 随想</span><br><span class="line">tags:</span><br><span class="line"><span class="bullet">  -</span> hexo</span><br><span class="line"><span class="section">description: 介绍如何在windows上使用hexo框架和github部署自己的静态博客网站，配置next主题，并简单介绍了怎么使用它写文章</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="增加搜索功能"><a href="#增加搜索功能" class="headerlink" title="增加搜索功能"></a>增加搜索功能</h2><p>安装hexo-generator-searchdb，在站点根目录下执行  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-searchdb --save</span><br></pre></td></tr></table></figure>
+
+<p>编辑站点配置文件，在最后新增下面内容  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">search:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">  <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">  <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">  <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
+
+<p>编辑主题配置文件，启用本地搜索  </p>
+<pre><code class="language-yaml">local_search:
+  enable: true
+</code></pre>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>VAO,VBO,EBO三者的关系</title>
     <url>/2025/09/12/VAO-VBO-EBO%E4%B8%89%E8%80%85%E7%9A%84%E5%85%B3%E7%B3%BB/</url>
     <content><![CDATA[<p>始终要牢记一点，OpenGL是一个巨大的状态机，当我们绑定VAO，VBO或者EBO时，实际上是在告诉OpenGL当前哪个对象处于活动状态，然后进行的操作都是和这个对象相关联的。  </p>
@@ -188,27 +348,6 @@
 <figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;VAO_);</span><br><span class="line"><span class="built_in">glGenVertexArrays</span>(<span class="number">1</span>, &amp;LightVAO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;VBO_);</span><br><span class="line"><span class="built_in">glGenBuffers</span>(<span class="number">1</span>, &amp;EBO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind first VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(VAO_);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set VBO</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ARRAY_BUFFER, <span class="built_in">sizeof</span>(vertices), vertices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// set vertex attribute pointers to VAO</span></span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">1</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">3</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">1</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">2</span>, <span class="number">2</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">6</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">2</span>);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">3</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)(<span class="number">8</span> * <span class="built_in">sizeof</span>(GL_FLOAT)));</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">3</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind and set EBO</span></span><br><span class="line"><span class="comment">// EBO must bind after VAO bind</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glBufferData</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="built_in">sizeof</span>(indices), indices, GL_STATIC_DRAW);</span><br><span class="line"></span><br><span class="line"><span class="comment">// unbind VAO, VBO, EBO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">// bind second VAO</span></span><br><span class="line"><span class="built_in">glBindVertexArray</span>(LightVAO_);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, VBO_);  <span class="comment">// VBO_ and EBO_ has included buffer data</span></span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, EBO_);</span><br><span class="line"><span class="built_in">glVertexAttribPointer</span>(<span class="number">0</span>, <span class="number">3</span>, GL_FLOAT, GL_FALSE, <span class="number">11</span> * <span class="built_in">sizeof</span>(GL_FLOAT), (<span class="type">void</span>*)<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glEnableVertexAttribArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindVertexArray</span>(<span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ARRAY_BUFFER, <span class="number">0</span>);</span><br><span class="line"><span class="built_in">glBindBuffer</span>(GL_ELEMENT_ARRAY_BUFFER, <span class="number">0</span>);  <span class="comment">// EBO must unbind after VAO unbind</span></span><br></pre></td></tr></table></figure>
 
 <p>代码中30和35行可以同时去除，因为VAO和VBO绑定独立，只要不解绑VBO，后面用的数据还是原先VBO的，但是，31和36行同时去除将会执行失败，因为VAO中要存储EBO的绑定状态，所以36行不能去除，每设置一个VAO就要绑定一个EBO。  </p>
-]]></content>
-      <categories>
-        <category>图形学</category>
-      </categories>
-      <tags>
-        <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>SSAO核心思想</title>
-    <url>/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/</url>
-    <content><![CDATA[<p>LearnOpenGL高级光照，SSAO章节，对我个人而言很难理解，半知半解抄完所有代码之后突然顿悟了，故做个总结。  </p>
-<p>原文：<a href="https://learnopengl-cn.github.io/05%20Advanced%20Lighting/09%20SSAO/#ssao">SSAO</a>  </p>
-<h3 id="核心思想"><a href="#核心思想" class="headerlink" title="核心思想"></a>核心思想</h3><p>对于屏幕上的每一个像素（它对应着 3D 世界中的一个点 fragPos），我们都在以该点为中心、以法线 normal 为方向的半球内，随机选取 N 个采样点（比如 64 个）。  </p>
-<p>然后，我们去检查这 N 个采样点所对应的位置，在真实的场景中是否被其他物体占据。  </p>
-<p>如果一个采样点的位置被占据了（即有物体比采样点更靠近相机），我们就认为这个采样点对当前像素造成了一次 “遮挡”。  </p>
-<p>最后，通过统计这 N 个采样点中有多少个造成了遮挡，我们就能计算出当前像素的环境光被遮蔽的程度（occlusion）。遮挡的采样点越多，occlusion 值越高，该像素就越暗。</p>
-<h3 id="碎碎念、作图、分析"><a href="#碎碎念、作图、分析" class="headerlink" title="碎碎念、作图、分析"></a>碎碎念、作图、分析</h3><p>这个算法本身不难理解，关键就是“遮挡”二字，只是原文里的图越琢磨脑子越乱。  </p>
-<p>想象一下，正在上课，面前有块黑板，假设你在黑板上画了个圈，你想模拟出那个圈里面的部分黑板表面明暗程度，再假设有个“聚光玻璃罩”，能完全罩住你画的圈，聚集的光完全落在你画的圈里，平时看那块儿是很亮的，但老师来了往前面一站，挡住了一部分光线，那里就暗不少了，因为落进去的光线少了。  </p>
-<p><img src="/../images/post/ogl-3_1-ssao.png" alt="SSAO理解图"></p>
-<p>能想象出这个场景就离理解原文很接近了，按照原文的理解方式，我们以一个像素为球心作一个半球（切面和法线表面法线垂直），在里面均匀放上一些采样点，然后判断遮挡关系决定明暗。相当于把一个点扩散成一片（还是3D的），让这一片被遮挡的程度决定一个点的明暗而已，这样在我们的视线所及之处，邻近物体被遮挡的一方就会暗一些了（多近取决于我们采样半球空间的大小）。</p>
 ]]></content>
       <categories>
         <category>图形学</category>
@@ -250,33 +389,88 @@
       </tags>
   </entry>
   <entry>
-    <title>透视投影与深度</title>
-    <url>/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/</url>
-    <content><![CDATA[<p>先记录两篇博客：  </p>
-<ul>
-<li><a href="https://zhuanlan.zhihu.com/p/122411512">推导投影矩阵</a>  </li>
-<li><a href="https://zhuanlan.zhihu.com/p/718895401">3DGS学习笔记-透视投影矩阵推导</a></li>
-</ul>
-<p>这两篇笔记都是推导透视投影矩阵的，通过第二篇文章可知第一篇文章的推导是基于<strong>左手坐标系</strong>的，最明显的区别就在于，透视投影矩阵的<strong>第四行</strong>是<code>(0,0,1,0)</code>还是<code>(0,0,-1,0)</code>，前者是左手坐标系，后者是右手坐标系。  </p>
-<p>相机空间点 <code>(x_cam, y_cam, z_cam, 1)</code>（z_cam 为负，因为在相机前方）→ 透视投影矩阵变换 → 裁剪空间点 <code>(x_clip, y_clip, z_clip, w_clip=-z_cam)</code> → 透视除法 <code>(x_clip/w_clip, y_clip/w_clip, z_clip/w_clip)</code> → NDC。</p>
-<p>经过透视投影之后，观察空间转换到裁剪空间，OpenGL采用右手坐标系，<code>w_clip = -z_cam</code>，如果是左手坐标系，<code>w_clip = z_cam</code>。  </p>
-<p>注意是裁剪空间中的w与观察空间中z的关系。  </p>
-<p>这个关系是透视除法的关键，因为 <strong>w_clip</strong> 恰好是物体到相机的距离，我们经过透视除法能营造出“<strong>近大远小</strong>”的效果。  </p>
-<p>透视投影还会改变坐标系手性，注意看透视投影矩阵第三行，把z轴翻了个面，所以透视投影之后的裁剪空间，NDC，视口变换都在左手坐标系中。  </p>
-<p>我们可以利用透视除法（齐次除法），将裁剪空间转换为NDC（Normalized Device Coordinates，标准化设备坐标），NDC中xyz的范围都是<code>[-1,1]</code>，其z值就是<strong>规范化的深度值</strong>，超出这个范围的顶点将被裁剪不做渲染。  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">vec3</span> ndc = <span class="built_in">gl_Position</span>.xyz / <span class="built_in">gl_Position</span>.w;</span><br></pre></td></tr></table></figure>
+    <title>模板</title>
+    <url>/2025/12/04/%E6%A8%A1%E6%9D%BF/</url>
+    <content><![CDATA[<h3 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h3><p>普通函数其参数是特定类型  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>, <span class="type">double</span>)</span></span>;</span><br></pre></td></tr></table></figure>
 
-<p>手动计算 NDC 一般都是为了获取规范化的深度值做一些渲染工作。  </p>
-<p>需要注意 NDC 的 z 轴方向符合左手系特性（+z指向屏幕内）。  </p>
-<p>在OpenGL渲染管线中，裁剪之后会自动执行透视除法转换到NDC。这里要提及一件事，就是<strong>深度缓冲的取值范围是[0,1]</strong>，深度缓冲中的深度值才是真正的深度值，但是“值越小越近”的逻辑和前面是一样的，切忌和规范化的深度值产生混淆。  </p>
-<p>计算深度缓冲：  </p>
-<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">depth = (z_ndc + <span class="number">1</span>) / <span class="number">2</span>;    <span class="comment">// 将[-1,1]转换到[0, 1]</span></span><br></pre></td></tr></table></figure>
+<p>利用函数模板我们可以让编译器根据实参推断参数类型</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// typename 关键字换 class 也行</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> R&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T, R)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>比如写一个把传进参数+1的函数，我们可以对<strong>任意类型</strong>调用（如果可以+1的话）</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">add_one</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>编译期看到调用点，才根据实参 <strong>自动生成</strong> 对应函数。  </li>
+<li>如果 T 不支持 +1，编译直接报错，而不是运行期崩溃。</li>
+</ul>
+<p>我们试着调用<code>add_one</code>  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 打印2,3,3</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">1</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0f</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0</span>) &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译报错，string不支持+int</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(std::<span class="built_in">string</span>(<span class="string">&quot;hello&quot;</span>)) &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
+
+<h3 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h3><p>和函数模板如出一辙，可以泛化类型，让我们写一个能构造任意类型数组的一个类  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 两个模板参数：类型 + 大小</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::<span class="type">size_t</span> N&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyArray</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">MyArray</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;MyArray&lt;&quot;</span> &lt;&lt; <span class="built_in">typeid</span>(T).<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot;,&quot;</span> &lt;&lt; N &lt;&lt; <span class="string">&quot;&gt;\n&quot;</span>; &#125;</span><br><span class="line">    T data[N];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    MyArray&lt;<span class="type">int</span>, <span class="number">5</span>&gt;    a;   <span class="comment">// 生成一份 int[5] 的代码</span></span><br><span class="line">    MyArray&lt;<span class="type">double</span>, <span class="number">3</span>&gt; b;   <span class="comment">// 再生成一份 double[3] 的代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="模板参数包"><a href="#模板参数包" class="headerlink" title="模板参数包"></a>模板参数包</h3><p>模板参数包是接受 <strong>任意参数类型和任意参数个数</strong> 的一个特性，使用的时候涉及到打包和解包两个操作  </p>
+<h4 id="函数模板-参数包"><a href="#函数模板-参数包" class="headerlink" title="函数模板+参数包"></a>函数模板+参数包</h4><p>我们写一个log函数，打印接收到的所有参数  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Args&gt;  <span class="comment">// 打包</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(Args... args)</span>      <span class="comment">// 解包</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ((std::cout &lt;&lt; args &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...);  <span class="comment">// fold expression, since c++17</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">log</span>(<span class="number">2025</span>, <span class="string">&quot;price=&quot;</span>, <span class="number">19.9</span>, <span class="string">&#x27;$&#x27;</span>);   <span class="comment">// 任意个数、任意类型</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面的 <strong>右折表达式</strong> 会在编译期把参数包内容展开成前面操作的形式  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一元右折表达式展开</span></span><br><span class="line">((std::cout &lt;&lt; arg1 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line"> ((std::cout &lt;&lt; arg2 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line">  ((std::cout &lt;&lt; arg3 &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line">std::cout &lt;&lt; a1 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a2 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a3 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<p>接下来我们使用递归调用来设计功能一样的log  </p>
+<p>需要注意的事，设计递归，就需要终止条件，而递归函数模板也不例外  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 终止条件</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;[log end]&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(<span class="type">const</span> Head&amp; h, Args... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; h &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">log</span>(args...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>终止条件必须写在递归函数模板之前</strong>，必须让编译器先看到递归终止条件，在递归调用到0参数时，才会调用终止条件的函数；把终止条件写在后面和不写的效果是一样的，都会编译报错，因为编译器找不到0参数函数实例，就会照着模板生成一个，然后发现模板至少需要一个参数（typename Head限制至少需要一个参数），就会生成实例失败  </p>
+<p>另外，如果存在多个可推导模板，比如上面两个log，一个用折叠表达式，一个用递归，编译器是看哪个模板更特殊决定使用哪个模板的，更特殊大致的意思是“约束更严格、匹配范围更小”，这里选用的是后面的递归形式，因为它限制了至少要有一个参数  </p>
+<h4 id="类模板-参数包"><a href="#类模板-参数包" class="headerlink" title="类模板+参数包"></a>类模板+参数包</h4><p>我们来写一个简单的tuple类，用类模板递归把参数包拆成“头+尾”，这也是标准库std::tuple的核心思想，把数据一层层存储  </p>
+<p>需要注意的是，设计递归，就需要终止条件，而递归类模板也不例外（重要的事情说两遍）  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 需要此前向声明，因为Tuple内部还使用了Tuple&lt;Tail...&gt;</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 递归的终止条件（全特化），拆包结束</span></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                   <span class="comment">// 0 个参数时的特化</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建tuple类</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Tail&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;Head, Tail...&gt;               <span class="comment">// 至少 1 个参数</span></span><br><span class="line">&#123;</span><br><span class="line">    Head value;                          <span class="comment">// 存为头部数据</span></span><br><span class="line">    Tuple&lt;Tail...&gt; tail;                 <span class="comment">// 剩下的再打包一层</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Tuple</span>(Head h, Tail... t)             <span class="comment">// 构造：把参数包一层层剥开</span></span><br><span class="line">        : <span class="built_in">value</span>(h), <span class="built_in">tail</span>(t...) &#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span>                   <span class="comment">// 递归打印</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        std::cout &lt;&lt; value &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">        tail.<span class="built_in">print</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">Tuple&lt;<span class="type">int</span>, <span class="type">double</span>, <span class="type">char</span>&gt; <span class="title">t</span><span class="params">(<span class="number">42</span>, <span class="number">3.14</span>, <span class="string">&#x27;X&#x27;</span>)</span></span>;</span><br><span class="line">    t.<span class="built_in">print</span>();                           <span class="comment">// 42 3.14 X</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="完美转发"><a href="#完美转发" class="headerlink" title="完美转发"></a>完美转发</h3><p>完美转发即把收到的实参<strong>原汁原味</strong>地转给另一段代码，既不掉引用，也不掉 const&#x2F;volatile&#96;，更不掉<strong>右值性</strong>  </p>
+<p>我们先看看普通的传参  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T arg)</span>          <span class="comment">// 按值传</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">foo</span>(arg);                <span class="comment">// 这里 arg 永远是左值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果我们foo函数只有一个接收右值的定义，上面的代码就会编译报错了  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp;)</span> </span>&#123;  &#125;  <span class="comment">// 右值引用</span></span><br></pre></td></tr></table></figure>
+
+<p>使用<code>std::forward</code>进行完美转发，保留值性  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span>   <span class="comment">// std::forward</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 三个重载</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp; x)</span>  </span>&#123; std::cout &lt;&lt; <span class="string">&quot;lvalue int&amp;        : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;rvalue int&amp;&amp;       : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">int</span>&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;const lvalue const int&amp; : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 完美转发包装器</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T&amp;&amp; arg)</span> </span>&#123;          <span class="comment">// 万能引用，仅模板推导+&amp;&amp;才是万能，这里有个引用折叠的知识点就不多说了</span></span><br><span class="line">    <span class="built_in">foo</span>(std::forward&lt;T&gt;(arg));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span>  a = <span class="number">1</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> b = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">wrapper</span>(a);        <span class="comment">// lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(b);        <span class="comment">// const lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(<span class="number">3</span>);        <span class="comment">// rvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(std::<span class="built_in">move</span>(a)); <span class="comment">// rvalue (forced transform)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>典型应用：工厂函数  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function">T* <span class="title">create</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">T</span>(std::forward&lt;Args&gt;(args)...);   <span class="comment">// 完美转发给构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="函数模板全特化"><a href="#函数模板全特化" class="headerlink" title="函数模板全特化"></a>函数模板全特化</h3><p>全特化和偏特化的概念很简单，前者是将全部模板参数定义为特定类型，后者是将部分定义为特定类型  </p>
+<p>有人可能会好奇，编译器不是会自动推断吗？干嘛还要特化这种东西  </p>
+<p>其实特化主要是针对特定类型，我们能做的事情不同，意思就是针对特定类型，函数的定义选为另一套，参数类型推导可不会改函数定义，所以这两个是完全不同的东西，别混淆了  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could calculate&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">bool</span>)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could judgement&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>*)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could read&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span>    a  &#123; <span class="number">1</span> &#125;;</span><br><span class="line">    <span class="type">float</span>  b  &#123; <span class="number">2.0f</span>&#125;;</span><br><span class="line">    <span class="type">double</span> c  &#123; <span class="number">3.0</span> &#125;;</span><br><span class="line">    <span class="type">bool</span>   e  &#123; <span class="literal">false</span> &#125;;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* d &#123; <span class="string">&quot;hello&quot;</span> &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">foo</span>(a);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(b);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(c);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(d);  <span class="comment">// could read</span></span><br><span class="line">    <span class="built_in">foo</span>(e);  <span class="comment">// could judgement</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>先提及两个注意点：  </p>
+<ul>
+<li><strong>全特化不参与重载</strong>，只是给已经生成的模板实例打补丁。  </li>
+<li>如果把它写成重载函数而不是全特化，行为会不同（重载优先级更高）。</li>
+</ul>
+<p>这也是 “模板全特化 vs 重载” 经典面试题。</p>
+<p>在上面的代码中加上一个重载函数，那么最终调用的是这个重载函数，打印出”hello”  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* s)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; s &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>如果你喜欢先看看目录再看文章，可能发现了函数模板只提到了全特化，没错，因为函数模板不允许偏特化，这和函数重载决议有关系  </p>
+<p>说白了c++压根没考虑过两个完全一样的签名在重载决议时出现，我们的通用模板和偏特化模板可能会实例化出完全一样的函数签名，这时候就没法抉择了  </p>
+<p>而全特化的函数模板，在编译器眼里就是一个普通函数，编译器给他改了函数签名让他不参与重载决议，所以函数模板全特化是允许的，在调用点处，编译器会先看有没有普通函数可以用，再用通用模板匹配，匹配推导类型成功后再看有没有全特化的函数，这样全特化函数即使改了签名还是能被调用到  </p>
+<h3 id="类模板全特化与偏特化"><a href="#类模板全特化与偏特化" class="headerlink" title="类模板全特化与偏特化"></a>类模板全特化与偏特化</h3><p>类模板的全特化写法  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                       <span class="comment">// 全特化：两个参数全部给出具体类型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, <span class="type">double</span>&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+double Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">double</span>&gt; f2;</span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>类模板的偏特化写法  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 只指定第一个，第二个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">U</span>&gt;                <span class="comment">// 注意：这里还有一个模板参数 U</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, U&gt; &#123;              <span class="comment">// 模式：只要第一实参是 int 就命中</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+? Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 指定第二个为指针，第一个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;                <span class="comment">// 仍有模板参数 T</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;T, T*&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;?+T* Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>*&gt;  f2;</span><br><span class="line">    Foo&lt;<span class="type">float</span>, <span class="type">float</span>*&gt;   f3;</span><br><span class="line">    <span class="comment">// Foo&lt;int, int*&gt;   f4;</span></span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">3.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>上面注释了一个f4，如果取消注释就会发现有编译错误，原因是两个偏特化都能推导定义并且编译器无法判定谁更特殊，就不知道用哪个模板生成了，解决方案也很多，去掉一个偏特化或者加一个全特化之类的，这里只是说明一下问题希望用模板时多多思考，规则有点多  </p>
 ]]></content>
       <categories>
-        <category>图形学</category>
+        <category>随想</category>
       </categories>
       <tags>
-        <tag>OpenGL</tag>
+        <tag>c++</tag>
+        <tag>泛型编程</tag>
       </tags>
   </entry>
   <entry>
@@ -375,6 +569,36 @@
       </tags>
   </entry>
   <entry>
+    <title>透视投影与深度</title>
+    <url>/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/</url>
+    <content><![CDATA[<p>先记录两篇博客：  </p>
+<ul>
+<li><a href="https://zhuanlan.zhihu.com/p/122411512">推导投影矩阵</a>  </li>
+<li><a href="https://zhuanlan.zhihu.com/p/718895401">3DGS学习笔记-透视投影矩阵推导</a></li>
+</ul>
+<p>这两篇笔记都是推导透视投影矩阵的，通过第二篇文章可知第一篇文章的推导是基于<strong>左手坐标系</strong>的，最明显的区别就在于，透视投影矩阵的<strong>第四行</strong>是<code>(0,0,1,0)</code>还是<code>(0,0,-1,0)</code>，前者是左手坐标系，后者是右手坐标系。  </p>
+<p>相机空间点 <code>(x_cam, y_cam, z_cam, 1)</code>（z_cam 为负，因为在相机前方）→ 透视投影矩阵变换 → 裁剪空间点 <code>(x_clip, y_clip, z_clip, w_clip=-z_cam)</code> → 透视除法 <code>(x_clip/w_clip, y_clip/w_clip, z_clip/w_clip)</code> → NDC。</p>
+<p>经过透视投影之后，观察空间转换到裁剪空间，OpenGL采用右手坐标系，<code>w_clip = -z_cam</code>，如果是左手坐标系，<code>w_clip = z_cam</code>。  </p>
+<p>注意是裁剪空间中的w与观察空间中z的关系。  </p>
+<p>这个关系是透视除法的关键，因为 <strong>w_clip</strong> 恰好是物体到相机的距离，我们经过透视除法能营造出“<strong>近大远小</strong>”的效果。  </p>
+<p>透视投影还会改变坐标系手性，注意看透视投影矩阵第三行，把z轴翻了个面，所以透视投影之后的裁剪空间，NDC，视口变换都在左手坐标系中。  </p>
+<p>我们可以利用透视除法（齐次除法），将裁剪空间转换为NDC（Normalized Device Coordinates，标准化设备坐标），NDC中xyz的范围都是<code>[-1,1]</code>，其z值就是<strong>规范化的深度值</strong>，超出这个范围的顶点将被裁剪不做渲染。  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line"><span class="type">vec3</span> ndc = <span class="built_in">gl_Position</span>.xyz / <span class="built_in">gl_Position</span>.w;</span><br></pre></td></tr></table></figure>
+
+<p>手动计算 NDC 一般都是为了获取规范化的深度值做一些渲染工作。  </p>
+<p>需要注意 NDC 的 z 轴方向符合左手系特性（+z指向屏幕内）。  </p>
+<p>在OpenGL渲染管线中，裁剪之后会自动执行透视除法转换到NDC。这里要提及一件事，就是<strong>深度缓冲的取值范围是[0,1]</strong>，深度缓冲中的深度值才是真正的深度值，但是“值越小越近”的逻辑和前面是一样的，切忌和规范化的深度值产生混淆。  </p>
+<p>计算深度缓冲：  </p>
+<figure class="highlight glsl"><table><tr><td class="code"><pre><span class="line">depth = (z_ndc + <span class="number">1</span>) / <span class="number">2</span>;    <span class="comment">// 将[-1,1]转换到[0, 1]</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>图形学</category>
+      </categories>
+      <tags>
+        <tag>OpenGL</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>配置终端代理</title>
     <url>/2025/04/13/%E9%85%8D%E7%BD%AE%E7%BB%88%E7%AB%AF%E4%BB%A3%E7%90%86/</url>
     <content><![CDATA[<h2 id="配置git终端代理（常用）"><a href="#配置git终端代理（常用）" class="headerlink" title="配置git终端代理（常用）"></a>配置git终端代理（常用）</h2><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 设置代理</span></span><br><span class="line">git config --global http.proxy <span class="string">&quot;http://127.0.0.1:10809&quot;</span></span><br><span class="line">git config --global https.proxy <span class="string">&quot;https://127.0.0.1:10809&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 取消代理</span></span><br><span class="line">git config --global --<span class="built_in">unset</span> http.proxy</span><br><span class="line">git config --global --<span class="built_in">unset</span> https.proxy</span><br></pre></td></tr></table></figure>
@@ -390,222 +614,36 @@
       </tags>
   </entry>
   <entry>
-    <title>模板</title>
-    <url>/2025/12/04/%E6%A8%A1%E6%9D%BF/</url>
-    <content><![CDATA[<h3 id="函数模板"><a href="#函数模板" class="headerlink" title="函数模板"></a>函数模板</h3><p>普通函数其参数是特定类型  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>, <span class="type">double</span>)</span></span>;</span><br></pre></td></tr></table></figure>
+    <title>配置解决Powershell输出中文乱码</title>
+    <url>/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/</url>
+    <content><![CDATA[<p>把下面的配置添加到Powershell的配置文件中，每次打开Powershell都会自动生效了，当然先建议临时修改看看有没有用。</p>
+<p>打开配置文件：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
 
-<p>利用函数模板我们可以让编译器根据实参推断参数类型</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// typename 关键字换 class 也行</span></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T, <span class="keyword">typename</span> R&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T, R)</span></span>;</span><br></pre></td></tr></table></figure>
+<p>添加配置：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># set powershell fileencoding UTF8</span></span><br><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line"><span class="comment"># set Get-Content(cat) fileencoding UTF8</span></span><br><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<p>比如写一个把传进参数+1的函数，我们可以对<strong>任意类型</strong>调用（如果可以+1的话）</p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function">T <span class="title">add_one</span><span class="params">(T x)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> x + <span class="number">1</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>我使用neovim编辑，如果没有这个文件可以新建一个：</p>
+<p>powershell管理员模式下：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
 
-<ul>
-<li>编译期看到调用点，才根据实参 <strong>自动生成</strong> 对应函数。  </li>
-<li>如果 T 不支持 +1，编译直接报错，而不是运行期崩溃。</li>
-</ul>
-<p>我们试着调用<code>add_one</code>  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 打印2,3,3</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">1</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0f</span>) &lt;&lt; std::endl;</span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(<span class="number">2.0</span>) &lt;&lt; std::endl;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 编译报错，string不支持+int</span></span><br><span class="line">std::cout &lt;&lt; <span class="built_in">add_one</span>(std::<span class="built_in">string</span>(<span class="string">&quot;hello&quot;</span>)) &lt;&lt; std::endl;</span><br></pre></td></tr></table></figure>
+<p>或者去<code>C:\Users\[用户名]\Documents\WindowsPowerShell</code>目录下新建一个<code>Microsoft.PowerShell_profile.ps1</code>文件，用记事本编辑。</p>
+<p>乱码多半是文件编码和shell输出编码不匹配的原因，我们统一选择使用<code>utf-8</code>编码，可以先临时配置先看看效果。  </p>
+<p>先查看文件编码是不是utf-8编码，方法非常多，比如用记事本或者其他什么编辑器打开，一般右下角就会有显示。  </p>
+<p>临时设置直接执行命令就好，设置cat(Get-Content)命令使用utf-8编码：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="类模板"><a href="#类模板" class="headerlink" title="类模板"></a>类模板</h3><p>和函数模板如出一辙，可以泛化类型，让我们写一个能构造任意类型数组的一个类  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="comment">// 两个模板参数：类型 + 大小</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> T, std::<span class="type">size_t</span> N&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyArray</span></span><br><span class="line">&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">MyArray</span>() &#123; std::cout &lt;&lt; <span class="string">&quot;MyArray&lt;&quot;</span> &lt;&lt; <span class="built_in">typeid</span>(T).<span class="built_in">name</span>() &lt;&lt; <span class="string">&quot;,&quot;</span> &lt;&lt; N &lt;&lt; <span class="string">&quot;&gt;\n&quot;</span>; &#125;</span><br><span class="line">    T data[N];</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    MyArray&lt;<span class="type">int</span>, <span class="number">5</span>&gt;    a;   <span class="comment">// 生成一份 int[5] 的代码</span></span><br><span class="line">    MyArray&lt;<span class="type">double</span>, <span class="number">3</span>&gt; b;   <span class="comment">// 再生成一份 double[3] 的代码</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>然后用cat命令检查一下乱码是否好了。</p>
+<p>再就是可执行文件的中文输出，先执行下面的命令再执行可执行文件：</p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br></pre></td></tr></table></figure>
 
-<h3 id="模板参数包"><a href="#模板参数包" class="headerlink" title="模板参数包"></a>模板参数包</h3><p>模板参数包是接受 <strong>任意参数类型和任意参数个数</strong> 的一个特性，使用的时候涉及到打包和解包两个操作  </p>
-<h4 id="函数模板-参数包"><a href="#函数模板-参数包" class="headerlink" title="函数模板+参数包"></a>函数模板+参数包</h4><p>我们写一个log函数，打印接收到的所有参数  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Args&gt;  <span class="comment">// 打包</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(Args... args)</span>      <span class="comment">// 解包</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    ((std::cout &lt;&lt; args &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...);  <span class="comment">// fold expression, since c++17</span></span><br><span class="line">    std::cout &lt;&lt; <span class="string">&#x27;\n&#x27;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">log</span>(<span class="number">2025</span>, <span class="string">&quot;price=&quot;</span>, <span class="number">19.9</span>, <span class="string">&#x27;$&#x27;</span>);   <span class="comment">// 任意个数、任意类型</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上面的 <strong>右折表达式</strong> 会在编译期把参数包内容展开成前面操作的形式  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 一元右折表达式展开</span></span><br><span class="line">((std::cout &lt;&lt; arg1 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line"> ((std::cout &lt;&lt; arg2 &lt;&lt; <span class="string">&#x27; &#x27;</span>),</span><br><span class="line">  ((std::cout &lt;&lt; arg3 &lt;&lt; <span class="string">&#x27; &#x27;</span>), ...)));</span><br><span class="line"></span><br><span class="line"><span class="comment">// 等价于</span></span><br><span class="line">std::cout &lt;&lt; a1 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a2 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">std::cout &lt;&lt; a3 &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
-
-<p>接下来我们使用递归调用来设计功能一样的log  </p>
-<p>需要注意的事，设计递归，就需要终止条件，而递归函数模板也不例外  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 终止条件</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;[log end]&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Args&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">log</span><span class="params">(<span class="type">const</span> Head&amp; h, Args... args)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; h &lt;&lt; std::endl;</span><br><span class="line">    <span class="built_in">log</span>(args...);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>终止条件必须写在递归函数模板之前</strong>，必须让编译器先看到递归终止条件，在递归调用到0参数时，才会调用终止条件的函数；把终止条件写在后面和不写的效果是一样的，都会编译报错，因为编译器找不到0参数函数实例，就会照着模板生成一个，然后发现模板至少需要一个参数（typename Head限制至少需要一个参数），就会生成实例失败  </p>
-<p>另外，如果存在多个可推导模板，比如上面两个log，一个用折叠表达式，一个用递归，编译器是看哪个模板更特殊决定使用哪个模板的，更特殊大致的意思是“约束更严格、匹配范围更小”，这里选用的是后面的递归形式，因为它限制了至少要有一个参数  </p>
-<h4 id="类模板-参数包"><a href="#类模板-参数包" class="headerlink" title="类模板+参数包"></a>类模板+参数包</h4><p>我们来写一个简单的tuple类，用类模板递归把参数包拆成“头+尾”，这也是标准库std::tuple的核心思想，把数据一层层存储  </p>
-<p>需要注意的是，设计递归，就需要终止条件，而递归类模板也不例外（重要的事情说两遍）  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 需要此前向声明，因为Tuple内部还使用了Tuple&lt;Tail...&gt;</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span>... Ts&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 递归的终止条件（全特化），拆包结束</span></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                   <span class="comment">// 0 个参数时的特化</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span> </span>&#123;&#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 创建tuple类</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">typename</span> Head, <span class="keyword">typename</span>... Tail&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Tuple</span>&lt;Head, Tail...&gt;               <span class="comment">// 至少 1 个参数</span></span><br><span class="line">&#123;</span><br><span class="line">    Head value;                          <span class="comment">// 存为头部数据</span></span><br><span class="line">    Tuple&lt;Tail...&gt; tail;                 <span class="comment">// 剩下的再打包一层</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Tuple</span>(Head h, Tail... t)             <span class="comment">// 构造：把参数包一层层剥开</span></span><br><span class="line">        : <span class="built_in">value</span>(h), <span class="built_in">tail</span>(t...) &#123;&#125;</span><br><span class="line">    </span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> <span class="type">const</span>                   <span class="comment">// 递归打印</span></span></span><br><span class="line"><span class="function">    </span>&#123;</span><br><span class="line">        std::cout &lt;&lt; value &lt;&lt; <span class="string">&#x27; &#x27;</span>;</span><br><span class="line">        tail.<span class="built_in">print</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">Tuple&lt;<span class="type">int</span>, <span class="type">double</span>, <span class="type">char</span>&gt; <span class="title">t</span><span class="params">(<span class="number">42</span>, <span class="number">3.14</span>, <span class="string">&#x27;X&#x27;</span>)</span></span>;</span><br><span class="line">    t.<span class="built_in">print</span>();                           <span class="comment">// 42 3.14 X</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="完美转发"><a href="#完美转发" class="headerlink" title="完美转发"></a>完美转发</h3><p>完美转发即把收到的实参<strong>原汁原味</strong>地转给另一段代码，既不掉引用，也不掉 const&#x2F;volatile&#96;，更不掉<strong>右值性</strong>  </p>
-<p>我们先看看普通的传参  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T arg)</span>          <span class="comment">// 按值传</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">foo</span>(arg);                <span class="comment">// 这里 arg 永远是左值</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果我们foo函数只有一个接收右值的定义，上面的代码就会编译报错了  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp;)</span> </span>&#123;  &#125;  <span class="comment">// 右值引用</span></span><br></pre></td></tr></table></figure>
-
-<p>使用<code>std::forward</code>进行完美转发，保留值性  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;utility&gt;</span>   <span class="comment">// std::forward</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 三个重载</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp; x)</span>  </span>&#123; std::cout &lt;&lt; <span class="string">&quot;lvalue int&amp;        : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">int</span>&amp;&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;rvalue int&amp;&amp;       : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">int</span>&amp; x)</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;const lvalue const int&amp; : &quot;</span> &lt;&lt; x &lt;&lt; <span class="string">&#x27;\n&#x27;</span>; &#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 完美转发包装器</span></span><br><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T&gt;</span></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">wrapper</span><span class="params">(T&amp;&amp; arg)</span> </span>&#123;          <span class="comment">// 万能引用，仅模板推导+&amp;&amp;才是万能，这里有个引用折叠的知识点就不多说了</span></span><br><span class="line">    <span class="built_in">foo</span>(std::forward&lt;T&gt;(arg));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="type">int</span>  a = <span class="number">1</span>;</span><br><span class="line">    <span class="type">const</span> <span class="type">int</span> b = <span class="number">2</span>;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">wrapper</span>(a);        <span class="comment">// lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(b);        <span class="comment">// const lvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(<span class="number">3</span>);        <span class="comment">// rvalue</span></span><br><span class="line">    <span class="built_in">wrapper</span>(std::<span class="built_in">move</span>(a)); <span class="comment">// rvalue (forced transform)</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>典型应用：工厂函数  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">template</span>&lt;<span class="keyword">class</span> T, <span class="keyword">class</span>... Args&gt;</span></span><br><span class="line"><span class="function">T* <span class="title">create</span><span class="params">(Args&amp;&amp;... args)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> <span class="built_in">T</span>(std::forward&lt;Args&gt;(args)...);   <span class="comment">// 完美转发给构造函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="函数模板全特化"><a href="#函数模板全特化" class="headerlink" title="函数模板全特化"></a>函数模板全特化</h3><p>全特化和偏特化的概念很简单，前者是将全部模板参数定义为特定类型，后者是将部分定义为特定类型  </p>
-<p>有人可能会好奇，编译器不是会自动推断吗？干嘛还要特化这种东西  </p>
-<p>其实特化主要是针对特定类型，我们能做的事情不同，意思就是针对特定类型，函数的定义选为另一套，参数类型推导可不会改函数定义，所以这两个是完全不同的东西，别混淆了  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;<span class="keyword">typename</span> T&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(T)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could calculate&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">bool</span>)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could judgement&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span> &lt;&gt;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>*)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; <span class="string">&quot;could read&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="type">int</span>    a  &#123; <span class="number">1</span> &#125;;</span><br><span class="line">    <span class="type">float</span>  b  &#123; <span class="number">2.0f</span>&#125;;</span><br><span class="line">    <span class="type">double</span> c  &#123; <span class="number">3.0</span> &#125;;</span><br><span class="line">    <span class="type">bool</span>   e  &#123; <span class="literal">false</span> &#125;;</span><br><span class="line">    <span class="type">const</span> <span class="type">char</span>* d &#123; <span class="string">&quot;hello&quot;</span> &#125;;</span><br><span class="line"></span><br><span class="line">    <span class="built_in">foo</span>(a);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(b);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(c);  <span class="comment">// could calculate</span></span><br><span class="line">    <span class="built_in">foo</span>(d);  <span class="comment">// could read</span></span><br><span class="line">    <span class="built_in">foo</span>(e);  <span class="comment">// could judgement</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>先提及两个注意点：  </p>
-<ul>
-<li><strong>全特化不参与重载</strong>，只是给已经生成的模板实例打补丁。  </li>
-<li>如果把它写成重载函数而不是全特化，行为会不同（重载优先级更高）。</li>
-</ul>
-<p>这也是 “模板全特化 vs 重载” 经典面试题。</p>
-<p>在上面的代码中加上一个重载函数，那么最终调用的是这个重载函数，打印出”hello”  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="type">void</span> <span class="title">foo</span><span class="params">(<span class="type">const</span> <span class="type">char</span>* s)</span> </span>&#123;</span><br><span class="line">    std::cout &lt;&lt; s &lt;&lt; std::endl;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>如果你喜欢先看看目录再看文章，可能发现了函数模板只提到了全特化，没错，因为函数模板不允许偏特化，这和函数重载决议有关系  </p>
-<p>说白了c++压根没考虑过两个完全一样的签名在重载决议时出现，我们的通用模板和偏特化模板可能会实例化出完全一样的函数签名，这时候就没法抉择了  </p>
-<p>而全特化的函数模板，在编译器眼里就是一个普通函数，编译器给他改了函数签名让他不参与重载决议，所以函数模板全特化是允许的，在调用点处，编译器会先看有没有普通函数可以用，再用通用模板匹配，匹配推导类型成功后再看有没有全特化的函数，这样全特化函数即使改了签名还是能被调用到  </p>
-<h3 id="类模板全特化与偏特化"><a href="#类模板全特化与偏特化" class="headerlink" title="类模板全特化与偏特化"></a>类模板全特化与偏特化</h3><p>类模板的全特化写法  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;&gt;                       <span class="comment">// 全特化：两个参数全部给出具体类型</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, <span class="type">double</span>&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+double Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">double</span>&gt; f2;</span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>类模板的偏特化写法  </p>
-<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;iostream&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>, <span class="keyword">class</span> <span class="title class_">U</span>&gt;</span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span> &#123;                      <span class="comment">// 主模板：两个参数</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;Universal\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 1. 只指定第一个，第二个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">U</span>&gt;                <span class="comment">// 注意：这里还有一个模板参数 U</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;<span class="type">int</span>, U&gt; &#123;              <span class="comment">// 模式：只要第一实参是 int 就命中</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;int+? Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 2. 指定第二个为指针，第一个保持开放</span></span><br><span class="line"><span class="keyword">template</span>&lt;<span class="keyword">class</span> <span class="title class_">T</span>&gt;                <span class="comment">// 仍有模板参数 T</span></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Foo</span>&lt;T, T*&gt; &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">print</span><span class="params">()</span> </span>&#123; std::cout &lt;&lt; <span class="string">&quot;?+T* Specialized\n&quot;</span>; &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">int</span> <span class="title">main</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>&gt;   f1;</span><br><span class="line">    Foo&lt;<span class="type">int</span>, <span class="type">char</span>*&gt;  f2;</span><br><span class="line">    Foo&lt;<span class="type">float</span>, <span class="type">float</span>*&gt;   f3;</span><br><span class="line">    <span class="comment">// Foo&lt;int, int*&gt;   f4;</span></span><br><span class="line"></span><br><span class="line">    f<span class="number">1.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">2.</span><span class="built_in">print</span>();</span><br><span class="line">    f<span class="number">3.</span><span class="built_in">print</span>();</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>上面注释了一个f4，如果取消注释就会发现有编译错误，原因是两个偏特化都能推导定义并且编译器无法判定谁更特殊，就不知道用哪个模板生成了，解决方案也很多，去掉一个偏特化或者加一个全特化之类的，这里只是说明一下问题希望用模板时多多思考，规则有点多  </p>
+<p>看到修改生效了再写到配置文件中，如果不生效重新启动一个Powershell窗口环境不变，寻找其他方法。  </p>
 ]]></content>
       <categories>
         <category>随想</category>
       </categories>
       <tags>
-        <tag>c++</tag>
-        <tag>泛型编程</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>利用github搭建个人博客（使用hexo）</title>
-    <url>/2025/02/23/%E5%88%A9%E7%94%A8github%E6%90%AD%E5%BB%BA%E4%B8%AA%E4%BA%BA%E5%8D%9A%E5%AE%A2/</url>
-    <content><![CDATA[<p>写在前面  </p>
-<p>实际上现在github建立博客十分简单了，建立特定名称仓库后，在settings-&gt;pages里面就可以进行部署的操作，参考视频：<a href="https://www.bilibili.com/video/BV12H4y1N7Q4">Github王炸功能Pages</a>  </p>
-<p>配置next主题，可以查看此视频：<a href="https://www.bilibili.com/video/BV16W411t7mq">[馨客栈分享]使用Hexo博客搭建的个人博客</a>  </p>
-<h2 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h2><p>下面正式开始本文  </p>
-<p>参考<a href="https://zhuanlan.zhihu.com/p/102592286">从零开始搭建个人博客（超详细）[枫叶 - 知乎]</a>  </p>
-<p><strong>感谢每一位无私分享知识的笔者</strong>  </p>
-<h3 id="注册git账号并绑定到本地"><a href="#注册git账号并绑定到本地" class="headerlink" title="注册git账号并绑定到本地"></a>注册git账号并绑定到本地</h3><p>因为我已经有了，所以这一步骤省略，网上也都是注册和使用教程  </p>
-<h3 id="安装node-js和hexo"><a href="#安装node-js和hexo" class="headerlink" title="安装node.js和hexo"></a>安装node.js和hexo</h3><p>NodeJs官网：<a href="https://nodejs.org/zh-cn">https://nodejs.org/zh-cn</a><br>在官网下载完之后直接安装就了，最好改个非C盘的路径安装，安装完成后在命令行用下面的命令检查一下是否安装成功了  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
-
-<p>然后在nodejs安装目录里新建两个文件夹<code>node_cache</code>和<code>node_global</code>，接着我们用下面的命令设置npm安装模块的默认路径（注意要把命令里的路径改成自己的）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config <span class="built_in">set</span> prefix <span class="string">&quot;D:\Software\NodeJS\node_global&quot;</span></span><br><span class="line">npm config <span class="built_in">set</span> cache <span class="string">&quot;D:\Software\NodeJS\node_cache&quot;</span></span><br></pre></td></tr></table></figure>
-
-<p>打开文件管理器，右击此电脑，选择属性，选择高级系统设置配置环境变量，新增一个系统变量<code>NODE_PATH</code>，值是<code>D:\Software\NodeJS\node_modules</code>  </p>
-<p>再修改用户变量里<code>Path</code>中<code>npm</code>的路径，改成<code>D:\Software\NodeJS\node_global</code>  </p>
-<p>这样我们安装模块就会默认安装到node_global里面了  </p>
-<h3 id="修改npm安装源"><a href="#修改npm安装源" class="headerlink" title="修改npm安装源"></a>修改npm安装源</h3><p>查询安装源：  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config get registry</span><br></pre></td></tr></table></figure>
-
-<p>设置安装源（下面的是淘宝镜像）：  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm config <span class="built_in">set</span> registry https://registry.npmmirror.com</span><br></pre></td></tr></table></figure>
-
-<h3 id="开启一个管理员命令行窗口"><a href="#开启一个管理员命令行窗口" class="headerlink" title="开启一个管理员命令行窗口"></a>开启一个管理员命令行窗口</h3><p>后面安装包的命令都需要管理员权限，单独把这个作为一个步骤列举出来，用管理员权限打开命令行窗口  </p>
-<h3 id="安装webpack和hexo-cli"><a href="#安装webpack和hexo-cli" class="headerlink" title="安装webpack和hexo-cli"></a>安装webpack和hexo-cli</h3><p>安装webpack</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install webpack -g</span><br></pre></td></tr></table></figure>
-
-<p>如果前面设置没有问题，我们在自己设置的<code>node_modules</code>目录下应该能看到安装的包，，否则就应该在默认目录下：<code>C:\Users\[用户名]\AppData\Roaming\npm\node_modules</code>  </p>
-<p>如果错了也没关系，用命令<code>npm uninstall webpack</code>就能删除干净  </p>
-<p>接下来安装hexo-cli  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-cli</span><br></pre></td></tr></table></figure>
-
-<p>然后在你想要建立博客工作目录的地方使用下面的命令初始化，比如我的目录位置是<code>D:\root\blog</code>  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo init</span><br></pre></td></tr></table></figure>
-
-<p>这一步可能会clone仓库失败，github访问在国内挺随缘的，只能自行上网解决了  </p>
-<p>静态部署网页  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
-
-<p>查看静态网页（可能不会自动打开，在浏览器查看命令行给的地址）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
-
-<p>检查完毕后ctrl+c终止运行  </p>
-<h3 id="建立博客远程仓库"><a href="#建立博客远程仓库" class="headerlink" title="建立博客远程仓库"></a>建立博客远程仓库</h3><p>建立github仓库，需要注意仓库的名称得是<code>[用户名].github.io</code>，这也是我们个人博客的域名  </p>
-<h3 id="将Hexo部署到仓库"><a href="#将Hexo部署到仓库" class="headerlink" title="将Hexo部署到仓库"></a>将Hexo部署到仓库</h3><p>回到blog文件夹，打开<code>_config.yml</code>文件，将最后的<code>deploy</code>部分替换成下面的内容  </p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">deploy:</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">git</span></span><br><span class="line">  <span class="attr">repository:</span> <span class="string">https://github.com/[用户名]/[用户名].github.io.git</span>  <span class="comment">#你的仓库地址</span></span><br><span class="line">  <span class="attr">branch:</span> <span class="string">main</span></span><br></pre></td></tr></table></figure>
-
-<p>再安装git部署插件  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-deployer-git --save</span><br></pre></td></tr></table></figure>
-
-<p>然后依次执行下面三条命令  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean   <span class="comment">#清除缓存文件 db.json 和已生成的静态文件 public</span></span><br><span class="line">hexo g       <span class="comment">#生成网站静态文件到默认设置的 public 文件夹(hexo generate 的缩写)</span></span><br><span class="line">hexo d       <span class="comment">#自动生成网站静态文件，并部署到设定的仓库(hexo deploy 的缩写)</span></span><br></pre></td></tr></table></figure>
-
-<p>部署完成后就可以输入你的域名访问自己的博客网站了：[用户名].github.io  </p>
-<h2 id="美化"><a href="#美化" class="headerlink" title="美化"></a>美化</h2><p>hexo主题众多，其中next深得我心，简约大气，我们建立博客是为了写文章做笔记，某种意义上什么主题并不重要，当然你可以找一个自己喜欢的  </p>
-<p>这个是next的示例站点：<a href="https://theme-next.js.org/">https://theme-next.js.org/</a><br>你可以拖到最下面查看他的源代码，找找那些你喜欢的地方是如何修改的  </p>
-<p>我们将主题仓库clone到blog&#x2F;themes&#x2F;next目录下（或者clone之后放到next目录里）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">git <span class="built_in">clone</span> https://github.com/next-theme/hexo-theme-next</span><br></pre></td></tr></table></figure>
-
-<p>完成后我们修改之前改过的配置文件<code>_config.yml</code>  </p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Site</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">cola&#x27;s</span> <span class="string">blog</span></span><br><span class="line"><span class="attr">subtitle:</span> <span class="string">&#x27;&#x27;</span></span><br><span class="line"><span class="attr">description:</span> <span class="string">&#x27;hello world&#x27;</span></span><br><span class="line"><span class="attr">keywords:</span></span><br><span class="line"><span class="attr">author:</span> <span class="string">cola</span></span><br><span class="line"><span class="attr">language:</span> <span class="string">zh-CN</span>           <span class="comment">#主题语言</span></span><br><span class="line"><span class="attr">timezone:</span> <span class="string">&#x27;Asia/Shanghai&#x27;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">theme:</span> <span class="string">hexo-theme-next</span>  <span class="comment">#主题</span></span><br></pre></td></tr></table></figure>
-
-<p>打开<code>hexo-theme-next</code>下的配置文件<code>_config.yml</code>，对主题本身作一些修改  </p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="comment"># Schemes</span></span><br><span class="line"><span class="comment">#scheme: Muse</span></span><br><span class="line"><span class="comment">#scheme: Mist</span></span><br><span class="line"><span class="comment">#scheme: Pisces</span></span><br><span class="line"><span class="attr">scheme:</span> <span class="string">Gemini</span>    <span class="comment">#这是我选的主题</span></span><br></pre></td></tr></table></figure>
-
-<p>然后我们再在命令行输入  </p>
-<p>清理  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br></pre></td></tr></table></figure>
-
-<p>静态部署  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
-
-<p>本地查看（先检查再部署是好习惯）</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
-
-<p>部署（上传到github）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-
-<p>针对主题的修改可以发挥自己的想象力，不只是修改他本身的配置文件，虽然这已经可以做到很多事情了，你可以设置头像，设置座右铭，你也可以写自己的前端代码，定制主题样式，接下来就交给你自己探索吧。  </p>
-<h2 id="如何写文章"><a href="#如何写文章" class="headerlink" title="如何写文章"></a>如何写文章</h2><p>我们的文章默认都在<code>blog/public/_post</code>下面，默认有一篇<code>helloworld.md</code>  </p>
-<p>新建一篇文章  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new post 新文章名</span><br></pre></td></tr></table></figure>
-
-<p>新建一篇草稿（不会显示在站点上）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new draft 草稿文章名</span><br></pre></td></tr></table></figure>
-
-<p>查看草稿</p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo s --draft</span><br></pre></td></tr></table></figure>
-
-<p>草稿转换成正式文章  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo publish 草稿文章名</span><br></pre></td></tr></table></figure>
-
-<h2 id="如何删除文章"><a href="#如何删除文章" class="headerlink" title="如何删除文章"></a>如何删除文章</h2><p>如果文章还没有发布到git，直接删除_post文件夹下的源文件之后，执行  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo clean</span><br><span class="line">hexo g</span><br><span class="line">hexo d</span><br></pre></td></tr></table></figure>
-
-<p>如果你的文章已经发布到git，还需要删除<code>.deploy_git</code>文件夹，再执行上面的命令，究其原因就是hexo clean并没有将发布内容清除  </p>
-<h2 id="如何创建页面"><a href="#如何创建页面" class="headerlink" title="如何创建页面"></a>如何创建页面</h2><p>我们可以打开next主题的menu，比如下面我启用了四个页面  </p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">menu:</span></span><br><span class="line">  <span class="attr">home:</span> <span class="string">/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-home</span></span><br><span class="line">  <span class="comment">#about: /about/ || fa fa-user</span></span><br><span class="line">  <span class="attr">tags:</span> <span class="string">/tags/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-tags</span></span><br><span class="line">  <span class="attr">categories:</span> <span class="string">/categories/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-th</span></span><br><span class="line">  <span class="attr">archives:</span> <span class="string">/archives/</span> <span class="string">||</span> <span class="string">fa</span> <span class="string">fa-archive</span></span><br><span class="line">  <span class="comment">#schedule: /schedule/ || fa fa-calendar</span></span><br><span class="line">  <span class="comment">#sitemap: /sitemap.xml || fa fa-sitemap</span></span><br><span class="line">  <span class="comment">#commonweal: /404/ || fa fa-heartbeat</span></span><br></pre></td></tr></table></figure>
-
-<p>但是实际点击会发现<code>标签</code>和<code>分类</code>页面会错误，因为我们还没有创建这两个页面  </p>
-<p>创建标签页  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
-
-<p>创建分类页  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">hexo new page categories</span><br></pre></td></tr></table></figure>
-
-<p>接下来我们就会看到<code>_posts</code>所在目录下多了两个文件夹，并且其中都有<code>index.md</code>文件，我们修改一下  </p>
-<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 标签</span><br><span class="line">date: 2025-02-23 18:38:08</span><br><span class="line"><span class="section">type: &quot;tags&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 分类</span><br><span class="line">date: 2025-02-23 18:38:08</span><br><span class="line"><span class="section">type: &quot;categories&quot;</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
-
-<p>我们在文章头信息可以自定义标签和分类，这也是本文章的分类和标签，你可以在相关的地方找到，文章头中我们写了描述信息，这会自动折叠文章，打开时会自动为文章创建目录  </p>
-<figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: 利用github搭建个人博客（使用hexo）</span><br><span class="line">date: 2025-02-23 18:10:52</span><br><span class="line">categories: 随想</span><br><span class="line">tags:</span><br><span class="line"><span class="bullet">  -</span> hexo</span><br><span class="line"><span class="section">description: 介绍如何在windows上使用hexo框架和github部署自己的静态博客网站，配置next主题，并简单介绍了怎么使用它写文章</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="增加搜索功能"><a href="#增加搜索功能" class="headerlink" title="增加搜索功能"></a>增加搜索功能</h2><p>安装hexo-generator-searchdb，在站点根目录下执行  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install hexo-generator-searchdb --save</span><br></pre></td></tr></table></figure>
-
-<p>编辑站点配置文件，在最后新增下面内容  </p>
-<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">search:</span></span><br><span class="line">  <span class="attr">path:</span> <span class="string">search.xml</span></span><br><span class="line">  <span class="attr">field:</span> <span class="string">post</span></span><br><span class="line">  <span class="attr">format:</span> <span class="string">html</span></span><br><span class="line">  <span class="attr">limit:</span> <span class="number">10000</span></span><br></pre></td></tr></table></figure>
-
-<p>编辑主题配置文件，启用本地搜索  </p>
-<pre><code class="language-yaml">local_search:
-  enable: true
-</code></pre>
-]]></content>
-      <categories>
-        <category>随想</category>
-      </categories>
-      <tags>
-        <tag>hexo</tag>
+        <tag>环境配置</tag>
       </tags>
   </entry>
   <entry>
@@ -682,39 +720,6 @@ M&#x27; = (M^{-1})^T
       </categories>
       <tags>
         <tag>OpenGL</tag>
-      </tags>
-  </entry>
-  <entry>
-    <title>配置解决Powershell输出中文乱码</title>
-    <url>/2026/02/04/%E9%85%8D%E7%BD%AE%E8%A7%A3%E5%86%B3Powershell%E8%BE%93%E5%87%BA%E4%B8%AD%E6%96%87%E4%B9%B1%E7%A0%81/</url>
-    <content><![CDATA[<p>把下面的配置添加到Powershell的配置文件中，每次打开Powershell都会自动生效了，当然先建议临时修改看看有没有用。</p>
-<p>打开配置文件：  </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
-
-<p>添加配置：  </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># set powershell fileencoding UTF8</span></span><br><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line"><span class="comment"># set Get-Content(cat) fileencoding UTF8</span></span><br><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>我使用neovim编辑，如果没有这个文件可以新建一个：</p>
-<p>powershell管理员模式下：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">nvim <span class="variable">$PROFILE</span></span><br></pre></td></tr></table></figure>
-
-<p>或者去<code>C:\Users\[用户名]\Documents\WindowsPowerShell</code>目录下新建一个<code>Microsoft.PowerShell_profile.ps1</code>文件，用记事本编辑。</p>
-<p>乱码多半是文件编码和shell输出编码不匹配的原因，我们统一选择使用<code>utf-8</code>编码，可以先临时配置先看看效果。  </p>
-<p>先查看文件编码是不是utf-8编码，方法非常多，比如用记事本或者其他什么编辑器打开，一般右下角就会有显示。  </p>
-<p>临时设置直接执行命令就好，设置cat(Get-Content)命令使用utf-8编码：  </p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$PSDefaultParameterValues</span>[<span class="string">&#x27;Get-Content:Encoding&#x27;</span>] = <span class="string">&#x27;UTF8&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>然后用cat命令检查一下乱码是否好了。</p>
-<p>再就是可执行文件的中文输出，先执行下面的命令再执行可执行文件：</p>
-<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">[<span class="type">Console</span>]::OutputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br><span class="line">[<span class="type">Console</span>]::InputEncoding = [<span class="type">System.Text.Encoding</span>]::UTF8</span><br></pre></td></tr></table></figure>
-
-<p>看到修改生效了再写到配置文件中，如果不生效重新启动一个Powershell窗口环境不变，寻找其他方法。  </p>
-]]></content>
-      <categories>
-        <category>随想</category>
-      </categories>
-      <tags>
-        <tag>环境配置</tag>
       </tags>
   </entry>
 </search>

@@ -838,8 +838,13 @@ M&#x27; = (M^{-1})^T
 <p>Windows上通过CMD设置如下（重启终端生效）</p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">setx ANTHROPIC_BASE_URL 你的中转服务URL</span><br><span class="line">setx ANTHROPIC_AUTH_TOKEN 你的API密钥</span><br><span class="line">setx ANTHROPIC_MODEL 指定的大模型名称</span><br></pre></td></tr></table></figure>
 
-<p>Unix-like系统（Linux）上通过bash设置如下（重启终端生效）  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> ANTHROPIC_BASE_URL=你的中转服务URL</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_AUTH_TOKEN=你的API密钥</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_MODEL=指定的大模型名称</span><br></pre></td></tr></table></figure>
+<p>Unix-like系统（Linux）上通过bash设置如下（注意，默认shell是bash，配置文件是.bashrc，如果使用其他shell，如zsh，下面的.bashrc就要改为.zshrc） </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看当前的shell是不是bash，是的话直接按照下面的命令执行</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$0</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export ANTHROPIC_BASE_URL=&quot;你的中转服务URL&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export ANTHROPIC_AUTH_TOKEN=&quot;你的API密钥&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export ANTHROPIC_MODEL=&quot;指定的大模型名称&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br></pre></td></tr></table></figure>
+
+<p>使改动生效执行命令（或重启终端）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">source</span> ~/.bashrc</span><br></pre></td></tr></table></figure>
 
 <p>查看环境变量  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># powershell</span></span><br><span class="line"><span class="variable">$env</span>:ANTHROPIC_BASE_URL</span><br><span class="line"><span class="comment"># cmd</span></span><br><span class="line"><span class="built_in">echo</span> %ANTHROPIC_BASE_URL%</span><br><span class="line"><span class="comment"># bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$ANTHROPIC_BASE_URL</span></span><br></pre></td></tr></table></figure>

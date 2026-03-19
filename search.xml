@@ -853,9 +853,10 @@ M&#x27; = (M^{-1})^T
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">claude</span><br></pre></td></tr></table></figure>
 
 <p>在特定项目中使用，需要进入项目目录启动claude  </p>
-<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 进入你的项目目录</span></span><br><span class="line"><span class="built_in">cd</span> D:\Projects\my-awesome-app</span><br><span class="line"><span class="comment"># 启动 Claude Code</span></span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 进入你的项目目录</span></span><br><span class="line"><span class="built_in">cd</span> D:\Projects\my-awesome-app</span><br><span class="line"><span class="comment"># 启动 Claude Code</span></span><br><span class="line">claude</span><br><span class="line"><span class="comment"># 初始化配置，生成claude.md，在claude code中执行</span></span><br><span class="line">/init</span><br></pre></td></tr></table></figure>
 
 <p>首次启动配置：第一次运行 claude 时，会有一个简单的初始化向导，一般只需要按回车确认默认选项即可。  </p>
+<p>Tips：最好使用<code>claude --dangerously-skip-permissions</code>启动claude code，不然它访问任何目录都要先询问一遍你，可能会让你感觉麻烦。  </p>
 <h2 id="常用命令速查表"><a href="#常用命令速查表" class="headerlink" title="常用命令速查表"></a>常用命令速查表</h2><p>Claude Code 提供了丰富的内置命令，以下是一些最常用的  </p>
 <table>
 <thead>
@@ -917,12 +918,30 @@ M&#x27; = (M^{-1})^T
 <h3 id="使用npm管理"><a href="#使用npm管理" class="headerlink" title="使用npm管理"></a>使用npm管理</h3><p>如果你用的是npm安装，最好用npm升级、卸载  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 升级命令</span></span><br><span class="line">npm update -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.com</span><br><span class="line"><span class="comment"># 卸载命令</span></span><br><span class="line">npm uninstall -g @anthropic-ai/claude-code</span><br></pre></td></tr></table></figure>
 
-<h2 id="任务进行中中断"><a href="#任务进行中中断" class="headerlink" title="任务进行中中断"></a>任务进行中中断</h2><p>在我实际使用过程中（wsl Ubuntu24.04 lts），出现过莫名奇妙的任务中断  </p>
+<h2 id="任务进行中中断（需要从官方脚本安装）"><a href="#任务进行中中断（需要从官方脚本安装）" class="headerlink" title="任务进行中中断（需要从官方脚本安装）"></a>任务进行中中断（需要从官方脚本安装）</h2><hr>
+<p>更新。</p>
+<p>这个问题可能和环境无关，究其原因还是claude code不再支持从npm安装的老版本，从官方脚本安装的就没有问题。  </p>
+<p>不过我确实只有wsl2中使用才有问题，windows下用scoop安装的claude code可以正常使用。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 卸载 npm 安装的老版本</span></span><br><span class="line">npm uninstall -g u/anthropic-ai/claude-code</span><br><span class="line"><span class="comment"># 从官方脚本安装老版本</span></span><br><span class="line">curl -fsSL https://claude.ai/install.sh | bash</span><br></pre></td></tr></table></figure>
+
+<p>claude code 对中国开发者是锁国区的，除了需要科学上网工具，还需要配置给wsl配置代理  </p>
+<p>打开魔法工具，设置好代理端口（一般默认是7890，不同工具可能有不同启用和设置方式）。  </p>
+<p>在powershell下看看自己的<code>局域网IP</code>，比如我是<code>192.168.43.34</code></p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在wsl下配置正确代理（Windows IP：192.168.43.34）</span></span><br><span class="line"><span class="built_in">export</span> WINDOWS_IP=192.168.43.34</span><br><span class="line"><span class="built_in">export</span> http_proxy=http://<span class="variable">$WINDOWS_IP</span>:7890</span><br><span class="line"><span class="built_in">export</span> https_proxy=http://<span class="variable">$WINDOWS_IP</span>:7890</span><br></pre></td></tr></table></figure>
+
+<p>配置完之后再用上面的命令，使用官方脚本安装（网速一般全程大致5-8分钟，并非卡死）。  </p>
+<p>如果返回一大串文本最终failed，按下<code>Windows键</code>，搜索<code>Windows Defender 防火墙</code>，在<code>启用或关闭WindowsDefender 防火墙</code>中把所有防火墙都禁用，再去安装，安装完之后记得开启。  </p>
+<hr>
+<p>下面是这个标题原本内容。</p>
+<p>在我实际使用过程中（wsl Ubuntu24.04 lts），出现过莫名奇妙的任务中断  </p>
 <p><code>Interrupted · What should Claude do instead?</code>  </p>
-<p>再对话也是重复中断，这时候就需要退出，恢复对话  </p>
+<p>再对话也是重复中断，这时候就需要退出，恢复对话，然而这样也只是偶尔能成功  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在claude中输入/exit退出</span></span><br><span class="line">/exit</span><br><span class="line"><span class="comment"># 在shell中输入命令恢复对话</span></span><br><span class="line">claude --resume</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">claude -r</span><br><span class="line"><span class="comment"># 接着继续之前的对话即可</span></span><br></pre></td></tr></table></figure>
 
-<p>Tips：最好使用<code>claude --dangerously-skip-permissions</code>启动claude code，不然它访问任何目录都要先询问一遍你，可能会造成麻烦。  </p>
+<h2 id="WSL中claude输入卡顿"><a href="#WSL中claude输入卡顿" class="headerlink" title="WSL中claude输入卡顿"></a>WSL中claude输入卡顿</h2><p>我在 wsl2+ubuntu24.04 环境下运行的claude code，问题原因大体还是因为反复调用不同环境中的程序导致的，在网上找到一个解决方法，亲测有效。  </p>
+<p><a href="https://linux.do/t/topic/956128">Windows 下 WSL2 运行 Claude Code 卡顿的解决方法 - 项太傅</a>  </p>
+<p>记录其中推荐的一种方式，把下面的命令复制到bash执行即可  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/bin</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &lt;&lt; <span class="string">&#x27;EOF&#x27;</span> &gt; ~/bin/powershell.exe</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;-Command&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$2</span>&quot;</span> == <span class="string">&quot;\$env:USERPROFILE&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;C:\\Users\\Administrator&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">chmod</span> +x ~/bin/powershell.exe</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$SHELL</span>&quot;</span> == */zsh ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&#x27;export PATH=&quot;$HOME/bin:$PATH&quot;&#x27;</span> &gt;&gt; ~/.zshrc</span><br><span class="line">  SHELL_CONFIG_FILE=~/.zshrc</span><br><span class="line"><span class="keyword">elif</span> [[ <span class="string">&quot;<span class="variable">$SHELL</span>&quot;</span> == */bash ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&#x27;export PATH=&quot;$HOME/bin:$PATH&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line">  SHELL_CONFIG_FILE=~/.bashrc</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  SHELL_CONFIG_FILE=<span class="string">&quot;your shell config file (e.g., ~/.bashrc or ~/.zshrc)&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;✅ 修复完成！&quot;</span></span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>随想</category>

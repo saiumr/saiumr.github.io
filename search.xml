@@ -769,4 +769,163 @@ M&#x27; = (M^{-1})^T
         <tag>c++</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Claude Code简明教程</title>
+    <url>/2026/03/18/Claude-Code%E7%AE%80%E6%98%8E%E6%95%99%E7%A8%8B/</url>
+    <content><![CDATA[<h2 id="智能体？"><a href="#智能体？" class="headerlink" title="智能体？"></a>智能体？</h2><p>把这个标题放在第一个，是想简单说明一下不同AI应用所处的位置，以便于我们能更好地理解和使用AI应用。我自己理解也不一定非常准确，但是用于使用工具足够了。  </p>
+<p>首先要明确一件事，Clude Code，Openclaw等等这些<strong>需要配置API Key</strong>的应用，并不是真正意义上的智能体，它们是强大的AI应用工具，能<strong>处理操作</strong>，并不能分析问题，分析问题的是<strong>大模型</strong>，如果把配置了大模型的 Claude Code 比作一个人，那么 Claude Code 本身是手脚，大模型才是大脑。  </p>
+<p>上面标注的<strong>处理操作</strong>，实际上就是执行Claude Code内置的一系列命令（也包括我们自己安装的命令行工具），我们在CLI中直接执行这些命令就能直观感受到它是怎么处理需求的了，就像是一套可执行程序，大模型分析完问题之后输出一个执行流程给Clude Code，调用什么命令，有什么参数等等，Clude Code只是照着执行罢了，当然，它也能根据环境反馈做简单调整，但整体缺乏主动规划能力。  </p>
+<p>而真正的智能体，同时拥有大脑和身体，能够对需求自主分析，在思考中不断反思，遇到不会的自己去学，得到结果后自己验证，结果不符合预期又会rollback继续迭代，可以参考《钢铁侠》中的贾维斯，《流浪地球》中的MOSS，当然那比智能体强大得多，如果未来真的问世，可能会有别的称呼吧。  </p>
+<p>装上大模型的Clude Code仍然需要我们人力验证，给提示词，他才能按照要求一步步得到最终结果，这才是它和智能体最根本的区别。  </p>
+<p>随着技术发展，AI应用工具与智能体的界限会越来越模糊。或许不久的将来，我们只需给出目标，剩下的交给 AI，到那时“智能体”的定义本身也可能被重新审视。  </p>
+<h2 id="scoop"><a href="#scoop" class="headerlink" title="scoop"></a>scoop</h2><p>聊安装使用之前，先介绍一下scoop工具，这是Windows上的包管理工具，linux用户可忽略此节，直接查看后面安装使用部分即可，不想用scoop统一建议使用npm+国内镜像安装。有了它就可以像使用我们熟悉的<code>sudo apt install</code>一样安装软件了，也可以管理升级，查询软件信息，我感觉比去官网下载软件安装包要方便（PS：现在大部分官方软件内置升级检查，所以也不用太纠结怎么装）。  </p>
+<p>后面我会介绍使用 scoop 安装 clude code 和直接安装，介绍 scoop 的管理方式，主要是因为我个人习惯用它，也算是一种记录。  </p>
+<p><a href="https://scoop.sh/">Scoop官网</a>可以看到如何通过powershell安装scoop（下方命令）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在powershell中依次执行</span></span><br><span class="line">Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser</span><br><span class="line">Invoke-RestMethod -Uri https://get.scoop.sh | Invoke-Expression</span><br></pre></td></tr></table></figure>
+
+<p>注意，此时它默认安装到C盘用户目录，如果你想用其他数据盘管理安装的软件，可以直接把他的文件夹移动到你想放的位置，再把环境变量中他的路径前缀改掉。  </p>
+<p>一般在<code>C:\Users\xxx\scoop</code>，比如我想移动到<code>D:\</code>，直接把那个<code>scoop</code>移动到D盘，环境变量中所有scoop相关值前缀都要改成<code>D:\scoop</code>，这样scoop本体和他以后安装的软件都在<code>D:\scoop</code>下了。  </p>
+<p>在官网上我们可以直接搜索想安装的软件，在scoop软件仓库里的都会列举出来并给出相应安装命令，比如VsCode  </p>
+<p><img src="/../images/post/AI_Clude_0_scoop_vscode.png" alt="scoop vscode">  </p>
+<p>我们按序执行这两条命令就可以安装vscode了。  </p>
+<p>这里scoop的命令就不过多解释了，感兴趣可以自行了解一下，也可以在我们配置好clude code之后问问它。  </p>
+<h2 id="安装与使用"><a href="#安装与使用" class="headerlink" title="安装与使用"></a>安装与使用</h2><p>下面我会详细介绍如何在 Windows 上通过 Scoop 安装 Claude Code，以及一些日常使用中会用到的核心命令和技巧。  </p>
+<p>注意，在装claude code之前，我们要安装nodejs，这是claude code依赖的环境，这也是为什么我推荐使用scoop，因为nodejs也可以用scoop安装。</p>
+<h3 id="Windows上使用scoop安装Claude-Code"><a href="#Windows上使用scoop安装Claude-Code" class="headerlink" title="Windows上使用scoop安装Claude Code"></a>Windows上使用scoop安装Claude Code</h3><p>Claude Code 是基于 Node.js 开发的，所以第一步需要先安装 Node.js 运行环境。  </p>
+<p>使用 Scoop 安装 Node.js 非常简单，打开 PowerShell 执行以下命令即可</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 使用 Scoop 安装 Node.js 的长期支持版</span></span><br><span class="line">scoop install nodejs-lts</span><br></pre></td></tr></table></figure>
+
+<p>安装完成之后，我们使用下面的命令检查一下安装  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node --version</span><br><span class="line">npm --version</span><br></pre></td></tr></table></figure>
+
+<p>如果不行，执行一下下面的命令配置nodejs的环境变量  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scoop reset nodejs-lts</span><br></pre></td></tr></table></figure>
+
+<p>再检查，如果还不行，检查环境变量里面有scoop目录下可执行文件或软链接的路径。  </p>
+<p>还是不行的花我也没招了，上网搜搜，或者问问AI，或者不用scoop，直接安装claude code。  </p>
+<p>接下来我们安装clude code，先去scoop仓库搜一下它的安装命令  </p>
+<p><img src="/../images/post/AI_Clude_1_scoop_claude.png" alt="scoop clude code">  </p>
+<p>按序执行安装clude code  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scoop bucket add main</span><br><span class="line">scoop install main/claude-code</span><br></pre></td></tr></table></figure>
+
+<h3 id="Windows上直接安装Claude-Code"><a href="#Windows上直接安装Claude-Code" class="headerlink" title="Windows上直接安装Claude Code"></a>Windows上直接安装Claude Code</h3><p>使用官方脚本安装（可能需要科学上网），powershell 和 cmd 安装命令不同，选用一个就行  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># powershell 安装命令</span></span><br><span class="line">irm https://claude.ai/install.ps1 | iex</span><br><span class="line"></span><br><span class="line"><span class="comment"># cmd 安装命令</span></span><br><span class="line">curl -fsSL https://claude.ai/install.cmd -o install.cmd &amp;&amp; install.cmd &amp;&amp; del install.cmd</span><br></pre></td></tr></table></figure>
+
+<h3 id="Mac、Linux安装Claude-Code"><a href="#Mac、Linux安装Claude-Code" class="headerlink" title="Mac、Linux安装Claude Code"></a>Mac、Linux安装Claude Code</h3><p>先安装nodejs，对于 Ubuntu&#x2F;Debian  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install -y nodejs npm</span><br></pre></td></tr></table></figure>
+
+<p>对于 CentOS&#x2F;RHEL</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> yum install -y epel-release</span><br><span class="line"><span class="built_in">sudo</span> yum install -y nodejs npm</span><br></pre></td></tr></table></figure>
+
+<p>验证  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">node -v</span><br><span class="line">npm -v</span><br></pre></td></tr></table></figure>
+
+<p>接着同样使用官方脚本安装，可能需要科学上网（推荐npm+国内镜像安装，直接看下一节）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">curl -fsSL https://claude.ai/install.sh | bash</span><br></pre></td></tr></table></figure>
+
+<h3 id="（通用，需安装好nodejs）使用npm安装Claude-Code"><a href="#（通用，需安装好nodejs）使用npm安装Claude-Code" class="headerlink" title="（通用，需安装好nodejs）使用npm安装Claude Code"></a>（通用，需安装好nodejs）使用npm安装Claude Code</h3><p>npm使用国内镜像下载安装基本没有问题  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">npm install -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="验证安装"><a href="#验证安装" class="headerlink" title="验证安装"></a>验证安装</h3><p>查看一下版本号输出即可  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">claude --version</span><br></pre></td></tr></table></figure>
+
+<h2 id="配置-API-密钥与环境变量"><a href="#配置-API-密钥与环境变量" class="headerlink" title="配置 API 密钥与环境变量"></a>配置 API 密钥与环境变量</h2><p>安装完成后，需要配置 API 密钥才能开始使用。Claude Code 通过环境变量来读取这些配置，其实这一步配置就是设置这些环境变量，我只记录部分，让我们能快速用起来。  </p>
+<p>对于怎么获取API Key，一般就是去大模型官网，注册账号登录，创建Key就行了。  </p>
+<p>关于更多环境变量的设置和大模型API Key的申请、切换，请参考：<a href="https://www.runoob.com/claude-code/claude-code-setup.html">Claude Code API配置-菜鸟教程</a>  </p>
+<p>window上通过PowerShell设置如下（重启终端生效）</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">[System.Environment]::SetEnvironmentVariable(<span class="string">&quot;ANTHROPIC_BASE_URL&quot;</span>, <span class="string">&quot;你的中转服务URL&quot;</span>, [System.EnvironmentVariableTarget]::User)</span><br><span class="line">[System.Environment]::SetEnvironmentVariable(<span class="string">&quot;ANTHROPIC_AUTH_TOKEN&quot;</span>, <span class="string">&quot;你的API密钥&quot;</span>, [System.EnvironmentVariableTarget]::User)</span><br><span class="line">[System.Environment]::SetEnvironmentVariable(<span class="string">&quot;ANTHROPIC_MODEL&quot;</span>, <span class="string">&quot;指定的大模型名称&quot;</span>, [System.EnvironmentVariableTarget]::User)</span><br></pre></td></tr></table></figure>
+
+<p>Windows上通过CMD设置如下（重启终端生效）</p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">setx ANTHROPIC_BASE_URL 你的中转服务URL</span><br><span class="line">setx ANTHROPIC_AUTH_TOKEN 你的API密钥</span><br><span class="line">setx ANTHROPIC_MODEL 指定的大模型名称</span><br></pre></td></tr></table></figure>
+
+<p>Unix-like系统（Linux）上通过bash设置如下（重启终端生效）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">export</span> ANTHROPIC_BASE_URL=你的中转服务URL</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_AUTH_TOKEN=你的API密钥</span><br><span class="line"><span class="built_in">export</span> ANTHROPIC_MODEL=指定的大模型名称</span><br></pre></td></tr></table></figure>
+
+<p>查看环境变量  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># powershell</span></span><br><span class="line"><span class="variable">$env</span>:ANTHROPIC_BASE_URL</span><br><span class="line"><span class="comment"># cmd</span></span><br><span class="line"><span class="built_in">echo</span> %ANTHROPIC_BASE_URL%</span><br><span class="line"><span class="comment"># bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="variable">$ANTHROPIC_BASE_URL</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="开始使用-Claude-Code"><a href="#开始使用-Claude-Code" class="headerlink" title="开始使用 Claude Code"></a>开始使用 Claude Code</h2><p>直接启动交互式会话（CLI）  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">claude</span><br></pre></td></tr></table></figure>
+
+<p>在特定项目中使用，需要进入项目目录启动claude  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 进入你的项目目录</span></span><br><span class="line"><span class="built_in">cd</span> D:\Projects\my-awesome-app</span><br><span class="line"><span class="comment"># 启动 Claude Code</span></span><br><span class="line">claude</span><br></pre></td></tr></table></figure>
+
+<p>首次启动配置：第一次运行 claude 时，会有一个简单的初始化向导，一般只需要按回车确认默认选项即可。  </p>
+<h2 id="常用命令速查表"><a href="#常用命令速查表" class="headerlink" title="常用命令速查表"></a>常用命令速查表</h2><p>Claude Code 提供了丰富的内置命令，以下是一些最常用的  </p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>作用</th>
+<th>使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>/init</code></td>
+<td>初始化项目，生成 <code>CLAUDE.md</code> 上下文文件</td>
+<td>新项目首次使用时，让 AI 理解项目结构</td>
+</tr>
+<tr>
+<td><code>/clear</code></td>
+<td>清空当前对话历史</td>
+<td>切换任务时，避免旧上下文干扰</td>
+</tr>
+<tr>
+<td><code>/compact</code></td>
+<td>压缩总结当前对话，节省 token</td>
+<td>对话过长时让 AI 重新聚焦</td>
+</tr>
+<tr>
+<td><code>!</code> + 命令</td>
+<td>直接执行终端命令（如 <code>!git status</code>）</td>
+<td>不退出 Claude 快速执行系统命令</td>
+</tr>
+<tr>
+<td><code>#</code> + 信息</td>
+<td>将重要信息存入长期记忆</td>
+<td>告诉 AI 项目技术栈、代码规范等</td>
+</tr>
+<tr>
+<td><code>exit</code> 或 <code>Ctrl+C</code></td>
+<td>退出 Claude Code</td>
+<td>结束会话</td>
+</tr>
+</tbody></table>
+<h2 id="项目上下文文件：CLAUDE-md"><a href="#项目上下文文件：CLAUDE-md" class="headerlink" title="项目上下文文件：CLAUDE.md"></a>项目上下文文件：<code>CLAUDE.md</code></h2><p>当你执行 <code>/init</code> 命令后，Claude Code 会在项目根目录生成一个 <code>CLAUDE.md</code> 文件。这个文件非常重要，它是 AI 理解你项目的“记忆库”。</p>
+<p>你可以手动编辑这个文件，加入项目相关的信息，比如：</p>
+<ul>
+<li>项目目标和核心业务逻辑  </li>
+<li>使用的技术栈（C++17 + MSVC + SDL3 + OpenGL + Assimp + Bullet）  </li>
+<li>代码规范（缩进用 2 空格、命名规范等）  </li>
+<li>重要模块说明</li>
+</ul>
+<p>这样每次启动 Claude Code 时，AI 会自动读取这些信息，后续的回答会更贴合你的项目风格。</p>
+<h2 id="升级与卸载"><a href="#升级与卸载" class="headerlink" title="升级与卸载"></a>升级与卸载</h2><h3 id="使用scoop管理"><a href="#使用scoop管理" class="headerlink" title="使用scoop管理"></a>使用scoop管理</h3><p>使用scoop更新和卸载，可以先用命令确定<code>app</code>的名字  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">scoop list</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 升级命令，不指定app升级scoop本身和它安装的所有软件</span></span><br><span class="line">scoop update &lt;app&gt;</span><br><span class="line"><span class="comment"># 升级claude code</span></span><br><span class="line">scoop update claude-code</span><br><span class="line"><span class="comment"># 卸载命令</span></span><br><span class="line">scoop uninstall claude-code</span><br></pre></td></tr></table></figure>
+
+<h3 id="直接管理"><a href="#直接管理" class="headerlink" title="直接管理"></a>直接管理</h3><p>如果是官方脚本安装，升级使用claude code内置升级命令  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">claude update</span><br></pre></td></tr></table></figure>
+
+<p>卸载就删除相关文件（可能需手动）。  </p>
+<h3 id="使用npm管理"><a href="#使用npm管理" class="headerlink" title="使用npm管理"></a>使用npm管理</h3><p>如果你用的是npm安装，最好用npm升级、卸载  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 升级命令</span></span><br><span class="line">npm update -g @anthropic-ai/claude-code --registry=https://registry.npmmirror.com</span><br><span class="line"><span class="comment"># 卸载命令</span></span><br><span class="line">npm uninstall -g @anthropic-ai/claude-code</span><br></pre></td></tr></table></figure>
+
+<h2 id="任务进行中中断"><a href="#任务进行中中断" class="headerlink" title="任务进行中中断"></a>任务进行中中断</h2><p>在我实际使用过程中（wsl Ubuntu24.04 lts），出现过莫名奇妙的任务中断  </p>
+<p><code>Interrupted · What should Claude do instead?</code>  </p>
+<p>再对话也是重复中断，这时候就需要退出，恢复对话  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在claude中输入/exit退出</span></span><br><span class="line">/exit</span><br><span class="line"><span class="comment"># 在shell中输入命令恢复对话</span></span><br><span class="line">claude --resume</span><br><span class="line"><span class="comment"># 或者</span></span><br><span class="line">claude -r</span><br><span class="line"><span class="comment"># 接着继续之前的对话即可</span></span><br></pre></td></tr></table></figure>
+
+<p>Tips：最好使用<code>claude --dangerously-skip-permissions</code>启动claude code，不然它访问任何目录都要先询问一遍你，可能会造成麻烦。  </p>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>AI</tag>
+        <tag>claude</tag>
+        <tag>scoop</tag>
+      </tags>
+  </entry>
 </search>

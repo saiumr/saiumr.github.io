@@ -924,7 +924,7 @@ M&#x27; = (M^{-1})^T
 <p>不过我确实只有wsl2中使用才有问题，windows下用scoop安装的claude code可以正常使用。  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 卸载 npm 安装的老版本</span></span><br><span class="line">npm uninstall -g u/anthropic-ai/claude-code</span><br><span class="line"><span class="comment"># 从官方脚本安装老版本</span></span><br><span class="line">curl -fsSL https://claude.ai/install.sh | bash</span><br></pre></td></tr></table></figure>
 
-<p>claude code 对中国开发者是锁国区的，除了需要科学上网工具，还需要配置给wsl配置代理  </p>
+<p>claude code 对中国开发者是锁国区的，除了需要科学上网工具，还需要给wsl配置代理  </p>
 <p>打开魔法工具，设置好代理端口（一般默认是7890，不同工具可能有不同启用和设置方式）。  </p>
 <p>在powershell下看看自己的<code>局域网IP</code>，比如我是<code>192.168.43.34</code></p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 在wsl下配置正确代理（Windows IP：192.168.43.34）</span></span><br><span class="line"><span class="built_in">export</span> WINDOWS_IP=192.168.43.34</span><br><span class="line"><span class="built_in">export</span> http_proxy=http://<span class="variable">$WINDOWS_IP</span>:7890</span><br><span class="line"><span class="built_in">export</span> https_proxy=http://<span class="variable">$WINDOWS_IP</span>:7890</span><br></pre></td></tr></table></figure>
@@ -942,6 +942,42 @@ M&#x27; = (M^{-1})^T
 <p><a href="https://linux.do/t/topic/956128">Windows 下 WSL2 运行 Claude Code 卡顿的解决方法 - 项太傅</a>  </p>
 <p>记录其中推荐的一种方式，把下面的命令复制到bash执行即可  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -p ~/bin</span><br><span class="line"></span><br><span class="line"><span class="built_in">cat</span> &lt;&lt; <span class="string">&#x27;EOF&#x27;</span> &gt; ~/bin/powershell.exe</span><br><span class="line"><span class="comment">#!/bin/bash</span></span><br><span class="line"><span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$1</span>&quot;</span> == <span class="string">&quot;-Command&quot;</span> &amp;&amp; <span class="string">&quot;<span class="variable">$2</span>&quot;</span> == <span class="string">&quot;\$env:USERPROFILE&quot;</span> ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&quot;C:\\Users\\Administrator&quot;</span></span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe <span class="string">&quot;<span class="variable">$@</span>&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">chmod</span> +x ~/bin/powershell.exe</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [[ <span class="string">&quot;<span class="variable">$SHELL</span>&quot;</span> == */zsh ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&#x27;export PATH=&quot;$HOME/bin:$PATH&quot;&#x27;</span> &gt;&gt; ~/.zshrc</span><br><span class="line">  SHELL_CONFIG_FILE=~/.zshrc</span><br><span class="line"><span class="keyword">elif</span> [[ <span class="string">&quot;<span class="variable">$SHELL</span>&quot;</span> == */bash ]]; <span class="keyword">then</span></span><br><span class="line">  <span class="built_in">echo</span> <span class="string">&#x27;export PATH=&quot;$HOME/bin:$PATH&quot;&#x27;</span> &gt;&gt; ~/.bashrc</span><br><span class="line">  SHELL_CONFIG_FILE=~/.bashrc</span><br><span class="line"><span class="keyword">else</span></span><br><span class="line">  SHELL_CONFIG_FILE=<span class="string">&quot;your shell config file (e.g., ~/.bashrc or ~/.zshrc)&quot;</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">export</span> PATH=<span class="string">&quot;<span class="variable">$HOME</span>/bin:<span class="variable">$PATH</span>&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;&quot;</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;✅ 修复完成！&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="性能优化"><a href="#性能优化" class="headerlink" title="性能优化"></a>性能优化</h2><p>claude code 使用时很占用内存，低配设备如果不加以限制<strong>可能会爆内存</strong>，实际上，不同配置能用于不同种类的业务，大致如下  </p>
+<table>
+<thead>
+<tr>
+<th>硬件配置</th>
+<th>性能优化重点</th>
+<th>推荐使用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>低配设备</td>
+<td>内存限制、禁用高级分析（4GB内存，双核CPU）</td>
+<td>基础代码解释、简单命令执行</td>
+</tr>
+<tr>
+<td>中端设备</td>
+<td>平衡内存与CPU占用（8GB内存，四核CPU）</td>
+<td>常规开发、代码重构辅助</td>
+</tr>
+<tr>
+<td>高端设备</td>
+<td>并行任务处理、缓存优化（16GB+内存，六核+CPU）</td>
+<td>大型项目分析、批量代码生成</td>
+</tr>
+</tbody></table>
+<p>在用户配置目录下创建或修改config.json文件，添加内存限制配置  </p>
+<p>windows下在 <code>C:\Users\[你的名字]\.claude.json</code>，linux下在 <code>~/.claude.json</code>。  </p>
+<p>打开配置文件，添加或编辑以下配置项  </p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;memory&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;maxHeapSize&quot;</span><span class="punctuation">:</span> <span class="string">&quot;4096MB&quot;</span><span class="punctuation">,</span>  <span class="comment">// 根据系统内存总量调整，建议不超过物理内存的50%</span></span><br><span class="line">    <span class="attr">&quot;cacheSize&quot;</span><span class="punctuation">:</span> <span class="string">&quot;1024MB&quot;</span>      <span class="comment">// 代码分析缓存大小</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>对于超过10,000文件的大型项目，可启用增量分析模式，只处理修改过的文件  </p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;analysis&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;incrementalMode&quot;</span><span class="punctuation">:</span> <span class="literal"><span class="keyword">true</span></span><span class="punctuation">,</span></span><br><span class="line">    <span class="attr">&quot;excludePatterns&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;node_modules/**&quot;</span><span class="punctuation">,</span> <span class="string">&quot;dist/**&quot;</span><span class="punctuation">]</span>  <span class="comment">// 排除无需分析的目录</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>通过环境变量设置Claude Code可使用的最大线程数  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export CLAUDE_CODE_THREADS=4&#x27;</span> &gt;&gt; .bashrc  <span class="comment"># 通常设置为CPU核心数的50-75%</span></span><br><span class="line"><span class="comment"># powershell</span></span><br><span class="line">[System.Environment]::SetEnvironmentVariable(<span class="string">&quot;CLAUDE_CODE_THREADS&quot;</span>, <span class="string">&quot;4&quot;</span>, [System.EnvironmentVariableTarget]::User)</span><br></pre></td></tr></table></figure>
 ]]></content>
       <categories>
         <category>随想</category>

@@ -978,6 +978,10 @@ M&#x27; = (M^{-1})^T
 
 <p>通过环境变量设置Claude Code可使用的最大线程数  </p>
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># bash</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&#x27;export CLAUDE_CODE_THREADS=4&#x27;</span> &gt;&gt; .bashrc  <span class="comment"># 通常设置为CPU核心数的50-75%</span></span><br><span class="line"><span class="comment"># powershell</span></span><br><span class="line">[System.Environment]::SetEnvironmentVariable(<span class="string">&quot;CLAUDE_CODE_THREADS&quot;</span>, <span class="string">&quot;4&quot;</span>, [System.EnvironmentVariableTarget]::User)</span><br></pre></td></tr></table></figure>
+
+<h2 id="目前最屌的配置"><a href="#目前最屌的配置" class="headerlink" title="目前最屌的配置"></a>目前最屌的配置</h2><p>claude code “冠军”配置，至于为什么这样说，搜索这个开源项目的名字就知道了  </p>
+<p><a href="https://github.com/affaan-m/everything-claude-code">everything claude code</a>  </p>
+<p>不看别人的博客吹它，单凭它 90k+ 的 star 也能看出来不一般，这个配置写了你想要的一切，我就不赘述了。  </p>
 ]]></content>
       <categories>
         <category>随想</category>

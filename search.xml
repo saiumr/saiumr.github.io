@@ -992,4 +992,72 @@ M&#x27; = (M^{-1})^T
         <tag>scoop</tag>
       </tags>
   </entry>
+  <entry>
+    <title>打包发布Qt应用</title>
+    <url>/2026/03/23/%E6%89%93%E5%8C%85%E5%8F%91%E5%B8%83Qt%E5%BA%94%E7%94%A8/</url>
+    <content><![CDATA[<p>参考我的学习项目：<a href="https://github.com/saiumr/LearnQt/tree/main/002-releaseQtApp">Release Qt App</a>  </p>
+<p>里面有两个目录，分别是绿色版本和安装包版本（解压后的状态）。</p>
+<h2 id="Enigma-Virtual-Box"><a href="#Enigma-Virtual-Box" class="headerlink" title="Enigma Virtual Box"></a>Enigma Virtual Box</h2><p>因为要用这个工具，就问了问AI了解了一下。  </p>
+<p>Enigma Virtual Box 是一个能把你的程序及其所有“配件”（DLL文件、图片、数据库等）打包成一个单独 .exe 文件的免费工具。  </p>
+<p>对 Qt 开发者来说，它的核心价值在于：解决了分发程序时必须带着一堆 DLL 文件的尴尬，让用户收到的只是一个清爽的、双击就能运行的单文件。  </p>
+<p>当用户运行这个打包后的程序时，它并不会像普通压缩包一样把文件解压到电脑的临时文件夹里，而是直接在内存中“虚拟”出这些文件。对程序来说，它“看到”的依赖都在，但对用户来说，磁盘上干干净净，没有任何临时文件被释放出来。这对于追求“绿色软件”体验的开发者来说，是一个巨大的吸引力。  </p>
+<p>但是它的加载方式并不是全量加载，而是动态的，所以对资源和性能的影响很小。  </p>
+<h2 id="打包成绿色版本"><a href="#打包成绿色版本" class="headerlink" title="打包成绿色版本"></a>打包成绿色版本</h2><p>有一篇博客写的好啊：<a href="https://zhuanlan.zhihu.com/p/678981419">QT程序打包发布详细步骤 - 程序员在路上（知乎）</a>  </p>
+<p>注意：请先甄别自己使用的Qt版本，我使用的<code>6.8.3</code>版本，亲测可行，原文提到<code>4.x</code>版本是不行的。  </p>
+<p>下面简单记录一下原文章：  </p>
+<ol>
+<li>编译运行release版本应用；  </li>
+<li>将二进制包和资源文件复制到单独的目录下（比如<code>resQtApp</code>，注意目录结构）；</li>
+<li>在开始菜单中打开Qt命令行窗口（可能需要注意自己的编译环境，比如我是用Mingw编译的，用的就是 <code>Qt 6.8.3(MinGW 13.1.0 64-bit)</code>）；  </li>
+<li>补充：先试试 <code>windeployqt --version</code> 能不能执行（注意这里似乎不能tab补全，输入全名执行，以下操作都是如此），不行的话要先配置环境变量；  </li>
+<li>补充：运行Qt自带的配置环境变量的脚本 <code>.\bin\qtenv2.bat</code>；  </li>
+<li>输入命令跳转到打包的文件夹：<code>cd /d resQtApp</code>，接着输入命令执行打包流程：<code>windeployqt 程序名</code> （也可能是<code>windeployqt6</code>，暂时不清楚有何区别，我用的带6的），这样我们所需要的所有动态链接库和其他资源都会复制过来；  </li>
+<li>在上一步骤执行完命令就可以双击运行App了；  </li>
+<li>接下来使用 <code>Enigma Virtual Box</code> 打包App，只需要在 <code>Input File Name</code> 里选中我们之前处理好的.exe应用就好了，然后 <code>Add -&gt; Add Folder Recursive</code>，选中.exe文件所在目录，然后 <code>Files Option -&gt; 勾选 Compress Files</code>，最后点击 <code>Process</code>；  </li>
+<li>上一步得到的打包文件(.exe)默认带有 <code>_boxed</code> 后缀，我们可以把这单个文件放在任意目录执行。</li>
+</ol>
+<p>实际上在执行完<code>第6步</code>之后我们就可以把整个目录压缩发布了，但是打包成单个可执行文件对使用者来说更简洁干净，而且我亲测打包 <code>Compress</code> 之后可执行文件体积对比整个包小了近一半，可谓利远远大于弊。  </p>
+<h2 id="打包成安装包"><a href="#打包成安装包" class="headerlink" title="打包成安装包"></a>打包成安装包</h2><p>参考博客：<a href="https://zhuanlan.zhihu.com/p/144079072">使用NSIS打包程序 - 佳瑞Jarrett（知乎）</a>  </p>
+<p>我们需要使用安装脚本制作安装包，首先需要按序安装：  </p>
+<p><a href="https://nsis.sourceforge.io/Download">NSIS脚本</a><br><a href="https://hmne.sourceforge.net/index.php#Download">HM NIS Edit</a>  </p>
+<p>NSIS（Nullsoft Scriptable Install System）是一个开源的 Windows 安装程序制作工具。它的特点是基于脚本、体积小巧、逻辑灵活且完全免费，非常适合用来打包软件并生成一个轻量级的 .exe 安装包。</p>
+<p>常用编辑器是 HM NIS Edit。它是一个图形化的 IDE（集成开发环境），通过向导功能和语法高亮，帮助用户更直观地编写 NSIS 脚本，无需完全手动敲代码即可快速生成安装程序。</p>
+<p>除了工具之外，我们把App打包成安装包，还有四样不可或缺的东西：  </p>
+<ol>
+<li>应用程序本体和完整的可执行环境（上面的步骤1~7）；  </li>
+<li>安装.exe；</li>
+<li>卸载.exe；  </li>
+<li>安装过程中显示的描述信息（License.txt）</li>
+</ol>
+<p>为此，我们需要完成准备：  </p>
+<ol>
+<li>打包绿色版本的步骤1~7（准备好完整的可执行环境）；  </li>
+<li>安装应用的ico图标；  </li>
+<li>卸载应用的ico图标；  </li>
+<li>License.txt</li>
+</ol>
+<p>准备好之后需要使用<code>NSIS</code>应用工具制作安装包。  </p>
+<ol>
+<li>运行<code>HM NIS Edit</code>之后，选择<code>文件-&gt;新建脚本向导</code>，首先，主要设置<code>应用程序名称</code>；  </li>
+<li>然后下一步，设置安装程序的图标和语言（简体中文），如果没有选项可能是编译器配置路径错了，需要手动配置一下；  </li>
+<li>下一步，把授权文件改成自己的；  </li>
+<li>下一步，删除默认的文件信息，然后添加文件，先把所有非目录文件添加进来；  </li>
+<li>再次添加文件，选择 <code>imageformats\qico.dll</code>，注意需要在 <code>目的目录</code> 加上 <code>\imageformats</code>；</li>
+<li>再次添加文件，选择 <code>platforms\qwindows.dll</code>，注意需要再 <code>目的目录</code> 后面加上 <code>\platforms</code>；</li>
+<li>在已添加的文件列表中选择我们的可执行文件本体，选中之后选择下一步；</li>
+<li>现在到了<code>应用程序图标</code>，基本不用设置，直接下一步；</li>
+<li>修改<code>自述</code>，改成我们的License.txt作演示，到时候安装会出现这个文本信息；</li>
+<li>下一步，设置卸载应用的图标；  </li>
+<li>现在到了<code>向导已完成</code>，把三个选项全都勾选上：保存脚本，转换文件路径到关键路径，编译脚本；  </li>
+<li>完成，选择保存文件夹，去报编译无误即可。</li>
+</ol>
+<p>在我们最后选择的文件夹中会生成<code>nsi脚本</code>，编译没问题的话会生成<code>Setup.exe</code>，可以把这个安装文件单独发布，利用这个安装程序即可安装使用主体应用。  </p>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>Qt</tag>
+      </tags>
+  </entry>
 </search>

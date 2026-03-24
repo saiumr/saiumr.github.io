@@ -28,7 +28,7 @@
 <meta property="og:description" content="介绍如何打包发布Qt应用（绿色版本和应用程序安装包）。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-23T02:13:25.000Z">
-<meta property="article:modified_time" content="2026-03-24T01:56:56.581Z">
+<meta property="article:modified_time" content="2026-03-24T02:08:13.422Z">
 <meta property="article:author" content="cola">
 <meta property="article:tag" content="Qt">
 <meta name="twitter:card" content="summary">
@@ -139,7 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Enigma-Virtual-Box"><span class="nav-number">1.</span> <span class="nav-text">Enigma Virtual Box</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E6%88%90%E7%BB%BF%E8%89%B2%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">打包成绿色版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E6%88%90%E5%AE%89%E8%A3%85%E5%8C%85"><span class="nav-number">3.</span> <span class="nav-text">打包成安装包</span></a></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#Enigma-Virtual-Box"><span class="nav-number">1.</span> <span class="nav-text">Enigma Virtual Box</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E6%88%90%E7%BB%BF%E8%89%B2%E7%89%88%E6%9C%AC"><span class="nav-number">2.</span> <span class="nav-text">打包成绿色版本</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%89%93%E5%8C%85%E6%88%90%E5%AE%89%E8%A3%85%E5%8C%85%E7%A8%8B%E5%BA%8F%EF%BC%88Setup-exe%EF%BC%89"><span class="nav-number">3.</span> <span class="nav-text">打包成安装包程序（Setup.exe）</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -233,7 +233,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-24 09:56:56" itemprop="dateModified" datetime="2026-03-24T09:56:56+08:00">2026-03-24</time>
+      <time title="修改时间：2026-03-24 10:08:13" itemprop="dateModified" datetime="2026-03-24T10:08:13+08:00">2026-03-24</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -277,14 +277,14 @@
 <li>上一步得到的打包文件(.exe)默认带有 <code>_boxed</code> 后缀，我们可以把这单个文件放在任意目录执行。</li>
 </ol>
 <p>实际上在执行完<code>第6步</code>之后我们就可以把整个目录压缩发布了，但是打包成单个可执行文件对使用者来说更简洁干净，而且我亲测打包 <code>Compress</code> 之后可执行文件体积对比整个包小了近一半，可谓利远远大于弊。  </p>
-<h2 id="打包成安装包"><a href="#打包成安装包" class="headerlink" title="打包成安装包"></a>打包成安装包</h2><p>参考博客：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/144079072">使用NSIS打包程序 - 佳瑞Jarrett（知乎）</a>  </p>
+<h2 id="打包成安装包程序（Setup-exe）"><a href="#打包成安装包程序（Setup-exe）" class="headerlink" title="打包成安装包程序（Setup.exe）"></a>打包成安装包程序（Setup.exe）</h2><p>参考博客：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/144079072">使用NSIS打包程序 - 佳瑞Jarrett（知乎）</a>  </p>
 <p>我们需要使用安装脚本制作安装包，首先需要按序安装：  </p>
 <p><a target="_blank" rel="noopener" href="https://nsis.sourceforge.io/Download">NSIS脚本</a><br><a target="_blank" rel="noopener" href="https://hmne.sourceforge.net/index.php#Download">HM NIS Edit</a>  </p>
 <p>NSIS（Nullsoft Scriptable Install System）是一个开源的 Windows 安装程序制作工具。它的特点是基于脚本、体积小巧、逻辑灵活且完全免费，非常适合用来打包软件并生成一个轻量级的 .exe 安装包。</p>
 <p>常用编辑器是 HM NIS Edit。它是一个图形化的 IDE（集成开发环境），通过向导功能和语法高亮，帮助用户更直观地编写 NSIS 脚本，无需完全手动敲代码即可快速生成安装程序。</p>
 <p>我们把App打包成安装包，有四样不可或缺的东西：  </p>
 <ol>
-<li>应用程序本体和完整的可执行环境（上面的步骤1~7）；  </li>
+<li>应用程序本体和完整的可执行环境；  </li>
 <li>安装.exe；</li>
 <li>卸载.exe；  </li>
 <li>安装过程中显示的描述信息（License.txt）</li>
@@ -294,19 +294,19 @@
 <li>打包绿色版本的步骤1~7（准备好完整的可执行环境）；  </li>
 <li>安装应用的ico图标；  </li>
 <li>卸载应用的ico图标；  </li>
-<li>License.txt（安装过程中显示的版权信息提示）</li>
+<li>License.txt</li>
 </ol>
-<p>准备好之后需要使用<code>NSIS</code>应用工具制作安装包。  </p>
+<p>准备好之后需要使用<code>HM NIS Edit</code>应用工具制作安装包。  </p>
 <ol>
-<li>运行<code>HM NIS Edit</code>之后，选择<code>文件-&gt;新建脚本向导</code>，首先，主要设置<code>应用程序名称</code>；  </li>
-<li>然后下一步，设置安装程序的图标和语言（简体中文），如果没有选项可能是编译器配置路径错了，需要手动配置一下；  </li>
-<li>下一步，把授权文件改成自己的；  </li>
-<li>下一步，删除默认的文件信息，然后添加文件，先把所有非目录文件添加进来；  </li>
-<li>再次添加文件，选择 <code>imageformats\qico.dll</code>，注意需要在 <code>目的目录</code> 加上 <code>\imageformats</code>；</li>
-<li>再次添加文件，选择 <code>platforms\qwindows.dll</code>，注意需要再 <code>目的目录</code> 后面加上 <code>\platforms</code>；</li>
-<li>在已添加的文件列表中选择我们的可执行文件本体，选中之后选择下一步；</li>
-<li>现在到了<code>应用程序图标</code>，基本不用设置，直接下一步；</li>
-<li>修改<code>自述</code>，改成我们的License.txt作演示，到时候安装会出现这个文本信息；</li>
+<li>运行<code>HM NIS Edit</code>（索引工具直接运行<code>nisedit</code>），选择<code>文件-&gt;新建脚本向导</code>，主要设置<code>应用程序名称</code>，可以任意写，其他的可以不用改；  </li>
+<li>下一步，设置安装程序的图标和语言（简体中文），如果没有语言选项可能是编译器配置路径错了，需要手动配置一下’NSIS’路径；  </li>
+<li>下一步，把授权文件改成自己准备好的<code>License.txt</code>；  </li>
+<li>下一步，删除默认的文件列表，然后添加文件，先把所有安装包中<code>非目录文件</code>添加进来；  </li>
+<li>再次添加文件，选择 <code>imageformats\qico.dll</code>，注意路径，需要在 <code>目的目录</code> 后面加上 <code>\imageformats</code>；  </li>
+<li>再次添加文件，选择 <code>platforms\qwindows.dll</code>，注意路径，需要在 <code>目的目录</code> 后面加上 <code>\platforms</code>；  </li>
+<li>在已添加的文件列表中选择我们的可执行文件本体，选中之后选择下一步；  </li>
+<li>现在到了<code>应用程序图标</code>，基本不用设置，直接下一步；  </li>
+<li>修改<code>自述</code>，改成我们的<code>License.txt</code>作演示，到时候安装会出现这个文本信息；  </li>
 <li>下一步，设置卸载应用的图标；  </li>
 <li>现在到了<code>向导已完成</code>，把三个选项全都勾选上：保存脚本，转换文件路径到关键路径，编译脚本；  </li>
 <li>完成，选择保存文件夹，去报编译无误即可。</li>

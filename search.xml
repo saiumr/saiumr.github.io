@@ -982,6 +982,8 @@ M&#x27; = (M^{-1})^T
 <h2 id="目前最屌的配置"><a href="#目前最屌的配置" class="headerlink" title="目前最屌的配置"></a>目前最屌的配置</h2><p>claude code “冠军”配置，至于为什么这样说，搜索这个开源项目的名字就知道了  </p>
 <p><a href="https://github.com/affaan-m/everything-claude-code">everything claude code</a>  </p>
 <p>不看别人的博客吹它，单凭它 90k+ 的 star 也能看出来不一般，这个配置写了你想要的一切，我就不赘述了。  </p>
+<h2 id="Claude-Code-能做什么？"><a href="#Claude-Code-能做什么？" class="headerlink" title="Claude Code 能做什么？"></a>Claude Code 能做什么？</h2><p>参考文章：<a href="https://turion.ai/blog/claude-code-multi-agents-subagents-guide/">Claude Code Multi-Agents and Subagents: Complete Orchestration Guide</a><br>参考项目：<a href="https://github.com/shanraisshan/claude-code-best-practice">claude-code-best-practice</a>  </p>
+<p>把这个标题放在最后，是因为参考文章和项目对初学者而言过于庞大，一般我们都是了解到 Claude Code 能读写文档，改代码，自动化一些工作流程，然后直接配置使用了，所以我想，一开始避开讨论“它能做什么”专注于“我需要它做什么”会更好。  </p>
 ]]></content>
       <categories>
         <category>随想</category>
@@ -996,7 +998,7 @@ M&#x27; = (M^{-1})^T
     <title>打包发布Qt应用</title>
     <url>/2026/03/23/%E6%89%93%E5%8C%85%E5%8F%91%E5%B8%83Qt%E5%BA%94%E7%94%A8/</url>
     <content><![CDATA[<p>参考我的学习项目：<a href="https://github.com/saiumr/LearnQt/tree/main/002-releaseQtApp">Release Qt App</a>  </p>
-<p>里面有两个目录，分别是绿色版本和安装包版本（解压后的状态）。</p>
+<p>里面有两个目录，分别是绿色版本和安装包版本。  </p>
 <h2 id="Enigma-Virtual-Box"><a href="#Enigma-Virtual-Box" class="headerlink" title="Enigma Virtual Box"></a>Enigma Virtual Box</h2><p>因为要用这个工具，就问了问AI了解了一下。  </p>
 <p>Enigma Virtual Box 是一个能把你的程序及其所有“配件”（DLL文件、图片、数据库等）打包成一个单独 .exe 文件的免费工具。  </p>
 <p>对 Qt 开发者来说，它的核心价值在于：解决了分发程序时必须带着一堆 DLL 文件的尴尬，让用户收到的只是一个清爽的、双击就能运行的单文件。  </p>

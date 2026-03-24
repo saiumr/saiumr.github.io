@@ -1024,19 +1024,19 @@ M&#x27; = (M^{-1})^T
 <p><a href="https://nsis.sourceforge.io/Download">NSIS脚本</a><br><a href="https://hmne.sourceforge.net/index.php#Download">HM NIS Edit</a>  </p>
 <p>NSIS（Nullsoft Scriptable Install System）是一个开源的 Windows 安装程序制作工具。它的特点是基于脚本、体积小巧、逻辑灵活且完全免费，非常适合用来打包软件并生成一个轻量级的 .exe 安装包。</p>
 <p>常用编辑器是 HM NIS Edit。它是一个图形化的 IDE（集成开发环境），通过向导功能和语法高亮，帮助用户更直观地编写 NSIS 脚本，无需完全手动敲代码即可快速生成安装程序。</p>
-<p>除了工具之外，我们把App打包成安装包，还有四样不可或缺的东西：  </p>
+<p>我们把App打包成安装包，有四样不可或缺的东西：  </p>
 <ol>
 <li>应用程序本体和完整的可执行环境（上面的步骤1~7）；  </li>
 <li>安装.exe；</li>
 <li>卸载.exe；  </li>
 <li>安装过程中显示的描述信息（License.txt）</li>
 </ol>
-<p>为此，我们需要完成准备：  </p>
+<p>为此，除了工具之外，我们还需要完成以下准备：  </p>
 <ol>
 <li>打包绿色版本的步骤1~7（准备好完整的可执行环境）；  </li>
 <li>安装应用的ico图标；  </li>
 <li>卸载应用的ico图标；  </li>
-<li>License.txt</li>
+<li>License.txt（安装过程中显示的版权信息提示）</li>
 </ol>
 <p>准备好之后需要使用<code>NSIS</code>应用工具制作安装包。  </p>
 <ol>

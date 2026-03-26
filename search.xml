@@ -1056,7 +1056,171 @@ M&#x27; = (M^{-1})^T
 <p>在我们最后选择的文件夹中会生成<code>nsi脚本</code>，编译没问题的话会生成<code>Setup.exe</code>，可以把这个安装文件单独发布，利用这个安装程序即可安装使用主体应用。  </p>
 ]]></content>
       <categories>
-        <category>随想</category>
+        <category>Qt</category>
+      </categories>
+      <tags>
+        <tag>Qt</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Qt开发基础</title>
+    <url>/2026/03/24/Qt%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<p>可参考我的开源代码配合博客记录的内容查看：<a href="https://github.com/saiumr/LearnQt/tree/main/003-QtDevEssential">Qt Dev Essential</a>  </p>
+<p>Qt，肤浅地理解为一个做GUI的玩意儿，用C++进行开发任务，实际开发感觉不如叫Q++，C++常用的东西基本被它包了个遍。以往只有本地零散的记录，在此打算系统记录一下一些概念和设计，整理出来到博客上，有些东西搞忘记了开发的时候可能会一个头两个大，实用的内容该记还是得记。  </p>
+<p>PS：有部分内容是与AI问答，自己加以修改补充的，多是使用场景一类。  </p>
+<h2 id="元对象系统（Meta-Object-System）"><a href="#元对象系统（Meta-Object-System）" class="headerlink" title="元对象系统（Meta-Object System）"></a>元对象系统（Meta-Object System）</h2><p>这是对C++标准的一个扩展，为Qt提供了信号槽机制，实时类型信息，动态属性系统。  </p>
+<p>使用元对象系统有三个基本条件：类必须继承自QObject，类中声明<code>Q_OBJECT</code>宏（默认私有），元对象编译器<code>moc</code>（Meta_Object Compiler）。  </p>
+<p>在 Qt Creator 软件中，左下角🔎查找类信息，比如输入<code>? QDialog</code>，就可以查看QDialog的文档，可以看到他继承自哪儿。  </p>
+<p>翻看QObject文档内容，开头第一句是：  </p>
+<blockquote>
+<p>The QObject class is the base class of all Qt objects.  </p>
+</blockquote>
+<p>这句话让我不得不把元对象系统放第一个标题，描述中它有种不怒自威，傲视群雄的感觉。  </p>
+<p>元对象系统提供的最实用的功能特性：  </p>
+<ul>
+<li><p><strong>信号与槽</strong>：这是 Qt 最核心的特性。传统的 C++ 回调函数难以保证类型安全且容易产生耦合，而信号槽利用元对象系统提供的类型信息，实现了对象之间的松耦合通信。在运行时，moc 生成的代码维护了信号与槽的连接表，让调用变得安全。</p>
+</li>
+<li><p><strong>属性系统</strong>：通过 <code>Q_PROPERTY</code> 宏，可以在运行时动态地读写对象的属性。这是 Qt 中 QML 与 C++ 交互的基石，也是 Qt Designer 能够动态调整控件属性的原理所在。</p>
+</li>
+<li><p><strong>运行时类型信息</strong>：标准 C++ 虽然有 typeid，但功能有限。Qt 提供了：</p>
+<ul>
+<li><p><code>inherits()</code>：判断一个对象是否属于某个特定类或继承链。</p>
+</li>
+<li><p><code>qobject_cast()</code>：类似于 C++ 的 dynamic_cast，但不需要开启 RTTI（运行时类型信息），而且速度更快，专门用于 QObject 的转换。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>动态翻译</strong>：<code>tr()</code> 函数之所以能够动态切换界面语言，是因为元对象系统在运行时记录了字符串的上下文。</p>
+</li>
+</ul>
+<p>注意一些实际开发中的问题：  </p>
+<ul>
+<li><p><strong>信号和槽的语法演进</strong>：</p>
+<ul>
+<li><p>Qt5 之前：必须使用 <code>SIGNAL()</code> 和 <code>SLOT()</code> 宏，属于字符串匹配，运行时才报错。</p>
+</li>
+<li><p>Qt5 及以后：推荐使用函数指针语法（如 <code>&amp;MyClass::signalName</code>），编译期检查，性能更好，也更符合现代 C++ 风格。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>moc 的局限性</strong>：</p>
+<ul>
+<li><p>模板类问题：QObject 不能作为模板类的基类。因为 moc 不支持模板预处理，如果你的类既是模板又继承了 QObject，moc 无法正确生成元对象代码。</p>
+</li>
+<li><p>多重继承：如果必须多重继承，QObject 必须出现在继承列表的第一个位置。这是因为 moc 生成的代码假设 this 指针与 QObject 子对象的偏移量为 0。</p>
+</li>
+</ul>
+</li>
+<li><p><strong>编译链接问题</strong>：如果忘记写 <code>Q_OBJECT</code> 宏，信号槽连接可能会失败，或者编译时出现“undefined reference to vtable”的错误。解决办法是：确保头文件中有 Q_OBJECT，并清理项目重新编译（因为 moc 可能未重新生成）。</p>
+</li>
+</ul>
+<h3 id="元对象编译器MOC"><a href="#元对象编译器MOC" class="headerlink" title="元对象编译器MOC"></a>元对象编译器MOC</h3><p>前面说了，Qt设计者设计了元对象系统给C++加了一套动态特性，用的时候要在类中写上 <code>Q_OBJECT</code> 宏，所以在编译前，编译器要能够扫描源码中标记了 <code>Q_OBJECT</code> 的类，自动生成额外的 C++ 代码以实现元对象系统，之后将生成的代码和用户的代码一起编译成可执行文件，这显然只靠 C++ 编译器办不到。  </p>
+<p>这就是 MOC 出现的原因，MOC 将 Qt 特有的语法（如信号、槽、属性等）转换成标准 C++ 代码，它为每个使用了 <code>Q_OBJECT</code> 的类构建了一张“元数据表”，这张表在运行时可以被查询和调用。  </p>
+<table>
+<thead>
+<tr>
+<th align="left">功能</th>
+<th>MOC 生成的代码负责</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">信号</td>
+<td>为每个信号生成一个函数，该函数调用 <code>qt_metacall</code> 来激活所有连接到该信号的槽。</td>
+</tr>
+<tr>
+<td align="left">槽</td>
+<td>在元对象表中注册槽函数的索引和签名，使得 <code>qt_metacall</code> 可以根据索引调用正确的槽函数。</td>
+</tr>
+<tr>
+<td align="left">属性系统</td>
+<td>生成 <code>qt_metacall</code> 中对 <code>Q_PROPERTY</code> 的读&#x2F;写处理，支持动态获取和设置属性。</td>
+</tr>
+<tr>
+<td align="left">运行时类型信息</td>
+<td>生成 <code>staticMetaObject</code> 静态对象，以及 <code>metaObject()</code>、<code>inherits()</code>、<code>qobject_cast</code> 所需的类型比较数据。</td>
+</tr>
+<tr>
+<td align="left">动态翻译</td>
+<td>标记 <code>tr()</code> 中的字符串上下文，使翻译系统能准确定位。</td>
+</tr>
+</tbody></table>
+<p>MOC工作流程，其中生成的 <code>moc_xxx.cpp</code> 代码可以在 <code>build</code> 目录里找到，里面有很多”元调用”（上面表格记录的调用函数）：  </p>
+<figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph TD</span><br><span class="line">    A[项目源文件] --&gt; B&#123;头文件含有 Q_OBJECT?&#125;</span><br><span class="line">    B --&gt;|是| C[MOC 处理]</span><br><span class="line">    B --&gt;|否| D[常规编译]</span><br><span class="line">    C --&gt; E[生成 moc_xxx.cpp]</span><br><span class="line">    E --&gt; F[与原始源文件一起编译]</span><br><span class="line">    D --&gt; F</span><br><span class="line">    F --&gt; G[链接生成可执行文件]</span><br></pre></td></tr></table></figure>
+
+<p>当然，作为一个编译器，我们开发时对它的存在是“无感”的，只是了解一下可以对 <code>Q_OBJECT</code> 扩展出来的奇奇怪怪的东西获得一分通透感。  </p>
+<h3 id="信号与槽"><a href="#信号与槽" class="headerlink" title="信号与槽"></a>信号与槽</h3><p>信号与槽（Signals &amp; Slots）的灵活性，概括起来就九个字：松耦合，一对多，多对一；下面把它和传统回调对比同时感受一下灵活性。  </p>
+<p>信号与槽相比传统回调（如函数指针、观察者模式），主要有以下优势：</p>
+<ol>
+<li><strong>类型安全</strong>：编译期检查参数类型，避免回调签名不匹配导致的崩溃。</li>
+<li><strong>松耦合</strong>：发送者无需知道接收者是谁，只需发射信号；接收者只需连接信号，无需修改发送者代码。</li>
+<li><strong>多对多通信</strong>：一个信号可连接多个槽，一个槽可接收多个信号，自动管理连接列表。</li>
+<li><strong>自动生命周期管理</strong>：当发送者或接收者被销毁时，连接自动断开，避免悬空指针。</li>
+</ol>
+<p>对比场景实例：按钮点击时，同时更新日志和播放声音。</p>
+<h4 id="传统回调（函数指针）方式"><a href="#传统回调（函数指针）方式" class="headerlink" title="传统回调（函数指针）方式"></a>传统回调（函数指针）方式</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">// 回调函数类型</span></span><br><span class="line"><span class="function"><span class="keyword">typedef</span> <span class="title">void</span> <span class="params">(*ClickCallback)</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">Button</span> &#123;</span><br><span class="line">    std::vector&lt;ClickCallback&gt; callbacks;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">addCallback</span><span class="params">(ClickCallback cb)</span> </span>&#123; callbacks.<span class="built_in">push_back</span>(cb); &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">click</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="keyword">auto</span> cb : callbacks) &#123; <span class="built_in">cb</span>(); &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">updateLog</span><span class="params">()</span> </span>&#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">playSound</span><span class="params">()</span> </span>&#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line"></span><br><span class="line">Button btn;</span><br><span class="line">btn.<span class="built_in">addCallback</span>(updateLog);</span><br><span class="line">btn.<span class="built_in">addCallback</span>(playSound);</span><br><span class="line">btn.<span class="built_in">click</span>();</span><br></pre></td></tr></table></figure>
+<p><strong>缺点</strong>：类型不安全（可传入任何返回void无参的函数），无法传递上下文，手动管理回调列表易出错。</p>
+<h4 id="Qt-信号槽方式"><a href="#Qt-信号槽方式" class="headerlink" title="Qt 信号槽方式"></a>Qt 信号槽方式</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">Button</span> : <span class="keyword">public</span> QObject &#123;</span><br><span class="line">    Q_OBJECT</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">click</span><span class="params">()</span> </span>&#123; <span class="function">emit <span class="title">clicked</span><span class="params">()</span></span>; &#125;</span><br><span class="line">signals:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">clicked</span><span class="params">()</span></span>;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">App</span> : <span class="keyword">public</span> QObject &#123;</span><br><span class="line">    Q_OBJECT</span><br><span class="line"><span class="keyword">public</span> slots:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">updateLog</span><span class="params">()</span> </span>&#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">playSound</span><span class="params">()</span> </span>&#123; <span class="comment">/* ... */</span> &#125;</span><br><span class="line">&#125;;</span><br><span class="line"></span><br><span class="line">Button btn;</span><br><span class="line">App app;</span><br><span class="line">QObject::<span class="built_in">connect</span>(&amp;btn, &amp;Button::clicked, &amp;app, &amp;App::updateLog);</span><br><span class="line">QObject::<span class="built_in">connect</span>(&amp;btn, &amp;Button::clicked, &amp;app, &amp;App::playSound);</span><br><span class="line">btn.<span class="built_in">click</span>();</span><br></pre></td></tr></table></figure>
+
+<p><strong>优点</strong>：类型安全（连接时签名必须匹配），发送者与接收者完全解耦，断开连接自动处理。</p>
+<h4 id="例子中信号槽的连接关系"><a href="#例子中信号槽的连接关系" class="headerlink" title="例子中信号槽的连接关系"></a>例子中信号槽的连接关系</h4><figure class="highlight plaintext"><table><tr><td class="code"><pre><span class="line">graph LR</span><br><span class="line">    subgraph 发送者</span><br><span class="line">        B[Button]</span><br><span class="line">    end</span><br><span class="line">    subgraph 接收者</span><br><span class="line">        A[App]</span><br><span class="line">    end</span><br><span class="line">    B -- clicked() --&gt; A</span><br><span class="line">    A --&gt;|调用 playSound 和 updateLog| A</span><br></pre></td></tr></table></figure>
+
+<p>图中可见一个信号可以触发多个槽，且信号与槽之间没有直接依赖。</p>
+<h4 id="connect-和-disconnect"><a href="#connect-和-disconnect" class="headerlink" title="connect 和 disconnect"></a>connect 和 disconnect</h4><p>上面我们看到了信号槽的松耦合和一对多特性，多对一也是类似，设置好 <code>connect</code> 就行了，需要注意的是，一对多 <code>connect</code> 时槽方法参数要匹配。  </p>
+<p>而且，信号还能触发信号（信号 <code>connect</code> 信号），这更加验证了信号槽的灵活性。  </p>
+<p>断开信号与槽连接使用 <code>disconnect</code>，可以指定需要操作的对象、信号和槽，特定参数位为<code>0</code>则表示：所有对象，所有信号，所有槽。  </p>
+<p>比如，断开A对象和B对象的信号槽连接：  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">disconnect</span>(&amp;A, &amp;A::signal, &amp;B, &amp;B::slot);</span><br></pre></td></tr></table></figure>
+
+<p>断开A对象信号和B对象所有槽的连接：  </p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">disconnect</span>(&amp;A, &amp;A::signal, &amp;B, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>断开A对象所有信号和所有对象所有槽的连接：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">disconnect</span>(&amp;A, <span class="number">0</span>， <span class="number">0</span>, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>断开所有对象信号和槽的连接：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="built_in">disconnect</span>(<span class="number">0</span>, <span class="number">0</span>， <span class="number">0</span>, <span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<h3 id="属性系统（Q-PROPERTY）"><a href="#属性系统（Q-PROPERTY）" class="headerlink" title="属性系统（Q_PROPERTY）"></a>属性系统（<code>Q_PROPERTY</code>）</h3><p>属性系统（Q_PROPERTY）是 Qt 元对象系统的重要组成部分，它让你能够在运行时动态地读取、写入对象的属性，并且支持属性变化通知。这在自定义控件、QML 与 C++ 交互、Qt Designer 可调属性等场景中极其常用。</p>
+<p>简单来说，它把一个 C++ 类的成员变量或方法“暴露”给 Qt 的元对象系统，让外部可以：  </p>
+<ul>
+<li>用 <code>QObject::property()</code> 和 <code>setProperty()</code> 动态读写</li>
+<li>在 <code>Qt Designer</code> 中直接修改（用于自定义控件）</li>
+<li>在 <code>QML</code> 中绑定和自动更新</li>
+<li>配合信号实现属性变化的自动通知</li>
+</ul>
+<h4 id="Q-PROPERTY-基本语法"><a href="#Q-PROPERTY-基本语法" class="headerlink" title="Q_PROPERTY 基本语法"></a>Q_PROPERTY 基本语法</h4><figure class="highlight c++"><table><tr><td class="code"><pre><span class="line"><span class="keyword">class</span> <span class="title class_">MyWidget</span> : <span class="keyword">public</span> QWidget &#123;</span><br><span class="line">    <span class="function">Q_OBJECT</span></span><br><span class="line"><span class="function">    <span class="title">Q_PROPERTY</span><span class="params">(<span class="type">int</span> value READ value WRITE setValue NOTIFY valueChanged)</span></span></span><br><span class="line"><span class="function">    <span class="comment">//      ↑类型 ↑属性名 ↑读方法  ↑写方法   ↑变化信号（可选）</span></span></span><br><span class="line"><span class="function"><span class="keyword">public</span>:</span></span><br><span class="line"><span class="function">    int value() const &#123;</span> <span class="keyword">return</span> m_value; &#125;</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">setValue</span><span class="params">(<span class="type">int</span> v)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (m_value != v) &#123;</span><br><span class="line">            m_value = v;</span><br><span class="line">            <span class="function">emit <span class="title">valueChanged</span><span class="params">(v)</span></span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">signals:</span><br><span class="line">    <span class="function"><span class="type">void</span> <span class="title">valueChanged</span><span class="params">(<span class="type">int</span> newValue)</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    <span class="type">int</span> m_value = <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>关键部分</strong>：  </p>
+<ul>
+<li><strong>READ</strong>：必选，提供一个 const 的 getter 方法。</li>
+<li><strong>WRITE</strong>：可选，提供一个 setter 方法。如果没有，属性就是只读的。</li>
+<li><strong>NOTIFY</strong>：可选，当属性值改变时发射的信号。<strong>强烈建议加上</strong>，这样外部才能监听到变化（比如 QML 自动刷新）。</li>
+<li>其他可选关键字：<code>DESIGNABLE</code>（是否在 Designer 中可见）、<code>STORED</code>（是否持久化）等，但工作中最常用的就是 READ、WRITE、NOTIFY。</li>
+</ul>
+<h4 id="常用场景"><a href="#常用场景" class="headerlink" title="常用场景"></a>常用场景</h4><ul>
+<li><strong>自定义控件 + Qt Designer</strong></li>
+</ul>
+<p>如果你写一个自定义控件，想让用户在设计器里调整它的外观属性，就用 <code>Q_PROPERTY</code> 声明，并加上 <code>DESIGNABLE true</code>（默认就是 true）。这样 Designer 会自动生成属性编辑器。  </p>
+<ul>
+<li><strong>QML 与 C++ 交互</strong></li>
+</ul>
+<p>将 C++ 对象注册到 QML 后，QML 可以直接读写该对象的 <code>Q_PROPERTY</code> 属性，并且当 NOTIFY 信号触发时，QML 中绑定的界面会自动更新。  </p>
+<ul>
+<li><strong>动态保存&#x2F;恢复状态</strong></li>
+</ul>
+<p>用 <code>QObject::property()</code> 和 <code>setProperty()</code> 可以在不修改类的情况下临时存储一些额外数据。比如给一个按钮附加一个 id 值：</p>
+<figure class="highlight c++"><table><tr><td class="code"><pre><span class="line">button-&gt;<span class="built_in">setProperty</span>(<span class="string">&quot;value&quot;</span>, <span class="number">100</span>);</span><br><span class="line"><span class="type">int</span> id = button-&gt;<span class="built_in">property</span>(<span class="string">&quot;value&quot;</span>).<span class="built_in">toInt</span>();</span><br></pre></td></tr></table></figure>
+
+<p>这在一些动态界面、数据传递时很实用。  </p>
+<h4 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h4><ul>
+<li><strong>属性名不要和已有的方法名冲突</strong>，通常用小写开头。  </li>
+<li><strong>NOTIFY 信号</strong>尽量在属性真正变化时才发射，避免在 setter 中无脑发射（先比较新旧值）。  </li>
+<li><strong>属性类型</strong>可以是 int、bool、QString、枚举（需用 <code>Q_ENUM</code> 注册）等。如果是自定义类型，需要用 <code>Q_DECLARE_METATYPE</code> 注册。  </li>
+<li>如果你只是临时想给一个对象附加点数据，<strong>不需要专门定义子类</strong>，直接用 <code>setProperty</code> 动态添加即可，元对象系统会帮你在运行时管理这些动态属性。</li>
+</ul>
+]]></content>
+      <categories>
+        <category>Qt</category>
       </categories>
       <tags>
         <tag>Qt</tag>

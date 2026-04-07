@@ -27,11 +27,13 @@
 <meta property="og:site_name" content="cola&#39;s blog">
 <meta property="og:description" content="系统回顾与记录Qt开发的基础内容。">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://saiumr.github.io/images/post/qt-0-QWidget%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
 <meta property="article:published_time" content="2026-03-24T06:04:57.000Z">
-<meta property="article:modified_time" content="2026-03-27T08:42:10.644Z">
+<meta property="article:modified_time" content="2026-04-07T09:04:10.077Z">
 <meta property="article:author" content="cola">
 <meta property="article:tag" content="Qt">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://saiumr.github.io/images/post/qt-0-QWidget%E5%85%B3%E7%B3%BB%E5%9B%BE.png">
 
 
 <link rel="canonical" href="https://saiumr.github.io/2026/03/24/Qt%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/">
@@ -139,7 +141,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
-            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E5%AF%B9%E8%B1%A1%E7%B3%BB%E7%BB%9F%EF%BC%88Meta-Object-System%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">元对象系统（Meta-Object System）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E5%AF%B9%E8%B1%A1%E7%BC%96%E8%AF%91%E5%99%A8MOC"><span class="nav-number">1.1.</span> <span class="nav-text">元对象编译器MOC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E4%B8%8E%E6%A7%BD"><span class="nav-number">1.2.</span> <span class="nav-text">信号与槽</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%9B%9E%E8%B0%83%EF%BC%88%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88%EF%BC%89%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.1.</span> <span class="nav-text">传统回调（函数指针）方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Qt-%E4%BF%A1%E5%8F%B7%E6%A7%BD%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.2.</span> <span class="nav-text">Qt 信号槽方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90%E4%B8%AD%E4%BF%A1%E5%8F%B7%E6%A7%BD%E7%9A%84%E8%BF%9E%E6%8E%A5%E5%85%B3%E7%B3%BB"><span class="nav-number">1.2.3.</span> <span class="nav-text">例子中信号槽的连接关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#connect-%E5%92%8C-disconnect"><span class="nav-number">1.2.4.</span> <span class="nav-text">connect 和 disconnect</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E7%B3%BB%E7%BB%9F%EF%BC%88Q-PROPERTY%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">属性系统（Q_PROPERTY）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-PROPERTY-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-number">1.3.1.</span> <span class="nav-text">Q_PROPERTY 基本语法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.2.</span> <span class="nav-text">常用场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.3.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li></ol></li></ol></div>
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%83%E5%AF%B9%E8%B1%A1%E7%B3%BB%E7%BB%9F%EF%BC%88Meta-Object-System%EF%BC%89"><span class="nav-number">1.</span> <span class="nav-text">元对象系统（Meta-Object System）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%85%83%E5%AF%B9%E8%B1%A1%E7%BC%96%E8%AF%91%E5%99%A8MOC"><span class="nav-number">1.1.</span> <span class="nav-text">元对象编译器MOC</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BF%A1%E5%8F%B7%E4%B8%8E%E6%A7%BD"><span class="nav-number">1.2.</span> <span class="nav-text">信号与槽</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BC%A0%E7%BB%9F%E5%9B%9E%E8%B0%83%EF%BC%88%E5%87%BD%E6%95%B0%E6%8C%87%E9%92%88%EF%BC%89%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.1.</span> <span class="nav-text">传统回调（函数指针）方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#Qt-%E4%BF%A1%E5%8F%B7%E6%A7%BD%E6%96%B9%E5%BC%8F"><span class="nav-number">1.2.2.</span> <span class="nav-text">Qt 信号槽方式</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BE%8B%E5%AD%90%E4%B8%AD%E4%BF%A1%E5%8F%B7%E6%A7%BD%E7%9A%84%E8%BF%9E%E6%8E%A5%E5%85%B3%E7%B3%BB"><span class="nav-number">1.2.3.</span> <span class="nav-text">例子中信号槽的连接关系</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#connect-%E5%92%8C-disconnect"><span class="nav-number">1.2.4.</span> <span class="nav-text">connect 和 disconnect</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%9E%E6%80%A7%E7%B3%BB%E7%BB%9F%EF%BC%88Q-PROPERTY%EF%BC%89"><span class="nav-number">1.3.</span> <span class="nav-text">属性系统（Q_PROPERTY）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#Q-PROPERTY-%E5%9F%BA%E6%9C%AC%E8%AF%AD%E6%B3%95"><span class="nav-number">1.3.1.</span> <span class="nav-text">Q_PROPERTY 基本语法</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="nav-number">1.3.2.</span> <span class="nav-text">常用场景</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="nav-number">1.3.3.</span> <span class="nav-text">注意事项</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%AF%B9%E8%B1%A1%E6%A0%91"><span class="nav-number">2.</span> <span class="nav-text">对象树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A0%B8%E5%BF%83%E8%A6%81%E7%82%B9"><span class="nav-number">2.1.</span> <span class="nav-text">核心要点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B8%B8%E8%A7%81%E9%94%99%E8%AF%AF"><span class="nav-number">2.2.</span> <span class="nav-text">常见错误</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B"><span class="nav-number">2.3.</span> <span class="nav-text">示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%9F%BA%E7%B1%BB-QWidget"><span class="nav-number">3.</span> <span class="nav-text">组件基类 QWidget</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%97%E4%BD%93%E5%92%8C%E6%8E%A7%E4%BB%B6%E9%A3%8E%E6%A0%BC"><span class="nav-number">3.1.</span> <span class="nav-text">窗体和控件风格</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AA%97%E5%8F%A3%E6%A0%87%E5%BF%97%EF%BC%88Qt-WindowFlags%EF%BC%89%E2%80%94%E2%80%94-%E6%8E%A7%E5%88%B6%E7%AA%97%E5%8F%A3%E7%9A%84%E2%80%9C%E9%95%BF%E7%9B%B8%E2%80%9D%E5%92%8C%E2%80%9C%E8%A1%8C%E4%B8%BA%E2%80%9D"><span class="nav-number">3.1.1.</span> <span class="nav-text">窗口标志（Qt::WindowFlags）—— 控制窗口的“长相”和“行为”</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B7%E5%BC%8F%E8%A1%A8%EF%BC%88QSS%EF%BC%89%E2%80%94%E2%80%94-%E8%AE%A9%E6%8E%A7%E4%BB%B6%E5%8F%98%E6%BC%82%E4%BA%AE"><span class="nav-number">3.1.2.</span> <span class="nav-text">样式表（QSS）—— 让控件变漂亮</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E4%B8%80%E4%BA%9B%E6%A0%B7%E5%BC%8F%E8%AE%BE%E7%BD%AE"><span class="nav-number">3.1.2.1.</span> <span class="nav-text">最常用的一些样式设置</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%AE%9E%E7%94%A8%E6%8A%80%E5%B7%A7"><span class="nav-number">3.1.3.</span> <span class="nav-text">实用技巧</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%97%A0%E8%BE%B9%E6%A1%86%E7%AA%97%E5%8F%A3%E7%9A%84%E6%8B%96%E5%8A%A8%E5%AE%9E%E7%8E%B0"><span class="nav-number">3.1.4.</span> <span class="nav-text">无边框窗口的拖动实现</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%8D%8A%E9%80%8F%E6%98%8E%E7%AA%97%E5%8F%A3"><span class="nav-number">3.1.5.</span> <span class="nav-text">半透明窗口</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E6%A0%B7%E5%BC%8F%E8%AE%BE%E7%BD%AE-api-%E6%A6%82%E8%A7%88"><span class="nav-number">3.1.6.</span> <span class="nav-text">样式设置 api 概览</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%AA%97%E5%8F%A3%E5%92%8C%E6%8E%A7%E4%BB%B6%E5%B0%BA%E5%AF%B8%E5%92%8C%E5%B0%BA%E5%AF%B8%E7%AD%96%E7%95%A5"><span class="nav-number">3.2.</span> <span class="nav-text">窗口和控件尺寸和尺寸策略</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%B8%89%E7%A7%8D%E5%9F%BA%E7%A1%80%E5%B0%BA%E5%AF%B8%E8%AE%BE%E7%BD%AE%E6%96%B9%E6%B3%95"><span class="nav-number">3.2.1.</span> <span class="nav-text">三种基础尺寸设置方法</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%EF%BC%9A%E5%9B%BA%E5%AE%9A%E6%8C%89%E9%92%AE%E5%A4%A7%E5%B0%8F"><span class="nav-number">3.2.1.1.</span> <span class="nav-text">示例：固定按钮大小</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%EF%BC%9A%E8%AE%A9%E7%AA%97%E5%8F%A3%E6%9C%80%E5%B0%8F-400x300%EF%BC%8C%E6%9C%80%E5%A4%A7-800x600"><span class="nav-number">3.2.1.2.</span> <span class="nav-text">示例：让窗口最小 400x300，最大 800x600</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B8%83%E5%B1%80%E4%B8%AD%E7%9A%84%E5%B0%BA%E5%AF%B8%E7%AD%96%E7%95%A5%EF%BC%88sizePolicy%EF%BC%89"><span class="nav-number">3.2.2.</span> <span class="nav-text">布局中的尺寸策略（sizePolicy）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E5%B8%B8%E7%94%A8%E7%AD%96%E7%95%A5%EF%BC%88QSizePolicy-Policy%EF%BC%89"><span class="nav-number">3.2.2.1.</span> <span class="nav-text">常用策略（QSizePolicy::Policy）</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E8%AE%A9%E6%8C%89%E9%92%AE%E6%B0%B4%E5%B9%B3%E6%96%B9%E5%90%91%E8%87%AA%E5%8A%A8%E6%8B%89%E4%BC%B8"><span class="nav-number">3.2.2.2.</span> <span class="nav-text">让按钮水平方向自动拉伸</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E9%87%8D%E8%A6%81%E6%A6%82%E5%BF%B5%EF%BC%9AsizeHint-%E5%92%8C-minimumSizeHint"><span class="nav-number">3.2.2.3.</span> <span class="nav-text">重要概念：sizeHint() 和 minimumSizeHint()</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E8%AE%A9%E6%8E%A7%E4%BB%B6%E9%9A%8F%E7%AA%97%E5%8F%A3%E8%87%AA%E5%8A%A8%E7%BC%A9%E6%94%BE%EF%BC%88%E6%9C%80%E5%B8%B8%E7%94%A8%EF%BC%89"><span class="nav-number">3.2.3.</span> <span class="nav-text">让控件随窗口自动缩放（最常用）</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%B9%E6%B3%951%EF%BC%9A%E8%AE%BE%E7%BD%AE-sizePolicy-%E4%B8%BA-Expanding"><span class="nav-number">3.2.3.1.</span> <span class="nav-text">方法1：设置 sizePolicy 为 Expanding</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#%E6%96%B9%E6%B3%952%EF%BC%9A%E8%AE%BE%E7%BD%AE%E5%B8%83%E5%B1%80%E7%9A%84%E6%8B%89%E4%BC%B8%E5%9B%A0%E5%AD%90%EF%BC%88stretch%EF%BC%89"><span class="nav-number">3.2.3.2.</span> <span class="nav-text">方法2：设置布局的拉伸因子（stretch）</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%B0%BA%E5%AF%B8%E8%AE%BE%E7%BD%AE-api-%E6%A6%82%E8%A7%88"><span class="nav-number">3.2.4.</span> <span class="nav-text">尺寸设置 api 概览</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%BB%84%E4%BB%B6%E5%9F%BA%E7%B1%BB-QDialog"><span class="nav-number">4.</span> <span class="nav-text">组件基类 QDialog</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#QDialog-%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">QDialog 是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%A8%A1%E6%80%81-vs-%E9%9D%9E%E6%A8%A1%E6%80%81%EF%BC%88%E6%9C%80%E9%87%8D%E8%A6%81%EF%BC%89"><span class="nav-number">4.2.</span> <span class="nav-text">模态 vs 非模态（最重要）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BB%A3%E7%A0%81%E5%86%99%E6%B3%95"><span class="nav-number">4.3.</span> <span class="nav-text">代码写法</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Qt-%E5%86%85%E7%BD%AE%E7%9A%84%E6%A0%87%E5%87%86%E5%AF%B9%E8%AF%9D%E6%A1%86%EF%BC%88%E6%8B%BF%E6%9D%A5%E5%8D%B3%E7%94%A8%EF%BC%89"><span class="nav-number">4.4.</span> <span class="nav-text">Qt 内置的标准对话框（拿来即用）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%EF%BC%9A%E6%B6%88%E6%81%AF%E6%A1%86%E8%AF%A2%E9%97%AE"><span class="nav-number">4.5.</span> <span class="nav-text">示例：消息框询问</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%A4%BA%E4%BE%8B%EF%BC%9A%E8%8E%B7%E5%8F%96%E9%A2%9C%E8%89%B2"><span class="nav-number">4.6.</span> <span class="nav-text">示例：获取颜色</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%87%AA%E5%AE%9A%E4%B9%89%E5%AF%B9%E8%AF%9D%E6%A1%86%EF%BC%88%E6%9C%80%E5%AE%9E%E7%94%A8%EF%BC%89"><span class="nav-number">4.7.</span> <span class="nav-text">自定义对话框（最实用）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E6%96%B0%E5%BB%BA%E4%B8%80%E4%B8%AA%E7%B1%BB%E7%BB%A7%E6%89%BF-QDialog"><span class="nav-number">4.7.1.</span> <span class="nav-text">1. 新建一个类继承 QDialog</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BD%BF%E7%94%A8%E8%87%AA%E5%AE%9A%E4%B9%89%E5%AF%B9%E8%AF%9D%E6%A1%86"><span class="nav-number">4.7.2.</span> <span class="nav-text">2. 使用自定义对话框</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E4%BD%9C%E7%94%A8%E6%9C%BA%E5%88%B6"><span class="nav-number">4.7.3.</span> <span class="nav-text">作用机制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#QDialog-api-%E6%A6%82%E8%A7%88"><span class="nav-number">4.8.</span> <span class="nav-text">QDialog api 概览</span></a></li></ol></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -233,7 +235,7 @@
         <i class="far fa-calendar-check"></i>
       </span>
       <span class="post-meta-item-text">更新于</span>
-      <time title="修改时间：2026-03-27 16:42:10" itemprop="dateModified" datetime="2026-03-27T16:42:10+08:00">2026-03-27</time>
+      <time title="修改时间：2026-04-07 17:04:10" itemprop="dateModified" datetime="2026-04-07T17:04:10+08:00">2026-04-07</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -255,7 +257,9 @@
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>可参考我的开源代码配合博客记录的内容查看：<a target="_blank" rel="noopener" href="https://github.com/saiumr/LearnQt/tree/main/003-QtDevEssential">Qt Dev Essential</a>  </p>
+    <div class="post-body" itemprop="articleBody"><p>开发概览：<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/667518320">Qt类图专业技术宝典</a>  </p>
+<p>可参考我的开源代码配合博客记录的内容查看：<a target="_blank" rel="noopener" href="https://github.com/saiumr/LearnQt/tree/main/003-QtDevEssential">Qt Dev Essential</a>  </p>
+<p>Tips：很多设置项，都可以在Qt Creator中搜索文档看到具体说明，不论是不是初学都该在实际开发时翻阅文档确定内容。  </p>
 <p>Qt，肤浅地理解为一个做GUI的玩意儿，用C++进行开发任务，实际开发感觉不如叫Q++，C++常用的东西基本被它包了个遍。以往只有本地零散的记录，在此打算系统记录一下一些概念和设计，整理出来到博客上，有些东西搞忘记了开发的时候可能会一个头两个大，实用的内容该记还是得记。  </p>
 <p>PS：有部分内容是与AI问答，自己加以修改补充的，多是使用场景一类。  </p>
 <h2 id="元对象系统（Meta-Object-System）"><a href="#元对象系统（Meta-Object-System）" class="headerlink" title="元对象系统（Meta-Object System）"></a>元对象系统（Meta-Object System）</h2><p>这是对C++标准的一个扩展，为Qt提供了信号槽机制，实时类型信息，动态属性系统。  </p>
@@ -423,6 +427,374 @@
 <li><strong>属性类型</strong>可以是 int、bool、QString、枚举（需用 <code>Q_ENUM</code> 注册）等。如果是自定义类型，需要用 <code>Q_DECLARE_METATYPE</code> 注册。  </li>
 <li>如果你只是临时想给一个对象附加点数据，<strong>不需要专门定义子类</strong>，直接用 <code>setProperty</code> 动态添加即可，元对象系统会帮你在运行时管理这些动态属性。</li>
 </ul>
+<h2 id="对象树"><a href="#对象树" class="headerlink" title="对象树"></a>对象树</h2><p>每个<code>QObject</code>内部有一个子对象列表，父对象析构时自动删除所有子对象，层层传递，最终由顶层对象释放整棵树。  </p>
+<h3 id="核心要点"><a href="#核心要点" class="headerlink" title="核心要点"></a>核心要点</h3><ol>
+<li><strong>父子关系通过构造函数参数或 <code>setParent()</code> 建立</strong>：<code>new QObject(parent)</code>。  </li>
+<li><strong>有父对象，绝不手动 <code>delete</code></strong>，否则会导致双重释放。  </li>
+<li><strong>所有 <code>QObject</code> 子类都支持对象树</strong>（不需要 <code>Q_OBJECT</code> 宏，但你要用信号槽就得加）。  </li>
+<li><strong>顶层窗口（如 <code>QMainWindow</code>）通常没有父对象</strong>，由 <code>QApplication</code> 间接管理，一般不需要手动删除。  </li>
+<li><strong>可以通过 <code>findChild&lt;T&gt;()</code> 按类型&#x2F;名字查找子对象</strong>。</li>
+</ol>
+<h3 id="常见错误"><a href="#常见错误" class="headerlink" title="常见错误"></a>常见错误</h3><ul>
+<li>在栈上创建 <code>QObject</code> 子类（如 <code>QPushButton btn(this);</code>）→ 双重释放。  </li>
+<li>给有父对象的子对象手动 <code>delete</code> → 崩溃。  </li>
+<li>忘记给布局或控件指定父对象 → 内存泄漏。</li>
+</ul>
+<h3 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h3><p>添加析构函数声明（在 <code>public</code> 区域）：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// colorcircle.h</span></span><br><span class="line">~<span class="built_in">ColorCircle</span>();</span><br></pre></td></tr></table></figure>
+
+<p>添加析构函数实现，并包含<code>QDebug</code>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// colorcircle.cpp</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;QDebug&gt;</span></span></span><br><span class="line"></span><br><span class="line">ColorCircle::~<span class="built_in">ColorCircle</span>() &#123;</span><br><span class="line">    <span class="built_in">qDebug</span>() &lt;&lt; <span class="string">&quot;ColorCircle 被销毁了&quot;</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关闭主窗口将会看到这个打印，实际上我们<code>new QObject[Son] &#123;this&#125;</code>的地方都会被对象树管理。  </p>
+<h2 id="组件基类-QWidget"><a href="#组件基类-QWidget" class="headerlink" title="组件基类 QWidget"></a>组件基类 QWidget</h2><p>如果是非自定义控件，布局和样式还可以在设计模式中通过属性表配置。  </p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_62435866/article/details/148193525">QWidget类关系图 - ꧁坚持很酷꧂（CSDN）</a>  </p>
+<p><img src="/../images/post/qt-0-QWidget%E5%85%B3%E7%B3%BB%E5%9B%BE.png" alt="QWidget类关系图">  </p>
+<h3 id="窗体和控件风格"><a href="#窗体和控件风格" class="headerlink" title="窗体和控件风格"></a>窗体和控件风格</h3><p>只需掌握 <strong>最常用的几种设置</strong> 和 <strong>样式表（QSS）基础</strong>，就能应对大部分界面美化需求。  </p>
+<h4 id="窗口标志（Qt-WindowFlags）——-控制窗口的“长相”和“行为”"><a href="#窗口标志（Qt-WindowFlags）——-控制窗口的“长相”和“行为”" class="headerlink" title="窗口标志（Qt::WindowFlags）—— 控制窗口的“长相”和“行为”"></a>窗口标志（Qt::WindowFlags）—— 控制窗口的“长相”和“行为”</h4><p>窗口标志决定了窗口是否有标题栏、能否最大化、是否为工具窗等。常用组合：  </p>
+<table>
+<thead>
+<tr>
+<th align="left">效果</th>
+<th align="left">代码（在构造或 <code>setWindowFlags</code> 中使用）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">普通窗口（默认）</td>
+<td align="left"><code>Qt::Widget</code></td>
+</tr>
+<tr>
+<td align="left">顶级窗口（带标题栏、关闭按钮）</td>
+<td align="left"><code>Qt::Window</code></td>
+</tr>
+<tr>
+<td align="left">对话框（带问号？可设置）</td>
+<td align="left"><code>Qt::Dialog</code></td>
+</tr>
+<tr>
+<td align="left"><strong>无边框窗口</strong></td>
+<td align="left"><code>Qt::FramelessWindowHint</code></td>
+</tr>
+<tr>
+<td align="left"><strong>始终置顶</strong></td>
+<td align="left"><code>Qt::WindowStaysOnTopHint</code></td>
+</tr>
+<tr>
+<td align="left"><strong>工具窗口（窄标题栏，不在任务栏显示）</strong></td>
+<td align="left"><code>Qt::Tool</code></td>
+</tr>
+</tbody></table>
+<p>实际工作中最常用的是 <strong>无边框窗口</strong>（自定义标题栏和拖动）和 <strong>置顶窗口</strong>（如悬浮工具）。  </p>
+<p>比如我们可以这样设置主窗口无边框：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 在 MainWindow 构造函数中</span></span><br><span class="line"><span class="built_in">setWindowFlags</span>(Qt::FramelessWindowHint);</span><br></pre></td></tr></table></figure>
+
+<p>如果同时需要多个标志，用 <code>|</code> 组合：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setWindowFlags</span>(Qt::FramelessWindowHint | Qt::WindowStaysOnTopHint);</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注意</strong>：改变窗口标志后，通常需要调用 <code>show()</code> 才能生效（或在构造函数末尾调用 <code>setWindowFlags</code> 后调用 <code>show()</code>）。如果窗口已显示，可以先 <code>hide()</code> 再 <code>show()</code>。  </p>
+</blockquote>
+<h4 id="样式表（QSS）——-让控件变漂亮"><a href="#样式表（QSS）——-让控件变漂亮" class="headerlink" title="样式表（QSS）—— 让控件变漂亮"></a>样式表（QSS）—— 让控件变漂亮</h4><p>Qt 样式表语法类似 CSS，可以快速改变控件的外观（背景色、边框、圆角、字体等）。  </p>
+<h5 id="最常用的一些样式设置"><a href="#最常用的一些样式设置" class="headerlink" title="最常用的一些样式设置"></a>最常用的一些样式设置</h5><p><strong>给整个窗口设置背景色和圆角</strong>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setStyleSheet</span>(<span class="string">&quot;QWidget &#123; background-color: #2c3e50; border-radius: 10px; &#125;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p><strong>给按钮设置样式</strong>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">QPushButton &#123;</span><br><span class="line">    background-color: #<span class="number">3498</span>db;</span><br><span class="line">    color: white;</span><br><span class="line">    border: none;</span><br><span class="line">    border-radius: <span class="number">5</span>px;</span><br><span class="line">    padding: <span class="number">8</span>px <span class="number">16</span>px;</span><br><span class="line">&#125;</span><br><span class="line">QPushButton:hover &#123;</span><br><span class="line">    background-color: #<span class="number">2980</span>b9;</span><br><span class="line">&#125;</span><br><span class="line">QPushButton:pressed &#123;</span><br><span class="line">    background-color: #<span class="number">1</span>c5a7a;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>给一个特定控件单独设置样式</strong>（用对象名）：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">button-&gt;<span class="built_in">setObjectName</span>(<span class="string">&quot;myButton&quot;</span>);</span><br><span class="line">button-&gt;<span class="built_in">setStyleSheet</span>(<span class="string">&quot;#myButton &#123; background-color: red; &#125;&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="实用技巧"><a href="#实用技巧" class="headerlink" title="实用技巧"></a>实用技巧</h4><ul>
+<li><strong>全局样式</strong>：通常在 <code>main()</code> 中给 <code>QApplication</code> 设置样式表，所有控件都会继承。  </li>
+<li><strong>边框圆角</strong>：<code>border-radius: 5px;</code> 需要配合 <code>border</code> 使用，否则不生效。  </li>
+<li><strong>背景透明</strong>：<code>background-color: transparent;</code> 或 <code>background: transparent;</code>。  </li>
+<li><strong>无边框窗口的阴影</strong>：无边框窗口默认没有阴影，但可以用 <code>QGraphicsDropShadowEffect</code> 模拟。</li>
+</ul>
+<h4 id="无边框窗口的拖动实现"><a href="#无边框窗口的拖动实现" class="headerlink" title="无边框窗口的拖动实现"></a>无边框窗口的拖动实现</h4><p>无边框窗口没有标题栏，无法拖动。你需要自己实现鼠标拖动逻辑：  </p>
+<p><strong>在 MainWindow 中添加成员变量</strong>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    QPoint m_dragPos;</span><br><span class="line">    <span class="type">bool</span> m_dragging = <span class="literal">false</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>重写鼠标事件</strong>（在 MainWindow 中）：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;QMouseEvent&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::mousePressEvent</span><span class="params">(QMouseEvent *event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (event-&gt;<span class="built_in">button</span>() == Qt::LeftButton) &#123;</span><br><span class="line">        m_dragging = <span class="literal">true</span>;</span><br><span class="line">        m_dragPos = event-&gt;<span class="built_in">globalPos</span>() - <span class="built_in">frameGeometry</span>().<span class="built_in">topLeft</span>();</span><br><span class="line">        event-&gt;<span class="built_in">accept</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::mouseMoveEvent</span><span class="params">(QMouseEvent *event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (m_dragging &amp;&amp; (event-&gt;<span class="built_in">buttons</span>() &amp; Qt::LeftButton)) &#123;</span><br><span class="line">        <span class="built_in">move</span>(event-&gt;<span class="built_in">globalPos</span>() - m_dragPos);</span><br><span class="line">        event-&gt;<span class="built_in">accept</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="type">void</span> <span class="title">MainWindow::mouseReleaseEvent</span><span class="params">(QMouseEvent *event)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (event-&gt;<span class="built_in">button</span>() == Qt::LeftButton) &#123;</span><br><span class="line">        m_dragging = <span class="literal">false</span>;</span><br><span class="line">        event-&gt;<span class="built_in">accept</span>();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="半透明窗口"><a href="#半透明窗口" class="headerlink" title="半透明窗口"></a>半透明窗口</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setWindowOpacity</span>(<span class="number">0.8</span>);   <span class="comment">// 0.0 完全透明，1.0 不透明</span></span><br></pre></td></tr></table></figure>
+
+<p>注意：无边框窗口开启半透明后，可能需要设置 <code>setAttribute(Qt::WA_TranslucentBackground)</code> 来实现真正的透明背景。  </p>
+<h4 id="样式设置-api-概览"><a href="#样式设置-api-概览" class="headerlink" title="样式设置 api 概览"></a>样式设置 api 概览</h4><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>无边框</td>
+<td><code>setWindowFlags(Qt::FramelessWindowHint);</code></td>
+</tr>
+<tr>
+<td>置顶</td>
+<td><code>setWindowFlags(Qt::WindowStaysOnTopHint);</code></td>
+</tr>
+<tr>
+<td>全局样式</td>
+<td><code>qApp-&gt;setStyleSheet(&quot;...&quot;);</code></td>
+</tr>
+<tr>
+<td>单控件样式</td>
+<td><code>widget-&gt;setStyleSheet(&quot;...&quot;);</code></td>
+</tr>
+<tr>
+<td>无边框拖动</td>
+<td>重写 <code>mousePressEvent</code> &#x2F; <code>mouseMoveEvent</code></td>
+</tr>
+<tr>
+<td>半透明</td>
+<td><code>setWindowOpacity(0.8);</code></td>
+</tr>
+</tbody></table>
+<h3 id="窗口和控件尺寸和尺寸策略"><a href="#窗口和控件尺寸和尺寸策略" class="headerlink" title="窗口和控件尺寸和尺寸策略"></a>窗口和控件尺寸和尺寸策略</h3><h4 id="三种基础尺寸设置方法"><a href="#三种基础尺寸设置方法" class="headerlink" title="三种基础尺寸设置方法"></a>三种基础尺寸设置方法</h4><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>作用</th>
+<th>常用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>setFixedSize(w, h)</code></td>
+<td>固定大小，用户不能拖动改变</td>
+<td>按钮、图标、固定大小的控件</td>
+</tr>
+<tr>
+<td><code>setMinimumSize(w, h)</code></td>
+<td>设置最小尺寸（可以更大）</td>
+<td>窗口、可缩放的控件</td>
+</tr>
+<tr>
+<td><code>setMaximumSize(w, h)</code></td>
+<td>设置最大尺寸</td>
+<td>限制控件过大</td>
+</tr>
+<tr>
+<td><code>resize(w, h)</code></td>
+<td>设置当前尺寸（用户仍可改变）</td>
+<td>窗口初始大小</td>
+</tr>
+</tbody></table>
+<h5 id="示例：固定按钮大小"><a href="#示例：固定按钮大小" class="headerlink" title="示例：固定按钮大小"></a>示例：固定按钮大小</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">QPushButton *btn = <span class="keyword">new</span> <span class="built_in">QPushButton</span>(<span class="string">&quot;确定&quot;</span>);</span><br><span class="line">btn-&gt;<span class="built_in">setFixedSize</span>(<span class="number">80</span>, <span class="number">30</span>);</span><br></pre></td></tr></table></figure>
+
+<h5 id="示例：让窗口最小-400x300，最大-800x600"><a href="#示例：让窗口最小-400x300，最大-800x600" class="headerlink" title="示例：让窗口最小 400x300，最大 800x600"></a>示例：让窗口最小 400x300，最大 800x600</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">setMinimumSize</span>(<span class="number">400</span>, <span class="number">300</span>);</span><br><span class="line"><span class="built_in">setMaximumSize</span>(<span class="number">800</span>, <span class="number">600</span>);</span><br></pre></td></tr></table></figure>
+
+<h4 id="布局中的尺寸策略（sizePolicy）"><a href="#布局中的尺寸策略（sizePolicy）" class="headerlink" title="布局中的尺寸策略（sizePolicy）"></a>布局中的尺寸策略（<code>sizePolicy</code>）</h4><p>当你使用布局管理器（<code>QVBoxLayout</code> 等）时，控件的大小由布局和控件的 <strong>尺寸策略</strong> 共同决定。  </p>
+<h5 id="常用策略（QSizePolicy-Policy）"><a href="#常用策略（QSizePolicy-Policy）" class="headerlink" title="常用策略（QSizePolicy::Policy）"></a>常用策略（<code>QSizePolicy::Policy</code>）</h5><table>
+<thead>
+<tr>
+<th>策略</th>
+<th>含义</th>
+<th>常见控件默认策略</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>Fixed</code></td>
+<td>大小固定，不拉伸</td>
+<td>按钮、标签（水平方向）</td>
+</tr>
+<tr>
+<td><code>Minimum</code></td>
+<td>可以扩展，但不能小于 <code>sizeHint()</code></td>
+<td>输入框</td>
+</tr>
+<tr>
+<td><code>Expanding</code></td>
+<td>优先扩展，占据多余空间</td>
+<td>文本编辑、列表框</td>
+</tr>
+<tr>
+<td><code>Preferred</code></td>
+<td>按 <code>sizeHint()</code>，可以扩展或收缩</td>
+<td>大多数控件</td>
+</tr>
+<tr>
+<td><code>Maximum</code></td>
+<td>可以收缩，但不能大于 <code>sizeHint()</code></td>
+<td>不常用</td>
+</tr>
+</tbody></table>
+<h5 id="让按钮水平方向自动拉伸"><a href="#让按钮水平方向自动拉伸" class="headerlink" title="让按钮水平方向自动拉伸"></a>让按钮水平方向自动拉伸</h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">button-&gt;<span class="built_in">setSizePolicy</span>(QSizePolicy::Expanding, QSizePolicy::Fixed);</span><br></pre></td></tr></table></figure>
+
+<p>第一个参数是水平策略，第二个是垂直策略。  </p>
+<h5 id="重要概念：sizeHint-和-minimumSizeHint"><a href="#重要概念：sizeHint-和-minimumSizeHint" class="headerlink" title="重要概念：sizeHint() 和 minimumSizeHint()"></a>重要概念：<code>sizeHint()</code> 和 <code>minimumSizeHint()</code></h5><ul>
+<li><code>sizeHint()</code>：控件的“建议大小”，基于内容（如按钮文字、图片）。  </li>
+<li><code>minimumSizeHint()</code>：控件能正常显示的最小大小。</li>
+</ul>
+<p>你很少需要重写这些函数，但要理解布局会参考它们。</p>
+<h4 id="让控件随窗口自动缩放（最常用）"><a href="#让控件随窗口自动缩放（最常用）" class="headerlink" title="让控件随窗口自动缩放（最常用）"></a>让控件随窗口自动缩放（最常用）</h4><p>当你把控件放入布局（<code>QVBoxLayout</code>、<code>QHBoxLayout</code>、<code>QGridLayout</code>）后，布局会自动调整控件大小。想让某个控件在窗口放大时“抢”到更多空间，有两个办法：  </p>
+<h5 id="方法1：设置-sizePolicy-为-Expanding"><a href="#方法1：设置-sizePolicy-为-Expanding" class="headerlink" title="方法1：设置 sizePolicy 为 Expanding"></a>方法1：设置 <code>sizePolicy</code> 为 <code>Expanding</code></h5><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">widget-&gt;<span class="built_in">setSizePolicy</span>(QSizePolicy::Expanding, QSizePolicy::Expanding);</span><br></pre></td></tr></table></figure>
+
+<h5 id="方法2：设置布局的拉伸因子（stretch）"><a href="#方法2：设置布局的拉伸因子（stretch）" class="headerlink" title="方法2：设置布局的拉伸因子（stretch）"></a>方法2：设置布局的拉伸因子（<code>stretch</code>）</h5><p>在 <code>addWidget</code> 时指定拉伸系数：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">layout-&gt;<span class="built_in">addWidget</span>(widget1, <span class="number">1</span>);  <span class="comment">// 拉伸因子1</span></span><br><span class="line">layout-&gt;<span class="built_in">addWidget</span>(widget2, <span class="number">2</span>);  <span class="comment">// 拉伸因子2 → widget2 获得两倍多余空间</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="尺寸设置-api-概览"><a href="#尺寸设置-api-概览" class="headerlink" title="尺寸设置 api 概览"></a>尺寸设置 api 概览</h4><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>固定大小</td>
+<td><code>setFixedSize(w, h)</code></td>
+</tr>
+<tr>
+<td>最小&#x2F;最大限制</td>
+<td><code>setMinimumSize(w, h)</code> &#x2F; <code>setMaximumSize(w, h)</code></td>
+</tr>
+<tr>
+<td>布局中让控件可扩展</td>
+<td><code>setSizePolicy(Expanding, Expanding)</code></td>
+</tr>
+<tr>
+<td>布局中按比例分配空间</td>
+<td><code>addWidget(widget, stretch)</code></td>
+</tr>
+<tr>
+<td>窗口初始大小</td>
+<td><code>resize(w, h)</code></td>
+</tr>
+</tbody></table>
+<h2 id="组件基类-QDialog"><a href="#组件基类-QDialog" class="headerlink" title="组件基类 QDialog"></a>组件基类 QDialog</h2><p>只需要掌握 <strong>模态 vs 非模态</strong>、<strong>标准对话框</strong> 和 <strong>如何做自定义对话框</strong>，就能应对大部分场景。  </p>
+<h3 id="QDialog-是什么？"><a href="#QDialog-是什么？" class="headerlink" title="QDialog 是什么？"></a>QDialog 是什么？</h3><p><code>QDialog</code> 是 <code>QWidget</code> 的子类，专门用来做 <strong>临时交互窗口</strong>（比如提示、设置、选择）。它的核心特点是 <strong>可以以“模态”方式运行</strong>，阻塞其他窗口直到对话框关闭。  </p>
+<h3 id="模态-vs-非模态（最重要）"><a href="#模态-vs-非模态（最重要）" class="headerlink" title="模态 vs 非模态（最重要）"></a>模态 vs 非模态（最重要）</h3><table>
+<thead>
+<tr>
+<th>类型</th>
+<th>效果</th>
+<th>常用场景</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>模态（Modal）</strong></td>
+<td>弹出后，用户必须关闭对话框才能操作其他窗口</td>
+<td>文件选择、确认删除、登录框</td>
+</tr>
+<tr>
+<td><strong>非模态（Modeless）</strong></td>
+<td>弹出后，可以同时操作主窗口</td>
+<td>查找替换、属性面板、工具窗口</td>
+</tr>
+</tbody></table>
+<h3 id="代码写法"><a href="#代码写法" class="headerlink" title="代码写法"></a>代码写法</h3><p><strong>模态（阻塞）</strong>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">QDialog <span class="title">dialog</span><span class="params">(<span class="keyword">this</span>)</span></span>;</span><br><span class="line">dialog.<span class="built_in">exec</span>();  <span class="comment">// 阻塞，直到对话框关闭</span></span><br></pre></td></tr></table></figure>
+
+<p><strong>非模态（不阻塞）</strong>：  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">QDialog *dialog = <span class="keyword">new</span> <span class="built_in">QDialog</span>(<span class="keyword">this</span>);</span><br><span class="line">dialog-&gt;<span class="built_in">setAttribute</span>(Qt::WA_DeleteOnClose); <span class="comment">// 关闭时自动删除</span></span><br><span class="line">dialog-&gt;<span class="built_in">show</span>();  <span class="comment">// 不阻塞</span></span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>工作中 <strong>模态对话框更常用</strong>，因为它简单且符合大多数用户预期。  </p>
+</blockquote>
+<h3 id="Qt-内置的标准对话框（拿来即用）"><a href="#Qt-内置的标准对话框（拿来即用）" class="headerlink" title="Qt 内置的标准对话框（拿来即用）"></a>Qt 内置的标准对话框（拿来即用）</h3><table>
+<thead>
+<tr>
+<th>对话框</th>
+<th>静态方法</th>
+<th>用途</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>消息框</td>
+<td><code>QMessageBox::information()</code>, <code>warning()</code>, <code>critical()</code>, <code>question()</code></td>
+<td>提示信息、询问确认</td>
+</tr>
+<tr>
+<td>文件对话框</td>
+<td><code>QFileDialog::getOpenFileName()</code>, <code>getSaveFileName()</code></td>
+<td>打开&#x2F;保存文件</td>
+</tr>
+<tr>
+<td>颜色对话框</td>
+<td><code>QColorDialog::getColor()</code></td>
+<td>选择颜色</td>
+</tr>
+<tr>
+<td>字体对话框</td>
+<td><code>QFontDialog::getFont()</code></td>
+<td>选择字体</td>
+</tr>
+<tr>
+<td>输入对话框</td>
+<td><code>QInputDialog::getText()</code>, <code>getInt()</code>, <code>getDouble()</code></td>
+<td>获取用户输入</td>
+</tr>
+</tbody></table>
+<h3 id="示例：消息框询问"><a href="#示例：消息框询问" class="headerlink" title="示例：消息框询问"></a>示例：消息框询问</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">QMessageBox::StandardButton reply = QMessageBox::<span class="built_in">question</span>(<span class="keyword">this</span>, <span class="string">&quot;确认&quot;</span>, <span class="string">&quot;确定要退出吗？&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (reply == QMessageBox::Yes) &#123;</span><br><span class="line">    <span class="built_in">close</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="示例：获取颜色"><a href="#示例：获取颜色" class="headerlink" title="示例：获取颜色"></a>示例：获取颜色</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">QColor color = QColorDialog::<span class="built_in">getColor</span>(Qt::red, <span class="keyword">this</span>, <span class="string">&quot;选择颜色&quot;</span>);</span><br><span class="line"><span class="keyword">if</span> (color.<span class="built_in">isValid</span>()) &#123;</span><br><span class="line">    <span class="comment">// 使用 color</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="自定义对话框（最实用）"><a href="#自定义对话框（最实用）" class="headerlink" title="自定义对话框（最实用）"></a>自定义对话框（最实用）</h3><p>当标准对话框不能满足需求时，自己做一个对话框很简单：  </p>
+<h4 id="1-新建一个类继承-QDialog"><a href="#1-新建一个类继承-QDialog" class="headerlink" title="1. 新建一个类继承 QDialog"></a>1. 新建一个类继承 <code>QDialog</code></h4><p><strong>myDialog.h</strong>  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;QDialog&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;QLineEdit&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;QPushButton&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="keyword">class</span> <span class="title class_">MyDialog</span> : <span class="keyword">public</span> QDialog &#123;</span><br><span class="line">    Q_OBJECT</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">explicit</span> <span class="title">MyDialog</span><span class="params">(QWidget *parent = <span class="literal">nullptr</span>)</span></span>;</span><br><span class="line">    <span class="function">QString <span class="title">getInputText</span><span class="params">()</span> <span class="type">const</span> </span>&#123; <span class="keyword">return</span> m_lineEdit-&gt;<span class="built_in">text</span>(); &#125;</span><br><span class="line"><span class="keyword">private</span>:</span><br><span class="line">    QLineEdit *m_lineEdit;</span><br><span class="line">    QPushButton *m_okBtn;</span><br><span class="line">    QPushButton *m_cancelBtn;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<p><strong>myDialog.cpp</strong>  </p>
+<figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">MyDialog::<span class="built_in">MyDialog</span>(QWidget *parent) : <span class="built_in">QDialog</span>(parent) &#123;</span><br><span class="line">    <span class="built_in">setWindowTitle</span>(<span class="string">&quot;自定义输入&quot;</span>);</span><br><span class="line">    QVBoxLayout *layout = <span class="keyword">new</span> <span class="built_in">QVBoxLayout</span>(<span class="keyword">this</span>);</span><br><span class="line">    m_lineEdit = <span class="keyword">new</span> <span class="built_in">QLineEdit</span>(<span class="keyword">this</span>);</span><br><span class="line">    m_okBtn = <span class="keyword">new</span> <span class="built_in">QPushButton</span>(<span class="string">&quot;确定&quot;</span>, <span class="keyword">this</span>);</span><br><span class="line">    m_cancelBtn = <span class="keyword">new</span> <span class="built_in">QPushButton</span>(<span class="string">&quot;取消&quot;</span>, <span class="keyword">this</span>);</span><br><span class="line">    layout-&gt;<span class="built_in">addWidget</span>(m_lineEdit);</span><br><span class="line">    layout-&gt;<span class="built_in">addWidget</span>(m_okBtn);</span><br><span class="line">    layout-&gt;<span class="built_in">addWidget</span>(m_cancelBtn);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">connect</span>(m_okBtn, &amp;QPushButton::clicked, <span class="keyword">this</span>, &amp;QDialog::accept);</span><br><span class="line">    <span class="built_in">connect</span>(m_cancelBtn, &amp;QPushButton::clicked, <span class="keyword">this</span>, &amp;QDialog::reject);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="2-使用自定义对话框"><a href="#2-使用自定义对话框" class="headerlink" title="2. 使用自定义对话框"></a>2. 使用自定义对话框</h4><figure class="highlight cpp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function">MyDialog <span class="title">dlg</span><span class="params">(<span class="keyword">this</span>)</span></span>;</span><br><span class="line"><span class="keyword">if</span> (dlg.<span class="built_in">exec</span>() == QDialog::Accepted) &#123;</span><br><span class="line">    QString text = dlg.<span class="built_in">getInputText</span>();</span><br><span class="line">    <span class="comment">// 处理输入</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>关键点：  </p>
+<ul>
+<li>使用 <code>exec()</code> 模态运行。  </li>
+<li>点击确定调用 <code>accept()</code>，点击取消调用 <code>reject()</code>。  </li>
+<li>通过 <code>exec()</code> 的返回值判断用户操作。</li>
+</ul>
+<h4 id="作用机制"><a href="#作用机制" class="headerlink" title="作用机制"></a>作用机制</h4><p>一、exec() 做了什么？  </p>
+<p>当你调用 dialog.exec() 时，Qt 会：  </p>
+<ol>
+<li><p>显示对话框（如果还没显示）。  </p>
+</li>
+<li><p>启动一个新的事件循环（QEventLoop），这个循环会不断处理窗口消息（鼠标点击、键盘输入等）。  </p>
+</li>
+<li><p>阻塞当前代码（模态），直到事件循环退出。  </p>
+</li>
+<li><p>返回一个结果：QDialog::Accepted 或 QDialog::Rejected。</p>
+</li>
+</ol>
+<p>那事件循环什么时候退出？当对话框内部调用了 <code>accept()</code> 或 <code>reject()</code> 时。  </p>
+<p>二、accept() 和 reject() 的作用  </p>
+<p>accept()：告诉对话框“用户确认了”，内部会设置结果为 Accepted，然后退出事件循环。</p>
+<p>reject()：告诉对话框“用户取消了”，内部设置结果为 Rejected，然后退出事件循环。</p>
+<p>这两个函数是 QDialog 的槽，也是普通的成员函数。你可以随时调用它们。  </p>
+<p>所以我们需要事先connect信号槽（clicked和accept&#x2F;reject），后面用 <code>dialog.exec()</code> 调用就可以生效了。  </p>
+<h3 id="QDialog-api-概览"><a href="#QDialog-api-概览" class="headerlink" title="QDialog api 概览"></a>QDialog api 概览</h3><table>
+<thead>
+<tr>
+<th>需求</th>
+<th>代码</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>模态对话框</td>
+<td><code>dlg.exec()</code></td>
+</tr>
+<tr>
+<td>非模态对话框</td>
+<td><code>dlg.show()</code> + <code>setAttribute(Qt::WA_DeleteOnClose)</code></td>
+</tr>
+<tr>
+<td>标准消息框</td>
+<td><code>QMessageBox::question(...)</code></td>
+</tr>
+<tr>
+<td>标准颜色对话框</td>
+<td><code>QColorDialog::getColor(...)</code></td>
+</tr>
+<tr>
+<td>自定义对话框</td>
+<td>继承 <code>QDialog</code>，使用 <code>accept()</code> &#x2F; <code>reject()</code></td>
+</tr>
+<tr>
+<td>判断用户确认</td>
+<td><code>if (dlg.exec() == QDialog::Accepted) &#123;...&#125;</code></td>
+</tr>
+</tbody></table>
 <script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>
     </div>
 

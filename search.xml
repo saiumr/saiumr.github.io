@@ -2122,4 +2122,161 @@ void error_handling(char* message) &#123;
         <tag>网络编程</tag>
       </tags>
   </entry>
+  <entry>
+    <title>打造QQ群聊机器人</title>
+    <url>/2026/04/11/%E6%89%93%E9%80%A0QQ%E7%BE%A4%E8%81%8A%E6%9C%BA%E5%99%A8%E4%BA%BA/</url>
+    <content><![CDATA[<p>你是否想拥有一个 24 小时在线的 QQ 智能助理，帮你自动回复消息、管理群聊，还能随时陪你聊天？本文记录了我个人在 Linux 云服务器上，使用 Docker Compose 快速部署 <strong>AstrBot</strong> + <strong>NapCat</strong> 并接入智谱 AI 大模型的全过程。整个过程只需几条命令，非常适合想快速上手的朋友。  </p>
+<h2 id="Windows、Linux桌面版安装"><a href="#Windows、Linux桌面版安装" class="headerlink" title="Windows、Linux桌面版安装"></a>Windows、Linux桌面版安装</h2><p>我使用 Linux 云服务器部署QQ机器人，如果是 Windows 或者 Linux 桌面版系统，建议直接上B站查看教程，B站上教程众多，这里只推荐一个视频，如若失效自行查找即可：  </p>
+<p><a href="https://www.bilibili.com/video/BV1zRfEBeEpj">QQ聊天机器人本地部署教程 - 幻_湮（BiliBili）</a>  </p>
+<h2 id="Linux-云服务器部署配置"><a href="#Linux-云服务器部署配置" class="headerlink" title="Linux 云服务器部署配置"></a>Linux 云服务器部署配置</h2><p>ssh 登录到云服务器。  </p>
+<h3 id="NapCatQQ、AstrBot和大模型"><a href="#NapCatQQ、AstrBot和大模型" class="headerlink" title="NapCatQQ、AstrBot和大模型"></a>NapCatQQ、AstrBot和大模型</h3><p><a href="https://napneko.github.io/guide/napcat">NapCatQQ 文档</a><br><a href="https://docs.astrbot.app/what-is-astrbot.html">AstrBot 文档</a><br><a href="https://bigmodel.cn/">智普AI开放平台</a>  </p>
+<p>首先我们要在智普AI开放平台注册一个账号，新建一个 API Key 备用，选择智普AI只是我个人推荐，它注册有2000w免费Token使用，也有便宜好用的 Coding Plan 可用，对于大模型的选择完全自由，不限定于一家。  </p>
+<p>还有，在AI开放平台的页面选项中找到开发文档，其中记录了调用API需要的步骤，最重要的是查找到 <code>BASE URL</code>，这必不可少。  </p>
+<p>NapCat 是连接 QQ 的 MCP 工具，AstrBot 是协调一切的 Agent 大脑。AI应用的基本概念：<code>Agent</code>、<code>MCP</code> 和 <code>Skills</code>，如果想了解可以和 AI 大模型进行QA学习，简单来说，Agent 是软件应用，MCP 是本地机器和应用之间的媒介（比如读写文件，实际是MCP的功能），Skills 是特定内容文档，会被利用添加到与大模型沟通的上下文信息中。  </p>
+<pre class="mermaid">flowchart LR
+    subgraph A [你的 Linux 服务器]
+        B[NapCat QQ<br>（MCP 工具）] -- 收发消息 --> C[QQ 服务器]
+        B -- OneBot 协议 --> D[AstrBot<br>（Agent 大脑）]
+    end
+
+    C -- QQ 消息 --> B
+    D -- API 调用 --> E[大模型<br>（DeepSeek 等）]
+    E -- AI 回复 --> D
+
+    F[QQ 用户] -- 发送消息 --> C
+    D -- 控制指令/配置 --> G[Web 管理界面]</pre>
+
+<table>
+<thead>
+<tr>
+<th align="left">组件</th>
+<th align="left">作用</th>
+<th align="left">部署方式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><strong>NapCat</strong></td>
+<td align="left">基于官方 QQ Linux 版，负责登录 QQ 并收发消息</td>
+<td align="left">Docker 容器</td>
+</tr>
+<tr>
+<td align="left"><strong>AstrBot</strong></td>
+<td align="left">聊天机器人核心，负责处理消息、调用大模型、管理插件</td>
+<td align="left">Docker 容器</td>
+</tr>
+<tr>
+<td align="left"><strong>智谱 AI</strong></td>
+<td align="left">提供大模型对话能力（也可替换为 DeepSeek、OpenAI 等）</td>
+<td align="left">API 调用</td>
+</tr>
+</tbody></table>
+<p>两者通过 <code>OneBot v11</code> 协议在容器内部通信，无需额外配置网络，开箱即用。  </p>
+<p>下面正式开始讲解部署步骤。  </p>
+<h3 id="准备工作"><a href="#准备工作" class="headerlink" title="准备工作"></a>准备工作</h3><ol>
+<li>一台运行着 Linux 的服务器（建议 2核2G 以上，我使用Ubuntu系统演示）。  </li>
+<li>服务器上已安装 Docker 和 Docker Compose（下面步骤说明如何安装）。  </li>
+<li>一个准备好的 QQ 小号（降低主号被风控的风险）。  </li>
+<li>AI 大模型 API Key（在AI开放平台注册账号购买）。</li>
+</ol>
+<h3 id="安装-Docker-及-Docker-Compose-插件"><a href="#安装-Docker-及-Docker-Compose-插件" class="headerlink" title="安装 Docker 及 Docker Compose 插件"></a>安装 Docker 及 Docker Compose 插件</h3><p><a href="https://docs.docker.com/engine/install/ubuntu/">英文原版安装文档</a>  </p>
+<p><a href="https://docker.github.net.cn/engine/install/ubuntu/">中文镜像安装文档</a>  </p>
+<p>下面记录一下我的步骤  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 更新软件包索引</span></span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装必要依赖</span></span><br><span class="line"><span class="built_in">sudo</span> apt install -y apt-transport-https ca-certificates curl software-properties-common</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加 Docker 官方 GPG 密钥</span></span><br><span class="line">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | <span class="built_in">sudo</span> gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</span><br><span class="line"></span><br><span class="line"><span class="comment"># 添加 Docker APT 仓库</span></span><br><span class="line"><span class="built_in">echo</span> <span class="string">&quot;deb [arch=<span class="subst">$(dpkg --print-architecture)</span> signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu <span class="subst">$(lsb_release -cs)</span> stable&quot;</span> | <span class="built_in">sudo</span> <span class="built_in">tee</span> /etc/apt/sources.list.d/docker.list &gt; /dev/null</span><br><span class="line"></span><br><span class="line"><span class="comment"># 更新并安装 Docker 引擎及 Compose 插件</span></span><br><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install -y docker-ce docker-ce-cli containerd.io docker-compose-plugin</span><br><span class="line"></span><br><span class="line"><span class="comment"># 启动 Docker 并设置开机自启</span></span><br><span class="line"><span class="built_in">sudo</span> systemctl start docker</span><br><span class="line"><span class="built_in">sudo</span> systemctl <span class="built_in">enable</span> docker</span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证安装</span></span><br><span class="line">docker --version</span><br><span class="line">docker compose version</span><br></pre></td></tr></table></figure>
+
+<p>国内服务器拉取 Docker Hub 镜像可能较慢，可编辑 <code>/etc/docker/daemon.json</code> 添加镜像加速：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> <span class="built_in">tee</span> /etc/docker/daemon.json &lt;&lt;-<span class="string">&#x27;EOF&#x27;</span></span><br><span class="line">&#123;</span><br><span class="line">  <span class="string">&quot;registry-mirrors&quot;</span>: [<span class="string">&quot;https://docker.m.daocloud.io&quot;</span>]</span><br><span class="line">&#125;</span><br><span class="line">EOF</span><br><span class="line"></span><br><span class="line"><span class="built_in">sudo</span> systemctl daemon-reload</span><br><span class="line"><span class="built_in">sudo</span> systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h3 id="Docker-Compose-一键部署"><a href="#Docker-Compose-一键部署" class="headerlink" title="Docker Compose 一键部署"></a>Docker Compose 一键部署</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 创建并进入项目目录</span></span><br><span class="line"><span class="built_in">mkdir</span> astrbot &amp;&amp; <span class="built_in">cd</span> astrbot</span><br><span class="line"></span><br><span class="line"><span class="comment"># 下载官方提供的 Docker Compose 配置文件</span></span><br><span class="line">wget https://raw.githubusercontent.com/NapNeko/NapCat-Docker/main/compose/astrbot.yml</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><strong>注</strong>：若 <code>wget</code> 下载失败，可手动创建 <code>astrbot.yml</code> 文件，内容如下：  </p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&#x27;3&#x27;</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">  <span class="attr">napcat:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">mlikiowa/napcat-docker:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">napcat</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">NAPCAT_UID=1000</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">NAPCAT_GID=1000</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;6099:6099&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./napcat/data:/app/.napcat</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./napcat/config:/app/napcat/config</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br><span class="line"></span><br><span class="line">  <span class="attr">astrbot:</span></span><br><span class="line">    <span class="attr">image:</span> <span class="string">soulter/astrbot:latest</span></span><br><span class="line">    <span class="attr">container_name:</span> <span class="string">astrbot</span></span><br><span class="line">    <span class="attr">ports:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;6185:6185&quot;</span></span><br><span class="line">    <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">./astrbot/data:/app/data</span></span><br><span class="line">    <span class="attr">environment:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ASTRBOT_WS_URL=ws://napcat:3001</span></span><br><span class="line">    <span class="attr">depends_on:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">napcat</span></span><br><span class="line">    <span class="attr">restart:</span> <span class="string">unless-stopped</span></span><br></pre></td></tr></table></figure></blockquote>
+<h3 id="启动所有服务"><a href="#启动所有服务" class="headerlink" title="启动所有服务"></a>启动所有服务</h3><p>在 <code>astrbot.yml</code> 文件所在目录下，执行：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> docker compose -f astrbot.yml up -d</span><br></pre></td></tr></table></figure>
+
+<p>执行成功后，Docker 会自动拉取镜像并启动两个容器。可以通过 <code>sudo docker ps</code> 查看容器状态，确保 <code>napcat</code> 和 <code>astrbot</code> 均为 <code>Up</code> 状态。  </p>
+<p>如果你的 Docker Compose 是独立安装的老版本，上面的命令执行会报错，先升级 Docker Compose：首选 docker compose（V2）插件。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> apt update</span><br><span class="line"><span class="built_in">sudo</span> apt install docker-compose-plugin</span><br></pre></td></tr></table></figure>
+
+<p>升级后再执行下面的命令重新启动服务。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">NAPCAT_UID=$(<span class="built_in">id</span> -u) NAPCAT_GID=$(<span class="built_in">id</span> -g) <span class="built_in">sudo</span> -E docker compose -f astrbot.yml up -d</span><br></pre></td></tr></table></figure>
+
+<p>正常情况下这里 tui 会输出一个登录二维码，用你的QQ小号扫码登录。  </p>
+<h3 id="通过SSH隧道访问网页界面"><a href="#通过SSH隧道访问网页界面" class="headerlink" title="通过SSH隧道访问网页界面"></a>通过SSH隧道访问网页界面</h3><p>和桌面版配置差异的关键来了，服务器只有一个终端，并没有界面，我们需要利用 SSH隧道 使我们本地机器能访问到服务器端的 WebUI。  </p>
+<p>本地开一个新终端，使用下面的命令登录服务器：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">ssh -L 6099:localhost:6099 -L 6185:localhost:6185 &lt;你的服务器用户名&gt;@&lt;你的服务器IP地址&gt;</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：请把命令中的 &lt;你的服务器用户名&gt; 和 &lt;你的服务器IP地址&gt; 替换成你自己的信息。这条命令会同时建立两条隧道，分别对应 NapCat 的 6099 端口和 AstrBot 的 6185 端口。  </p>
+</blockquote>
+<p>输入密码登录后，先不要关闭这个窗口。然后打开你电脑的浏览器，输入对应的地址就能访问管理面板了：  </p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">NapCat 面板: </span><br><span class="line">http://localhost:6099/webui</span><br><span class="line"></span><br><span class="line">AstrBot 面板: </span><br><span class="line">http://localhost:6185</span><br></pre></td></tr></table></figure>
+
+<p>NapCat登录需要token，在服务器终端使用下面的命令获取，粘贴登录即可：  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="built_in">sudo</span> docker logs napcat 2&gt;&amp;1 | grep -i token</span><br></pre></td></tr></table></figure>
+
+<p>AstrBot登录，初始账户密码均为<code>astrbot</code>（忘了有没有大写了，在页面下端有提示），登录后会提醒你修改账户名和密码。  </p>
+<h3 id="配置-NapCat-面板"><a href="#配置-NapCat-面板" class="headerlink" title="配置 NapCat 面板"></a>配置 NapCat 面板</h3><p>在上一步之后，后面的配置几乎和网络上的教程没有任何差别了（因为几乎都是通过浏览器界面配置的），如果想探索更多玩法，可以自行搜索教程配置，我就不赘述了，下面仅仅记录最基础的内容，让我们把QQ机器人用起来。  </p>
+<p>……  </p>
+<p>如你所见，只是用起来的话，NapCat并再需要任何配置，实际上我们使用NapCat，主要的配置就是让他连接上AstrBot，由于上面我们是docker一体部署启动，所以这一步已经完成了（大概如此，或许只是创建连接接口，但是我们一体部署都做好了吧）。  </p>
+<p>总之，后面配置检查不成功，再去网络上看看这一步怎么做。  </p>
+<p>在实际的使用中，我们想要更多QQ机器人的功能，多半也是去配置AstrBot。  </p>
+<h3 id="配置-AstrBot-面板"><a href="#配置-AstrBot-面板" class="headerlink" title="配置 AstrBot 面板"></a>配置 AstrBot 面板</h3><h4 id="创建机器人"><a href="#创建机器人" class="headerlink" title="创建机器人"></a>创建机器人</h4><ol>
+<li>左侧 <code>机器人</code>；  </li>
+<li>右上角 <code>创建机器人</code>；  </li>
+<li>选择消息平台类别：<code>OneBot V11</code>；  </li>
+<li><code>保存</code> -&gt; <code>无视警告并继续创建</code>。</li>
+</ol>
+<p>然后就出现了一个名为 <code>default</code> 的机器人名片，点击名片右上角开关启用它，查看下方 <code>平台日志</code>，出现 <code>适配器已连接</code> 即成功，如果不成功可能要去看看<strong>NapCat面板</strong>怎么配置。  </p>
+<h4 id="接入大模型（以智谱-AI-为例）"><a href="#接入大模型（以智谱-AI-为例）" class="headerlink" title="接入大模型（以智谱 AI 为例）"></a>接入大模型（以智谱 AI 为例）</h4><ol>
+<li>左侧 <code>模型提供商</code>；  </li>
+<li>提供商源卡片 <code>新增</code>；</li>
+<li>选择 <code>Zhipu</code>;  </li>
+<li>填写 <code>API Key</code> 和 <code>API Base URL</code> （默认的应该也对），<code>保存配置</code>；  </li>
+<li>下方 <code>获取模型列表</code>，按自己需求点击右侧 <code>+</code>，然后打开开关；  </li>
+<li>左侧 <code>配置文件</code> -&gt; <code>普通配置</code>，在默认对话模型选择提供商，按喜好选一个即可；  </li>
+<li>下方 <code>选择人格</code>，这里可以自行编写一些机器人的设定；  </li>
+<li>（还有其他功能就不多说了，比如联网搜索功能，打开开关就行，更多其他配置参考AstrBot文档）  </li>
+<li>web 页面右下角图标保存配置。</li>
+</ol>
+<h3 id="测试与验证"><a href="#测试与验证" class="headerlink" title="测试与验证"></a>测试与验证</h3><p>（累啊。。我说手码字已经过时了）</p>
+<p>现在，向你的机器人 QQ 号发送一条消息，收到回复，则说明部署成功！  </p>
+<p>一般，我都会发一个：你是谁？  </p>
+<h3 id="查看日志排查问题"><a href="#查看日志排查问题" class="headerlink" title="查看日志排查问题"></a>查看日志排查问题</h3><figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 查看 AstrBot 日志</span></span><br><span class="line"><span class="built_in">sudo</span> docker logs -f astrbot</span><br><span class="line"></span><br><span class="line"><span class="comment"># 查看 NapCat 日志</span></span><br><span class="line"><span class="built_in">sudo</span> docker logs -f napcat</span><br></pre></td></tr></table></figure>
+
+<h3 id="常见问题速查"><a href="#常见问题速查" class="headerlink" title="常见问题速查"></a>常见问题速查</h3><table>
+<thead>
+<tr>
+<th align="left">现象</th>
+<th align="left">可能原因</th>
+<th align="left">解决方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left">无法访问 NapCat WebUI (6099)</td>
+<td align="left">防火墙未开放端口</td>
+<td align="left">在云控制台安全组&#x2F;系统防火墙中放行 <code>6099</code> 端口</td>
+</tr>
+<tr>
+<td align="left">扫码后登录失败</td>
+<td align="left">账号被风控</td>
+<td align="left">尝试更换网络环境，或更换小号重试</td>
+</tr>
+<tr>
+<td align="left">机器人不回复消息</td>
+<td align="left">AI 配置有误或余额不足</td>
+<td align="left">检查 API Key 是否正确、账户是否有额度；查看 AstrBot 日志</td>
+</tr>
+<tr>
+<td align="left">AstrBot 面板无法访问 (6185)</td>
+<td align="left">端口未开放或容器未启动</td>
+<td align="left">检查防火墙规则，运行 <code>docker ps</code> 确认容器状态</td>
+</tr>
+</tbody></table>
+<h3 id="我说-写完了"><a href="#我说-写完了" class="headerlink" title="我说 写完了"></a>我说 写完了</h3><p>至此，一个功能完整、24 小时在线的 QQ 机器人就部署完成了。你可以通过 AstrBot 的插件市场为其添加更多能力，比如天气查询、网页搜索、定时提醒等，把它打造成专属的智能助理。祝玩得开心。  </p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>]]></content>
+      <tags>
+        <tag>AI</tag>
+      </tags>
+  </entry>
 </search>

@@ -2218,8 +2218,8 @@ void error_handling(char* message) &#123;
 <p>AstrBot登录，初始账户密码均为<code>astrbot</code>（忘了有没有大写了，在页面下端有提示），登录后会提醒你修改账户名和密码。  </p>
 <h3 id="配置-NapCat-面板"><a href="#配置-NapCat-面板" class="headerlink" title="配置 NapCat 面板"></a>配置 NapCat 面板</h3><p>在上一步之后，后面的配置几乎和网络上的教程没有任何差别了（因为几乎都是通过浏览器界面配置的），如果想探索更多玩法，可以自行搜索教程配置，我就不赘述了，下面仅仅记录最基础的内容，让我们把QQ机器人用起来。  </p>
 <p>……  </p>
-<p>如你所见，只是用起来的话，NapCat并再需要任何配置，实际上我们使用NapCat，主要的配置就是让他连接上AstrBot，由于上面我们是docker一体部署启动，所以这一步已经完成了（大概如此，或许只是创建连接接口，但是我们一体部署都做好了吧）。  </p>
-<p>总之，后面配置检查不成功，再去网络上看看这一步怎么做。  </p>
+<p>如你所见，只是用起来的话，NapCat并不再需要任何配置，实际上我们使用NapCat，主要的配置就是让他连接上AstrBot，由于上面我们是docker一体部署启动，所以这一步已经完成了（大概如此，或许只是创建连接接口，但是我们一体部署都做好了吧）。  </p>
+<p>总之，后面配置检查不成功，再去搜索看看这一步怎么做。  </p>
 <p>在实际的使用中，我们想要更多QQ机器人的功能，多半也是去配置AstrBot。  </p>
 <h3 id="配置-AstrBot-面板"><a href="#配置-AstrBot-面板" class="headerlink" title="配置 AstrBot 面板"></a>配置 AstrBot 面板</h3><h4 id="创建机器人"><a href="#创建机器人" class="headerlink" title="创建机器人"></a>创建机器人</h4><ol>
 <li>左侧 <code>机器人</code>；  </li>
@@ -2236,6 +2236,7 @@ void error_handling(char* message) &#123;
 <li>下方 <code>获取模型列表</code>，按自己需求点击右侧 <code>+</code>，然后打开开关；  </li>
 <li>左侧 <code>配置文件</code> -&gt; <code>普通配置</code>，在默认对话模型选择提供商，按喜好选一个即可；  </li>
 <li>下方 <code>选择人格</code>，这里可以自行编写一些机器人的设定；  </li>
+<li>最下面 <code>其他配置</code> 中 <code>身份识别</code> 以及 <code>显示群名称</code>，这两项建议开启，开启后可以在人格设定或者skill中用自然语言让你拥有绝对控制权；  </li>
 <li>（还有其他功能就不多说了，比如联网搜索功能，打开开关就行，更多其他配置参考AstrBot文档）  </li>
 <li>web 页面右下角图标保存配置。</li>
 </ol>

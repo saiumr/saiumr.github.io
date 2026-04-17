@@ -1386,7 +1386,7 @@ pre code {
     vertical-align: middle;
   }
   .links-of-author a::before {
-    background: #454612;
+    background: #ff2bba;
     display: inline-block;
     margin-right: 3px;
     transform: translateY(-2px);
@@ -2994,71 +2994,19 @@ header.header {
     padding: 10px 12px;
   }
 }
-body {
-  background: #0d1117;
-  color: #c9d1d9;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-a {
-  color: #58a6ff;
-  transition: all 0.15s ease;
-}
-a:hover {
-  color: #79c0ff;
-  text-decoration: underline;
-}
-.post-block,
-.sidebar-inner,
-.header-inner,
-.footer-inner {
-  background: #161b22;
-  border: 1px solid #30363d;
-  border-radius: 10px;
-}
-code {
-  background: #161b22;
-  color: #e6edf3;
-  padding: 2px 5px;
-  border-radius: 4px;
-}
-pre {
-  background: #0d1117;
-  border: 1px solid #30363d;
-  border-radius: 8px;
-  padding: 14px;
-  overflow: auto;
-}
 .mermaid .flowchart-link {
-  stroke: #8b949e !important;
+  stroke: #aaa !important;
 }
 .mermaid .edgePath .path {
-  stroke: #8b949e !important;
+  stroke: #aaa !important;
 }
 .mermaid .arrowheadPath {
-  fill: #8b949e !important;
+  fill: #aaa !important;
 }
 .mermaid marker path {
-  fill: #8b949e !important;
-  stroke: #8b949e !important;
+  fill: #aaa !important;
+  stroke: #aaa !important;
 }
 .mermaid text {
-  fill: #c9d1d9 !important;
-}
-hr {
-  border: 0;
-  height: 1px;
-  background: #30363d;
-}
-::selection {
-  background: rgba(88,166,255,0.25);
-  color: #fff;
-}
-h1,
-h2,
-h3,
-h4,
-h5 {
-  color: #e6edf3;
-  font-weight: 600;
+  fill: #eee !important;
 }

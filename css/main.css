@@ -1386,7 +1386,7 @@ pre code {
     vertical-align: middle;
   }
   .links-of-author a::before {
-    background: #ff2bba;
+    background: #b6ffff;
     display: inline-block;
     margin-right: 3px;
     transform: translateY(-2px);
@@ -3009,4 +3009,10 @@ header.header {
 }
 .mermaid text {
   fill: #eee !important;
+}
+.post-title a {
+  color: #d8dee9 !important;
+}
+.post-title a:hover {
+  color: #fff !important;
 }

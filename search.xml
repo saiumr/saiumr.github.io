@@ -3508,4 +3508,194 @@ M&#x27; = (M^{-1})^T
         <tag>网络编程</tag>
       </tags>
   </entry>
+  <entry>
+    <title>llama.cpp部署本地对话模型</title>
+    <url>/2026/04/18/llama-cpp%E9%83%A8%E7%BD%B2%E6%9C%AC%E5%9C%B0%E5%AF%B9%E8%AF%9D%E6%A8%A1%E5%9E%8B/</url>
+    <content><![CDATA[<h2 id="核心执行流程"><a href="#核心执行流程" class="headerlink" title="核心执行流程"></a>核心执行流程</h2><pre class="mermaid">graph TD
+    A[配合工具和显卡CUDA版本安装CUDA ToolKit（最好搜索教程安装）] --> B[Scoop 安装 llama.cpp]
+    B --> C[Scoop 安装 fastfetch 查看机器配置]
+    C --> D[将配置发给大模型，获取适配模型推荐]
+    D --> E[前往 HuggingFace 官网查找 GGUF 格式模型]
+    E --> F[pip 安装 huggingface-cli 命令行工具]
+    F --> G[命令行下载 GGUF 模型到本地]
+    G --> H[llama.cpp 加载模型使用]
+    H --> H1[llama-cli：命令行交互式对话]
+    H --> H2[llama-server：本地 API 服务]</pre>
+
+<h2 id="环境准备"><a href="#环境准备" class="headerlink" title="环境准备"></a>环境准备</h2><h3 id="前置条件"><a href="#前置条件" class="headerlink" title="前置条件"></a>前置条件</h3><ol>
+<li>Windows 10&#x2F;11 系统  </li>
+<li>已安装 <strong>Scoop</strong> 包管理器（未安装看下方）  </li>
+<li>已安装 Python（用于下载模型）</li>
+</ol>
+<h2 id="分步详细教程"><a href="#分步详细教程" class="headerlink" title="分步详细教程"></a>分步详细教程</h2><h3 id="1-安装-Scoop（未安装必看）"><a href="#1-安装-Scoop（未安装必看）" class="headerlink" title="1. 安装 Scoop（未安装必看）"></a>1. 安装 Scoop（未安装必看）</h3><p>以<strong>管理员身份</strong>打开 PowerShell，执行：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="built_in">Set-ExecutionPolicy</span> RemoteSigned <span class="literal">-Scope</span> CurrentUser</span><br><span class="line"><span class="built_in">irm</span> get.scoop.sh | <span class="built_in">iex</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-获取-lamma-cpp-版本"><a href="#2-获取-lamma-cpp-版本" class="headerlink" title="2. 获取 lamma.cpp 版本"></a>2. 获取 lamma.cpp 版本</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scoop search lamma.cpp</span><br></pre></td></tr></table></figure>
+
+<h3 id="3-获取自己机器配置（fastfetch）"><a href="#3-获取自己机器配置（fastfetch）" class="headerlink" title="3. 获取自己机器配置（fastfetch）"></a>3. 获取自己机器配置（fastfetch）</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">scoop install fastfetch</span><br><span class="line">fastfetch</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-询问网页端大模型下载哪个版本"><a href="#4-询问网页端大模型下载哪个版本" class="headerlink" title="4. 询问网页端大模型下载哪个版本"></a>4. 询问网页端大模型下载哪个版本</h3><p>将获取到的llama.cpp和机器配置发给大模型，让它推荐合适的llama.cpp版本，但这只能作为参考。  </p>
+<p>N卡用户先在终端输入 <code>nvidia-smi</code> 查看自己的CUDA版本，进 <a href="https://scoop.sh/">scoop官网</a> 搜索 <code>llama.cpp</code>，找到对应的版本（CUDA12&#x2F;CUDA13，截止文章日期只有这俩比较新），用scoop安装。  </p>
+<p><a href="hhttps://developer.nvidia.com/cuda-toolkit-archive">下载安装对应版本CUDA Toolkit</a>，不然大模型只能跑在CPU上。  </p>
+<p>（建议安装CUDA ToolKit去找一些教程）  </p>
+<h3 id="5-Scoop-安装核心工具：llama-cpp"><a href="#5-Scoop-安装核心工具：llama-cpp" class="headerlink" title="5. Scoop 安装核心工具：llama.cpp"></a>5. Scoop 安装核心工具：llama.cpp</h3><figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 llama.cpp（根据安装的CUDA版本选择）</span></span><br><span class="line">scoop install llama.cpp<span class="literal">-cu131</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证安装（查看版本）</span></span><br><span class="line">llama<span class="literal">-cli</span> <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="6-再次询问大模型获取合适模型推荐"><a href="#6-再次询问大模型获取合适模型推荐" class="headerlink" title="6. 再次询问大模型获取合适模型推荐"></a>6. 再次询问大模型获取合适模型推荐</h3><p>机器配置重点：CPU、显卡、显存、内存，发给网页大模型（在之前应该全发了），提问示例：</p>
+<figure class="highlight text"><table><tr><td class="code"><pre><span class="line">我的机器配置：[粘贴你的配置]</span><br><span class="line">推荐适合 llama.cpp 运行的 GGUF 格式本地对话模型，要求中文友好、写小说/情景剧、8G 显存不报错</span><br></pre></td></tr></table></figure>
+
+<h3 id="7-安装-HuggingFace-命令行工具（下载模型专用）"><a href="#7-安装-HuggingFace-命令行工具（下载模型专用）" class="headerlink" title="7. 安装 HuggingFace 命令行工具（下载模型专用）"></a>7. 安装 HuggingFace 命令行工具（下载模型专用）</h3><p>llama.cpp <strong>仅支持 GGUF 格式模型</strong>，我们用官方工具高速下载：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 安装 huggingface 命令行工具</span></span><br><span class="line"><span class="comment"># 如果未安装 python 推荐直接安装 conda，可查阅我的另一篇文章：conda项目管理</span></span><br><span class="line">pip install <span class="string">&quot;huggingface_hub&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 验证安装</span></span><br><span class="line">hf <span class="literal">--version</span></span><br></pre></td></tr></table></figure>
+
+<p>可以配置 huggingface 命令行工具下载镜像：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="variable">$env:HF_ENDPOINT</span> = <span class="string">&#x27;https://hf-mirror.com/&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="8-下载-GGUF-格式模型（本地存放）"><a href="#8-下载-GGUF-格式模型（本地存放）" class="headerlink" title="8. 下载 GGUF 格式模型（本地存放）"></a>8. 下载 GGUF 格式模型（本地存放）</h3><p>首先去 <a href="https://huggingface.co/">huggingface 官网</a> 查找之前推荐的模型，然后复制名称，用命令行工具下载即可（命令行工具的好处是可以批量下载）。  </p>
+<p>命令行工具查看仓库中的模型文件：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">hf models info Qwen/Qwen2.<span class="number">5</span><span class="literal">-7B-Instruct-GGUF</span></span><br></pre></td></tr></table></figure>
+
+<p>新建模型文件夹（推荐非 C 盘）  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">mkdir D:\llm\models</span><br><span class="line"><span class="built_in">cd</span> D:\llm\models</span><br></pre></td></tr></table></figure>
+
+<p>下载模型（以 <strong>Qwen2.5-7B-Instruct-GGUF</strong> 为例），<code>--include</code> 指定了下载仓库中的哪个模型文件（这里的模型文件是分卷保存的，把分卷保存的模型文件都下载下载下来）。  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line">hf download Qwen/Qwen2.<span class="number">5</span><span class="literal">-7B-Instruct-GGUF</span> <span class="literal">--include</span> <span class="string">&quot;qwen2.5-7b-instruct-q4_k_m*.gguf&quot;</span> <span class="literal">--local-dir</span> D:\llm\models\qwen</span><br></pre></td></tr></table></figure>
+
+<p>然后合并分卷文件：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 命令格式: .\llama-gguf-split.exe --merge &lt;第一个分片文件路径&gt; &lt;输出文件路径&gt;</span></span><br><span class="line">llama<span class="literal">-gguf-split</span> <span class="literal">--merge</span> <span class="string">&quot;D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m-00001-of-00002.gguf&quot;</span> <span class="string">&quot;D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m.gguf&quot;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="性能测试"><a href="#性能测试" class="headerlink" title="性能测试"></a>性能测试</h2><p>使用下面的命令能看到你的模型在你的机器上能跑到的性能极限  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">llama-bench -m D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m.gguf -ngl 100</span><br></pre></td></tr></table></figure>
+
+<p>这里如果 <code>backend</code> 没看到 GPU，可能要去检查CUDA ToolKit有没有搞好之类的。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">➜ ~ llama-bench -m D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m.gguf -ngl 100</span><br><span class="line">ggml_cuda_init: found 1 CUDA devices (Total VRAM: 8187 MiB):</span><br><span class="line">  Device 0: NVIDIA GeForce RTX 4060 Laptop GPU, compute capability 8.9, VMM: <span class="built_in">yes</span>, VRAM: 8187 MiB</span><br><span class="line">load_backend: loaded CUDA backend from D:\scoop\apps\llama.cpp-cu131\current\ggml-cuda.dll</span><br><span class="line">load_backend: loaded RPC backend from D:\scoop\apps\llama.cpp-cu131\current\ggml-rpc.dll</span><br><span class="line">load_backend: loaded CPU backend from D:\scoop\apps\llama.cpp-cu131\current\ggml-cpu-alderlake.dll</span><br><span class="line">| model                          |       size |     params | backend    | ngl |            <span class="built_in">test</span> |                  t/s |</span><br><span class="line">| ------------------------------ | ---------: | ---------: | ---------- | --: | --------------: | -------------------: |</span><br><span class="line">| qwen2 7B Q4_K - Medium         |   4.36 GiB |     7.62 B | CUDA       | 100 |           pp512 |      2324.68 ± 39.01 |</span><br><span class="line">| qwen2 7B Q4_K - Medium         |   4.36 GiB |     7.62 B | CUDA       | 100 |           tg128 |         49.94 ± 0.04 |</span><br><span class="line"></span><br><span class="line">build: 45cac7ca7 (8833)</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>pp512</code>：处理512个token输入  </li>
+<li><code>tg128</code>：生成128个token输出</li>
+</ul>
+<h2 id="llama-cpp-cli-server-使用模型"><a href="#llama-cpp-cli-server-使用模型" class="headerlink" title="llama.cpp cli&#x2F;server 使用模型"></a>llama.cpp cli&#x2F;server 使用模型</h2><p>推荐看这个教程视频：<a href="https://www.bilibili.com/video/BV198GzzEEbd">使用llama.cpp部署本地大模型</a>  </p>
+<p>以下内容是我根据自己的机器配置让AI帮我完成的，仅供参考。  </p>
+<p>想流畅运行 <code>llama-cli</code> 和 <code>llama-server</code>，关键是<strong>让模型在GPU和CPU之间协同工作</strong>。  </p>
+<p>核心思路是：模型默认在CPU上运行，通过 <code>-ngl</code> (或 <code>--n-gpu-layers</code>) 参数，可以把模型的计算层”卸载”到性能更强的独立显卡上进行加速。你可以把它想象成给一辆车（CPU）加装了一个火箭助推器（GPU），而 <code>-ngl</code> 就是这个助推器的启动按钮。  </p>
+<blockquote>
+<p><code>llama-server</code> 和 <code>llama-cli</code> 的核心参数是通用的，两者都可以使用。  </p>
+</blockquote>
+<h3 id="命令核心参数详解"><a href="#命令核心参数详解" class="headerlink" title="命令核心参数详解"></a>命令核心参数详解</h3><p>这里有一些最常用的参数，你可以把它们想象成AI的“操作手册”。  </p>
+<table>
+<thead>
+<tr>
+<th align="left">参数</th>
+<th align="left">作用</th>
+<th align="left">针对你配置的建议</th>
+</tr>
+</thead>
+<tbody><tr>
+<td align="left"><code>-m, --model</code></td>
+<td align="left">指定模型文件的<strong>路径</strong>。</td>
+<td align="left">必填，需要提供你下载好的GGUF模型文件位置。</td>
+</tr>
+<tr>
+<td align="left"><code>-ngl, --n-gpu-layers</code></td>
+<td align="left"><strong>核心加速参数</strong>。指定将模型的计算层<strong>卸载到GPU的数量</strong>。</td>
+<td align="left"><strong>推荐值：28</strong>。对于7B模型和你的8GB显卡，这个值很稳妥，能有效利用显存且不易溢出。</td>
+</tr>
+<tr>
+<td align="left"><code>-c, --ctx-size</code></td>
+<td align="left">设定模型的“<strong>上下文窗口</strong>”大小，即模型一次能“记住”的文本量（以Token为单位）。</td>
+<td align="left"><strong>推荐值：8192</strong>。这是性能和显存占用的平衡点，足以应对长篇小说的上下文。</td>
+</tr>
+<tr>
+<td align="left"><code>-t, --threads</code></td>
+<td align="left">指定 <strong>CPU 线程数</strong>，用于处理GPU卸载后剩余的计算任务。</td>
+<td align="left"><strong>推荐值：6</strong>。你的i7-13700H有20个核心，设置为6可以避免CPU过饱和，同时保证系统流畅。</td>
+</tr>
+<tr>
+<td align="left"><code>-p, --prompt</code></td>
+<td align="left">提供<strong>初始提示词</strong>，用于启动单次生成任务。</td>
+<td align="left">根据你的写作需求自定义。</td>
+</tr>
+<tr>
+<td align="left"><code>-n, --n-predict</code></td>
+<td align="left">限制生成的最大<strong>Token数量</strong>，控制回答的长度。</td>
+<td align="left">根据你的需要设置，例如 <code>-n 512</code>。</td>
+</tr>
+<tr>
+<td align="left"><code>-b, --batch-size</code></td>
+<td align="left"><strong>物理批处理大小</strong>。每次将多少Token输入模型进行处理。</td>
+<td align="left"><strong>推荐值：512</strong>。默认值即可，一般无需调整。</td>
+</tr>
+<tr>
+<td align="left"><code>-ub, --ubatch-size</code></td>
+<td align="left"><strong>逻辑批处理大小</strong>，影响内存使用和计算效率。</td>
+<td align="left"><strong>推荐值：256</strong>。较低的数值可以帮助稳定运行，特别是在显存紧张时。</td>
+</tr>
+<tr>
+<td align="left"><code>--mlock</code></td>
+<td align="left"><strong>锁定内存</strong>，防止模型在运行时被系统换出到硬盘上，保证性能稳定。</td>
+<td align="left"><strong>推荐添加</strong>，能保证生成速度平稳。</td>
+</tr>
+<tr>
+<td align="left"><code>--no-mmap</code></td>
+<td align="left"><strong>不使用内存映射</strong>。直接将模型加载到内存中。</td>
+<td align="left">可选。如果你的系统内存（RAM）非常充裕（大于32GB），可以考虑添加。</td>
+</tr>
+<tr>
+<td align="left"><code>-j, --jinja</code></td>
+<td align="left"><strong>启用Jinja聊天模板</strong>，对于多轮对话非常关键。</td>
+<td align="left"><strong>推荐在交互模式或服务器模式下启用</strong>，以获得更好的对话体验。</td>
+</tr>
+<tr>
+<td align="left"><code>-cnv, --conversation</code></td>
+<td align="left">开启<strong>交互式对话模式</strong>，方便进行多轮对话。</td>
+<td align="left">如果你通过命令行与AI交互，建议启用。</td>
+</tr>
+<tr>
+<td align="left"><code>--host</code></td>
+<td align="left">设置<code>llama-server</code>监听的IP地址。</td>
+<td align="left">默认为<code>127.0.0.1</code>（仅本机访问）。如需局域网访问，可设为<code>0.0.0.0</code>。</td>
+</tr>
+<tr>
+<td align="left"><code>--port</code></td>
+<td align="left">设置<code>llama-server</code>监听的端口号。</td>
+<td align="left"><strong>推荐值：8080</strong>。这是常用的默认值。</td>
+</tr>
+</tbody></table>
+<h3 id="快速上手实战"><a href="#快速上手实战" class="headerlink" title="快速上手实战"></a>快速上手实战</h3><p>下面我们通过具体的命令，来看看这个“火箭助推器”是怎么点火的。</p>
+<h4 id="1-开启交互式对话-llama-cli"><a href="#1-开启交互式对话-llama-cli" class="headerlink" title="1. 开启交互式对话 (llama-cli)"></a>1. 开启交互式对话 (<code>llama-cli</code>)</h4><p>这个命令就像是让AI根据你的提示词一次性写出一个短篇故事。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 假设你的模型放在 D:\llm\models\qwen 目录下</span></span><br><span class="line">llama-cli -m D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m.gguf -ngl 100 -c 16384 -t 6 -p <span class="string">&quot;Write a short story about a brave little programmer.&quot;</span> -n 512</span><br></pre></td></tr></table></figure>
+
+<p><strong>命令解析</strong>：  </p>
+<ul>
+<li><code>-m</code>：指向你下载好的模型文件。</li>
+<li><code>-ngl 100</code>：将100层模型计算交给你的RTX 4060显卡处理，这是性能提升的关键，层数搞大点没事，只是尽可能让显卡处理计算任务罢了。  </li>
+<li><code>-c 16384</code>：模型能记住约 16384 个字的上下文，足够处理复杂的情节。  </li>
+<li><code>-t 6</code>：使用6个CPU核心辅助计算。  </li>
+<li><code>-p &quot;...&quot;</code>：这是你的故事开头或指令。  </li>
+<li><code>-n 512</code>：让模型生成大约512个词的故事。</li>
+</ul>
+<p>不带 <code>-p</code>、<code>-n</code>，会直接打开交互式窗口对话，使用 <code>/exit</code> 退出交互式命令窗口。  </p>
+<h4 id="2-启动一个API服务器-llama-server"><a href="#2-启动一个API服务器-llama-server" class="headerlink" title="2. 启动一个API服务器 (llama-server)"></a>2. 启动一个API服务器 (<code>llama-server</code>)</h4><p>启动服务器后，你不仅可以通过浏览器访问一个简单的Web界面，还可以通过代码（如Python）调用API来使用模型。  </p>
+<figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">llama-server -m D:\llm\models\qwen\qwen2.5-7b-instruct-q4_k_m.gguf -ngl 100 -c 16384 -t 6 -ctk q8_0 -ctv q8_0 --host 127.0.0.1 --port 8080</span><br></pre></td></tr></table></figure>
+
+<p><strong>命令解析</strong>：  </p>
+<ul>
+<li>-ctk: –cache-type-k 的简写，控制缓存中 K (Key) 部分的数据类型。  </li>
+<li>-ctv: –cache-type-v 的简写，控制缓存中 V (Value) 部分的数据类型。</li>
+</ul>
+<p>你可以把它们想象成给这个“短期记忆”选择不同材质的“便签纸”：</p>
+<ul>
+<li>f32 (浮点32位): 最高精度的“金箔纸”，效果最好但最占显存。  </li>
+<li>f16 (浮点16位): 标准“A4纸”，性能与容量的平衡选择。  </li>
+<li>q8_0 (8位量化): 实用“便签纸”，大部分场景下优先推荐，能有效节省显存，且性能损失极小。  </li>
+<li>q4_0 (4位量化): 紧凑“便利贴”，极致省显存，但可能对复杂逻辑略有影响。</li>
+</ul>
+<p>参数 <code>--host 127.0.0.1 --port 8080</code>：设置服务器地址。启动后，在浏览器打开 <code>http://127.0.0.1:8080</code> 就能看到交互界面。  </p>
+<p>除此之外还可以通过 <code>--api-key</code> 设置apikey，这样通过 base url: <code>http://127.0.0.1:8080</code>和 apikey 就可以调用模型了，不设置的话在 agent 中 apikey 栏随便填写内容。  </p>
+<script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>AI</tag>
+      </tags>
+  </entry>
 </search>

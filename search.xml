@@ -3698,4 +3698,313 @@ M&#x27; = (M^{-1})^T
         <tag>AI</tag>
       </tags>
   </entry>
+  <entry>
+    <title>真值表推算门电路逻辑与化简</title>
+    <url>/2026/04/20/%E7%9C%9F%E5%80%BC%E8%A1%A8%E6%8E%A8%E7%AE%97%E9%97%A8%E7%94%B5%E8%B7%AF%E9%80%BB%E8%BE%91%E4%B8%8E%E5%8C%96%E7%AE%80/</url>
+    <content><![CDATA[<h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>这是我大学还是一名籍籍无名的做题家时记下的笔记，主要是为了做题，但其实还是有实际意义的，从实际需要写出真值表，从真值表推算门电路逻辑，然后选取合适的电路设计。  </p>
+<p>有点感慨，当初的文字略显青涩还啰嗦，如今除了不是做题家还是和那时一样。  </p>
+<p><img src="/../images/post/%E6%95%B0%E7%94%B5-0-%E5%AF%B9%E6%88%91%E4%BD%BF%E7%94%A8%E7%82%8E%E6%8B%B3%E5%90%A7.png" alt="对我使用炎拳吧">  </p>
+<h2 id="推门电路核心四步"><a href="#推门电路核心四步" class="headerlink" title="推门电路核心四步"></a>推门电路核心四步</h2><ol>
+<li>列真值表，筛选出<strong>输出Y&#x3D;1</strong>的所有行（输出为0的行不用管，简化工作量）；  </li>
+<li>每一行的变量组合，写成一个“最小项”（与项，比如A&#x3D;0、B&#x3D;1，就是A’B）；  </li>
+<li>所有最小项用“或”（+）连接，得到原始的<strong>与-或</strong>标准式；  </li>
+<li>化简（用套路、极简公式、卡诺图）。</li>
+</ol>
+<h2 id="肉眼化简套路"><a href="#肉眼化简套路" class="headerlink" title="肉眼化简套路"></a>肉眼化简套路</h2><p>约定：<code>A&#39; = A非</code>（取反），<code>· = 逻辑与</code>（可省略，比如<code>AB</code>就是<code>A·B</code>），<code>+ = 逻辑或</code>  </p>
+<ol>
+<li>互补抵消  <ul>
+<li><code>A + A&#39; = 1</code>（一正一反或运算，直接等于1，比如A+A’BC &#x3D; 1·BC &#x3D; BC）  </li>
+<li><code>A·A&#39; = 0</code>（一正一反相乘，直接等于0，比如A·A’B &#x3D; 0·B &#x3D; 0）</li>
+</ul>
+</li>
+<li>重复项删除  <ul>
+<li><code>A + A = A</code>（不管写多少次，只留1个）  </li>
+<li><code>A·A = A</code>（同理，重复的与项只留1个）</li>
+</ul>
+</li>
+<li>短项吸收长项  <ul>
+<li><code>A + AB = A</code>（只要有单独的A，带A的长项全删，比如A + ABC + ABD &#x3D; A）  </li>
+<li><code>A + A&#39;B = A + B</code>（留正项，去掉反项，比如A + A’BC &#x3D; A + BC）</li>
+</ul>
+</li>
+<li>成对消去相反变量  <ul>
+<li><code>AB + AB&#39; = A</code>（B和B’相反，直接消去，只剩相同的A）  </li>
+<li><code>A&#39;B + AB = B</code>（同理，A和A’相反，消去后只剩B）</li>
+</ul>
+</li>
+<li>交叉冗余项删除  <ul>
+<li><code>AB + A&#39;C + BC = AB + A&#39;C</code>（BC是冗余项，直接删，再比如AB + A’C + ABC &#x3D; AB + A’C）</li>
+</ul>
+</li>
+</ol>
+<p>对于第五点，<strong>交叉冗余项</strong>，其中含义是有两项中有一个输入符号相同，相性想法，另外两个符号不同，而交叉冗余项就是取了那俩不同符号的项目，直接与上那个相同符号的<code>1</code>就行,，解释一下：  </p>
+<p>上面的符号，<code>A</code>是两项都有且相性相反的，<code>BC</code>是不同符号组合的项，那么直接与上<code>A</code>组合的<code>1</code> -&gt; <code>BC(A+A&#39;) = ABC + A&#39;BC</code>，其中<code>A+A&#39;</code>就是1，然后短项吃掉长项，就得到结果了。  </p>
+<h2 id="公式"><a href="#公式" class="headerlink" title="公式"></a>公式</h2><table>
+<thead>
+<tr>
+<th>公式</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>A + 1 &#x3D; 1；A + 0 &#x3D; A</td>
+<td>或运算：遇1则1，遇0不变</td>
+</tr>
+<tr>
+<td>A·0 &#x3D; 0；A·1 &#x3D; A</td>
+<td>与运算：遇0则0，遇1不变</td>
+</tr>
+<tr>
+<td>A + A’ &#x3D; 1；A·A’ &#x3D; 0</td>
+<td>互补律，最常用，一眼识别</td>
+</tr>
+<tr>
+<td>A + B &#x3D; B + A；AB &#x3D; BA</td>
+<td>交换律，顺序随便换，不影响结果</td>
+</tr>
+<tr>
+<td>A(B + C) &#x3D; AB + AC</td>
+<td>分配律，拆开括号用，化简常用</td>
+</tr>
+<tr>
+<td>A + AB &#x3D; A</td>
+<td>短项吸长项，记“短吃长”</td>
+</tr>
+<tr>
+<td>A + A’B &#x3D; A + B</td>
+<td>留正去反，记“删反项，留正项”</td>
+</tr>
+<tr>
+<td>(A+B)’ &#x3D; A’B’；(AB)’ &#x3D; A’+B’</td>
+<td>德摩根定律，取反用，记“或变与、与变或，全取反”</td>
+</tr>
+</tbody></table>
+<h2 id="卡诺图化简"><a href="#卡诺图化简" class="headerlink" title="卡诺图化简"></a>卡诺图化简</h2><h3 id="核心逻辑"><a href="#核心逻辑" class="headerlink" title="核心逻辑"></a>核心逻辑</h3><p>把真值表的最小项（Y&#x3D;1的项）填入方格，相邻的方格（只变1个变量）可以合并，消去变化的变量，最终得到最简与或式。  </p>
+<h3 id="关键规则"><a href="#关键规则" class="headerlink" title="关键规则"></a>关键规则</h3><ol>
+<li>方格排列：变量按<a href="https://baike.baidu.com/item/%E6%A0%BC%E9%9B%B7%E7%A0%81/6510858">“格雷码”</a>排列（00→01→11→10），保证相邻格子只变1个变量；  </li>
+<li>圈格子规则：只能圈2、4、8个格子（2的n次方），圈越大越好，重叠圈没关系；  </li>
+<li>写表达式：每个圈里，<strong>不变的变量保留</strong>（全1留原变量，全0留反变量），变化的变量消去。</li>
+</ol>
+<h3 id="卡诺图例子"><a href="#卡诺图例子" class="headerlink" title="卡诺图例子"></a>卡诺图例子</h3><h4 id="例一：2变量卡诺图（Y-AB-AB’）"><a href="#例一：2变量卡诺图（Y-AB-AB’）" class="headerlink" title="例一：2变量卡诺图（Y&#x3D;AB + AB’）"></a>例一：2变量卡诺图（Y&#x3D;AB + AB’）</h4><ol>
+<li><p>变量：A、B（2变量，卡诺图2×2方格）</p>
+</li>
+<li><p>真值表（只列Y&#x3D;1的行）：  </p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+<th>Y</th>
+<th>最小项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>AB’</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>AB</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>画卡诺图（行&#x3D;A，列&#x3D;B，格雷码排列）：  </p>
+<table>
+<thead>
+<tr>
+<th>A\B</th>
+<th>0（B’）</th>
+<th>1（B）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0（A’）</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1（A）</td>
+<td>1</td>
+<td>1</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>圈格子：把两个1圈起来（2个格子，符合规则）  </p>
+</li>
+<li><p>化简：圈里A全是1（不变），B有0有1（变化，消去），所以Y&#x3D;A（和套路4结果一致）</p>
+</li>
+</ol>
+<h4 id="例二：3变量卡诺图（Y-A’BC-ABC-AB’C-A’B’C）"><a href="#例二：3变量卡诺图（Y-A’BC-ABC-AB’C-A’B’C）" class="headerlink" title="例二：3变量卡诺图（Y&#x3D;A’BC + ABC + AB’C + A’B’C）"></a>例二：3变量卡诺图（Y&#x3D;A’BC + ABC + AB’C + A’B’C）</h4><ol>
+<li><p>变量：A、B、C（3变量，卡诺图2×4方格）  </p>
+</li>
+<li><p>真值表（Y&#x3D;1的行）：  </p>
+<table>
+<thead>
+<tr>
+<th>A</th>
+<th>B</th>
+<th>C</th>
+<th>Y</th>
+<th>最小项</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>A’B’C</td>
+</tr>
+<tr>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>A’BC</td>
+</tr>
+<tr>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>AB’C</td>
+</tr>
+<tr>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>1</td>
+<td>ABC</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>画卡诺图（行&#x3D;A，列&#x3D;BC，列按00→01→11→10排列）：  </p>
+<table>
+<thead>
+<tr>
+<th>A\BC</th>
+<th>00</th>
+<th>01</th>
+<th>11</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0（A’）</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>1（A）</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p> （补充：3变量卡诺图行是A（0、1），列是BC（00、01、11、10），上面4个格子对应A&#x3D;0，下面4个对应A&#x3D;1；Y&#x3D;1的格子是（A’，BC&#x3D;11）、（A，BC&#x3D;11）、（A’，BC&#x3D;01）、（A，BC&#x3D;10））  </p>
+</li>
+<li><p>圈格子：把4个1圈成一个大圈（4个格子，符合规则）  </p>
+</li>
+<li><p>化简：圈里C全是1（不变），A有0有1、B有0有1（变化，消去），所以Y&#x3D;C</p>
+</li>
+</ol>
+<h4 id="例三：4变量卡诺图（Y-ABCD-ABC’D-AB’CD-AB’C’D-A’BCD-A’BC’D）"><a href="#例三：4变量卡诺图（Y-ABCD-ABC’D-AB’CD-AB’C’D-A’BCD-A’BC’D）" class="headerlink" title="例三：4变量卡诺图（Y&#x3D;ABCD + ABC’D + AB’CD + AB’C’D + A’BCD + A’BC’D）"></a>例三：4变量卡诺图（Y&#x3D;ABCD + ABC’D + AB’CD + AB’C’D + A’BCD + A’BC’D）</h4><ol>
+<li><p>变量：A、B、C、D（4变量，卡诺图4×4方格）  </p>
+</li>
+<li><p>真值表（Y&#x3D;1的行，只列最小项）：ABCD、ABC’D、AB’CD、AB’C’D、A’BCD、A’BC’D  </p>
+</li>
+<li><p>画卡诺图（行&#x3D;AB，列&#x3D;CD，均按格雷码00→01→11→10排列）：  </p>
+<table>
+<thead>
+<tr>
+<th>AB\CD</th>
+<th>00</th>
+<th>01</th>
+<th>11</th>
+<th>10</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>00（A’B’）</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>01（A’B）</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>11（AB）</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr>
+<td>10（AB’）</td>
+<td>0</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+</tr>
+</tbody></table>
+</li>
+<li><p>圈格子：  </p>
+<ul>
+<li>第一圈：（A’B，CD&#x3D;01）、（A’B，CD&#x3D;11）、（AB，CD&#x3D;01）、（AB，CD&#x3D;11）→ 4个格子  </li>
+<li>第二圈：（AB’，CD&#x3D;01）、（AB’，CD&#x3D;11）→ 2个格子</li>
+</ul>
+</li>
+<li><p>化简：  </p>
+<ul>
+<li>第一圈：B全是1，D全是1，A有0有1（消去），C有0有1（消去） → 表达式：BD  </li>
+<li>第二圈：A全是1，B全是0（B’），C有0有1（消去），D全是1→ 表达式：AB’D  </li>
+<li>最终最简式：Y &#x3D; BD + AB’D &#x3D; D(B+AB’) &#x3D; AD + BD</li>
+</ul>
+</li>
+</ol>
+<h2 id="逻辑表达式化简练习"><a href="#逻辑表达式化简练习" class="headerlink" title="逻辑表达式化简练习"></a>逻辑表达式化简练习</h2><h3 id="习题一：原始式-Y-A’BC-ABC-AB’C"><a href="#习题一：原始式-Y-A’BC-ABC-AB’C" class="headerlink" title="习题一：原始式 Y &#x3D; A’BC + ABC + AB’C"></a>习题一：原始式 Y &#x3D; A’BC + ABC + AB’C</h3><ol>
+<li>用套路化简：  <ul>
+<li>前两项：A’BC + ABC &#x3D; BC（A和A’相反，消去A）  </li>
+<li>剩余：BC + AB’C &#x3D; C(B + AB’) &#x3D; C(A + B)（用套路3：A + AB’ &#x3D; A + B）  </li>
+<li>最简式：Y &#x3D; C(A + B) &#x3D; AC + BC</li>
+</ul>
+</li>
+<li>用卡诺图验证：3变量，Y&#x3D;1的最小项是A’BC、ABC、AB’C，圈格子后得到同样结果。</li>
+</ol>
+<h3 id="习题二：原始式-Y-AB-A’C-BC-ABC"><a href="#习题二：原始式-Y-AB-A’C-BC-ABC" class="headerlink" title="习题二：原始式 Y &#x3D; AB + A’C + BC + ABC"></a>习题二：原始式 Y &#x3D; AB + A’C + BC + ABC</h3><ol>
+<li>用套路化简：  <ul>
+<li>先删冗余项：AB + A’C + BC（ABC被AB吸收，删去）  </li>
+<li>再删冗余项：AB + A’C（BC是冗余项，删去）  </li>
+<li>最简式：Y &#x3D; AB + A’C</li>
+</ul>
+</li>
+<li>用卡诺图验证：3变量，圈格子后，AB和A’C两个圈，无冗余，结果一致。</li>
+</ol>
+<h2 id="结语"><a href="#结语" class="headerlink" title="结语"></a>结语</h2><ol>
+<li>化简优先级：先看套路（肉眼能化简的先化简）→ 再用公式 → 复杂的（3变量及以上）直接画卡诺图；</li>
+<li>卡诺图关键：相邻格子必须只变1个变量，圈越大越简单，不用怕重叠；</li>
+<li>不用死背复杂公式，记住套路和卡诺图，所有化简题都能搞定；</li>
+<li>实际意义：化简后的逻辑式越简单，用的门电路越少，硬件成本越低（比如按键逻辑、IO判断，都会用到）。</li>
+</ol>
+]]></content>
+      <categories>
+        <category>随想</category>
+      </categories>
+      <tags>
+        <tag>数电</tag>
+      </tags>
+  </entry>
 </search>

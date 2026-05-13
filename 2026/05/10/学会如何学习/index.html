@@ -20,27 +20,27 @@
 
 <script class="next-config" data-name="main" type="application/json">{"hostname":"saiumr.github.io","root":"/","images":"/images","scheme":"Gemini","darkmode":true,"version":"8.22.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"copycode":{"enable":false,"style":null},"fold":{"enable":false,"height":500},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"},"path":"/search.xml","localsearch":{"enable":true,"top_n_per_article":1,"unescape":false,"preload":false}}</script><script src="/js/config.js"></script>
 
-    <meta name="description" content="透视投影转换观察空间到裁剪空间，再经过透视除法转换到NDC得到深度。">
+    <meta name="description" content="摸索AI时代如何学习，其实基本是个人的碎碎念。">
 <meta property="og:type" content="article">
-<meta property="og:title" content="透视投影与深度">
-<meta property="og:url" content="https://saiumr.github.io/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/index.html">
+<meta property="og:title" content="学习如何学习">
+<meta property="og:url" content="https://saiumr.github.io/2026/05/10/%E5%AD%A6%E4%BC%9A%E5%A6%82%E4%BD%95%E5%AD%A6%E4%B9%A0/index.html">
 <meta property="og:site_name" content="cola&#39;s blog">
-<meta property="og:description" content="透视投影转换观察空间到裁剪空间，再经过透视除法转换到NDC得到深度。">
+<meta property="og:description" content="摸索AI时代如何学习，其实基本是个人的碎碎念。">
 <meta property="og:locale" content="zh_CN">
-<meta property="article:published_time" content="2025-10-28T07:39:27.000Z">
-<meta property="article:modified_time" content="2025-10-28T09:10:29.407Z">
+<meta property="article:published_time" content="2026-05-10T08:25:35.000Z">
+<meta property="article:modified_time" content="2026-05-11T01:37:12.101Z">
 <meta property="article:author" content="cola">
-<meta property="article:tag" content="OpenGL">
+<meta property="article:tag" content="随想">
 <meta name="twitter:card" content="summary">
 
 
-<link rel="canonical" href="https://saiumr.github.io/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/">
+<link rel="canonical" href="https://saiumr.github.io/2026/05/10/%E5%AD%A6%E4%BC%9A%E5%A6%82%E4%BD%95%E5%AD%A6%E4%B9%A0/">
 
 
-<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/","path":"2025/10/28/透视投影与深度/","title":"透视投影与深度"}</script>
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://saiumr.github.io/2026/05/10/%E5%AD%A6%E4%BC%9A%E5%A6%82%E4%BD%95%E5%AD%A6%E4%B9%A0/","path":"2026/05/10/学会如何学习/","title":"学习如何学习"}</script>
 
 <script class="next-config" data-name="calendar" type="application/json">""</script>
-<title>透视投影与深度 | cola's blog</title>
+<title>学习如何学习 | cola's blog</title>
   
 
 
@@ -126,7 +126,7 @@
   
   <aside class="sidebar">
 
-    <div class="sidebar-inner sidebar-overview-active">
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
       <ul class="sidebar-nav">
         <li class="sidebar-nav-toc">
           文章目录
@@ -139,6 +139,7 @@
       <div class="sidebar-panel-container">
         <!--noindex-->
         <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%90%88%E5%8A%9B"><span class="nav-number">1.</span> <span class="nav-text">合力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%9C%80%E7%AE%80%E5%8D%95%E7%9A%84%E6%9C%80%E6%9C%89%E7%94%A8"><span class="nav-number">2.</span> <span class="nav-text">最简单的最有用</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BB%A5%E2%80%9C%E7%9B%AE%E6%A0%87%E2%80%9D%E4%B8%BA%E5%AF%BC%E5%90%91%E8%80%8C%E5%AD%A6%E4%B9%A0"><span class="nav-number">3.</span> <span class="nav-text">以“目标”为导向而学习</span></a></li></ol></div>
         </div>
         <!--/noindex-->
 
@@ -196,7 +197,7 @@
   
 
   <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2025/10/28/%E9%80%8F%E8%A7%86%E6%8A%95%E5%BD%B1%E4%B8%8E%E6%B7%B1%E5%BA%A6/">
+    <link itemprop="mainEntityOfPage" href="https://saiumr.github.io/2026/05/10/%E5%AD%A6%E4%BC%9A%E5%A6%82%E4%BD%95%E5%AD%A6%E4%B9%A0/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/cola.jpg">
@@ -209,12 +210,12 @@
     </span>
 
     <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
-      <meta itemprop="name" content="透视投影与深度 | cola's blog">
-      <meta itemprop="description" content="透视投影转换观察空间到裁剪空间，再经过透视除法转换到NDC得到深度。">
+      <meta itemprop="name" content="学习如何学习 | cola's blog">
+      <meta itemprop="description" content="摸索AI时代如何学习，其实基本是个人的碎碎念。">
     </span>
       <header class="post-header">
         <h1 class="post-title" itemprop="name headline">
-          透视投影与深度
+          学习如何学习
         </h1>
 
         <div class="post-meta-container">
@@ -224,9 +225,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2025-10-28 15:39:27 / 修改时间：17:10:29" itemprop="dateCreated datePublished" datetime="2025-10-28T15:39:27+08:00">2025-10-28</time>
+      <time title="创建时间：2026-05-10 16:25:35" itemprop="dateCreated datePublished" datetime="2026-05-10T16:25:35+08:00">2026-05-10</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-05-11 09:37:12" itemprop="dateModified" datetime="2026-05-11T09:37:12+08:00">2026-05-11</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -234,39 +241,48 @@
       </span>
       <span class="post-meta-item-text">分类于</span>
         <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
-          <a href="/categories/%E5%9B%BE%E5%BD%A2%E5%AD%A6/" itemprop="url" rel="index"><span itemprop="name">图形学</span></a>
+          <a href="/categories/%E9%9A%8F%E6%83%B3/" itemprop="url" rel="index"><span itemprop="name">随想</span></a>
         </span>
     </span>
 
   
 </div>
 
-            <div class="post-description">透视投影转换观察空间到裁剪空间，再经过透视除法转换到NDC得到深度。</div>
+            <div class="post-description">摸索AI时代如何学习，其实基本是个人的碎碎念。</div>
         </div>
       </header>
 
     
     
     
-    <div class="post-body" itemprop="articleBody"><p>先记录两篇博客：  </p>
-<ul>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/122411512">推导投影矩阵</a>  </li>
-<li><a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/718895401">3DGS学习笔记-透视投影矩阵推导</a></li>
-</ul>
-<p>这两篇笔记都是推导透视投影矩阵的，通过第二篇文章可知第一篇文章的推导是基于<strong>左手坐标系</strong>的，最明显的区别就在于，透视投影矩阵的<strong>第四行</strong>是<code>(0,0,1,0)</code>还是<code>(0,0,-1,0)</code>，前者是左手坐标系，后者是右手坐标系。  </p>
-<p>相机空间点 <code>(x_cam, y_cam, z_cam, 1)</code>（z_cam 为负，因为在相机前方）→ 透视投影矩阵变换 → 裁剪空间点 <code>(x_clip, y_clip, z_clip, w_clip=-z_cam)</code> → 透视除法 <code>(x_clip/w_clip, y_clip/w_clip, z_clip/w_clip)</code> → NDC。</p>
-<p>经过透视投影之后，观察空间转换到裁剪空间，OpenGL采用右手坐标系，<code>w_clip = -z_cam</code>，如果是左手坐标系，<code>w_clip = z_cam</code>。  </p>
-<p>注意是裁剪空间中的w与观察空间中z的关系。  </p>
-<p>这个关系是透视除法的关键，因为 <strong>w_clip</strong> 恰好是物体到相机的距离，我们经过透视除法能营造出“<strong>近大远小</strong>”的效果。  </p>
-<p>透视投影还会改变坐标系手性，注意看透视投影矩阵第三行，把z轴翻了个面，所以透视投影之后的裁剪空间，NDC，视口变换都在左手坐标系中。  </p>
-<p>我们可以利用透视除法（齐次除法），将裁剪空间转换为NDC（Normalized Device Coordinates，标准化设备坐标），NDC中xyz的范围都是<code>[-1,1]</code>，其z值就是<strong>规范化的深度值</strong>，超出这个范围的顶点将被裁剪不做渲染。  </p>
-<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">vec3</span> ndc = <span class="built_in">gl_Position</span>.xyz / <span class="built_in">gl_Position</span>.w;</span><br></pre></td></tr></table></figure>
-
-<p>手动计算 NDC 一般都是为了获取规范化的深度值做一些渲染工作。  </p>
-<p>需要注意 NDC 的 z 轴方向符合左手系特性（+z指向屏幕内）。  </p>
-<p>在OpenGL渲染管线中，裁剪之后会自动执行透视除法转换到NDC。这里要提及一件事，就是<strong>深度缓冲的取值范围是[0,1]</strong>，深度缓冲中的深度值才是真正的深度值，但是“值越小越近”的逻辑和前面是一样的，切忌和规范化的深度值产生混淆。  </p>
-<p>计算深度缓冲：  </p>
-<figure class="highlight glsl"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">depth = (z_ndc + <span class="number">1</span>) / <span class="number">2</span>;    <span class="comment">// 将[-1,1]转换到[0, 1]</span></span><br></pre></td></tr></table></figure>
+    <div class="post-body" itemprop="articleBody"><p>这篇文章不会很长，也不该很长，但是会持续记录，更新。老实说不知道为啥就想写这么一篇文章，可能是因为我自己很多学习习惯不好吧，有些事情需要反复提醒自己。  </p>
+<p>不说废话了。  </p>
+<p>总之AI时代，对学习内容而言，帮助非常大，对工作而言，大部分也是如此，借助AI，能迅速学会很多领域很有用的东西。  </p>
+<h2 id="合力"><a href="#合力" class="headerlink" title="合力"></a>合力</h2><p>我只拿软件开发举例，像<code>Claude Code</code>这种工具，代码能力很强，我们想开始一个新的项目，直接让它生成就能完成很大一部分工作。  </p>
+<p>这里，不是叫你傻乎乎地去和它说：嘿，帮我生成一个自动炒股的项目，直接给我完整可运行的代码！  </p>
+<p>它只是生成代码很强，对于其他部分，不一定。至少在2026年还是这样。  </p>
+<p>一般而言，我们应该先和他不断聊天，只为输出一份<code>开发计划.md</code>，里面有很多开发任务，每个大的任务里面还分很多小任务，而且，最好用<code>git</code>管理起来，当然，这一切都是让AI去完成的，也最好应该让AI去做，他自己做了会比较清楚，在后续开发中不容易偏离轨道。  </p>
+<p>也就是说，借助AI工具的我们，更像个设计者，规划者，或者说监管者（因为你不会设计的话，可以让AI给你很多设计方案，你自己选一个就行），然而，AI只是生成代码很强，这意味着，很多细节部分需要我们去掌控甚至修复。  </p>
+<p>对此，我们最好能做到，能够设计，能够分析实际需求用哪种方案更好，以及理解代码中的细节部分（分模块管理，是否使用重复内容等等）。  </p>
+<p>这是我们人类的能力，细节掌控，需求理解，比起AI来说一定更精准（更拟人），大量的体力劳动（写初始代码）是AI擅长的，交给AI去做。  </p>
+<p>这里一部分是人类的能力，一部分是AI的能力，只有结合好，才能产生<strong>合力</strong>，达到<strong>1+1&gt;2</strong>的效果，否则，要么就是没有利用好AI，用亏了的同时累了自己，要么就是废了自己，完全信任AI使自己逐渐丧失思考能力。  </p>
+<p>使用AI的力度需要自己掌握，就目前而言，我更推荐正式的事情不要无脑使用AI，就像<code>直接给我完整代码</code>那种，只是做玩具的话无所谓。  </p>
+<h2 id="最简单的最有用"><a href="#最简单的最有用" class="headerlink" title="最简单的最有用"></a>最简单的最有用</h2><p>其实，这是在提醒我自己不要钻牛角尖吧。  </p>
+<p>很多知识，都是最简单的最有用。数学的加减乘除，英语的ABCD，编码的”hello world”等等，学会最简单的东西，往往就”学会了”一个新知识，新领域大半的东西。这里所说的”学会”，并不是说成为了专家，而是获得了成为专家的资格，只有在对一个新的东西一无所知的时候，才会感叹：让我们说中文。  </p>
+<p>我以前用AI用得少，导致偶然有一天看到很多人聊”skills”的时候都一脸懵，什么玩意儿？然后去了解了agent，这才知道他们在说什么。  </p>
+<p>很多知识都是如此，当我们深入钻研一个问题的时候，有时候要反问一下自己，真的要搞这么懂吗？因为人类的知识太多了，浩如烟海，而且现在是个信息爆炸的时代，感觉随便学个什么东西，想去找本书，一搜索，十个人八张嘴，推荐的书籍五花八门，我们没法知道哪本书最适合自己，哪本书最实用，哪本书最详细可以当做手册…忽然感叹古人“不求甚解”的智慧…  </p>
+<p>但凡钻了牛角尖，可能就会浪费时间的同时影响自己的心态。  </p>
+<p>在这个时代，对于一些知识点的细节内容，我更推荐在需要时和AI进行QA学习，或者只是当做阅读材料，知道有那么个东西就行。  </p>
+<p>具体什么内容，可能需要自己感受，毕竟每个人学习知识用处不同。  </p>
+<h2 id="以“目标”为导向而学习"><a href="#以“目标”为导向而学习" class="headerlink" title="以“目标”为导向而学习"></a>以“目标”为导向而学习</h2><p>看了一堆怎么学习的帖子，还是学不好，或者说学得很烦，学不下去。我个人的感受是，只有适合自己的学习方式，没有最好的学习方式。  </p>
+<p>比如你想做一个小游戏玩玩，你想借此提升自己的编码能力，设计能力，那你可以去读书，去和AI掰扯；如果你只是为了玩，那直接让AI直接生成，然后让他教你怎么改人物技能，名称，怎么把自己想表达的内容加进去显示出来也没什么。  </p>
+<p>再者说你是个自媒体创作者，想搞一些简单小视频吸引流量，就流行的十种编程语言怎么打印Hello world吧，你根本不需要去读书，去学细节，你应该了解的是怎么运行，怎么视频剪辑，加特效等等…  </p>
+<p>这是从实际内容出发的，除非你需要应试，可能要在应试内容上事无巨细好好斟酌。这时候比较出名的“费曼学习法”可能很好，但也仅限于你自己能说清楚就行（需要做题的话还是要多做练习题，毕竟应试没法拷打AI，让它为你生成内容）。  </p>
+<p>学习学习，学什么都有一个明确的主体，你。  </p>
+<p>你是为了你在学习，只有你知道学这个为了什么，为了学习需要去读读书，还是问问人，还是看看博客，还是直接拿现成的？或者，我们成年人全都要？  </p>
+<p>只有为你所用才是有用，这里，你深入了解，你只是会使用，你节省了时间，等等，这都叫有用，不能事事事无巨细，我们没有那个精力，也大概率没有那个能力。  </p>
+<p>答应我，对自己好一点，顺势而为，慢慢来（虽然我写的大多是从实际出发的内容，但是这句话对还在应试的孩子们也同样有用，我知道应试要做很多题，背很多书，但是，保持好自己的心态，好好休息也很重要，甚至更重要）。  </p>
+<p>PS：“好好休息”指大量睡觉和少量娱乐。  </p>
 
     </div>
 
@@ -276,21 +292,18 @@
 
     <footer class="post-footer">
           <div class="post-tags">
-              <a href="/tags/OpenGL/" rel="tag"># OpenGL</a>
+              <a href="/tags/%E9%9A%8F%E6%83%B3/" rel="tag"># 随想</a>
           </div>
 
         
 
           <div class="post-nav">
             <div class="post-nav-item">
-                <a href="/2025/10/23/Gamma%E6%A0%A1%E6%AD%A3/" rel="prev" title="Gamma校正">
-                  <i class="fa fa-angle-left"></i> Gamma校正
+                <a href="/2026/04/20/%E7%9C%9F%E5%80%BC%E8%A1%A8%E6%8E%A8%E7%AE%97%E9%97%A8%E7%94%B5%E8%B7%AF%E9%80%BB%E8%BE%91%E4%B8%8E%E5%8C%96%E7%AE%80/" rel="prev" title="真值表推算门电路逻辑与化简">
+                  <i class="fa fa-angle-left"></i> 真值表推算门电路逻辑与化简
                 </a>
             </div>
             <div class="post-nav-item">
-                <a href="/2025/11/25/SSAO%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3/" rel="next" title="SSAO核心思想">
-                  SSAO核心思想 <i class="fa fa-angle-right"></i>
-                </a>
             </div>
           </div>
     </footer>

@@ -4351,10 +4351,10 @@ M&#x27; = (M^{-1})^T
 <figure class="highlight bash"><table><tr><td class="code"><pre><span class="line">.\SyncEvent_win.exe</span><br><span class="line">Input string: A lonely boy has An Apple, bite it and chews... so juicy... he miss his family...</span><br><span class="line">Num of A: 3</span><br><span class="line">Num of others: 79</span><br><span class="line"></span><br><span class="line">.\SyncEvent_win.exe</span><br><span class="line">Input string: A lonely boy has An Apple, bite it and chews... so juicy... he miss his family...</span><br><span class="line">Num of others: 79</span><br><span class="line">Num of A: 3</span><br></pre></td></tr></table></figure>
 
 <h4 id="Windows下实现多线程服务器端"><a href="#Windows下实现多线程服务器端" class="headerlink" title="Windows下实现多线程服务器端"></a>Windows下实现多线程服务器端</h4><p>服务端代码示例：  </p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// chat_serv_win.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;process.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUF_SIZE 100</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_CLNT 256</span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">HandleClnt</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">SendMsg</span><span class="params">(<span class="type">char</span>* msg, <span class="type">int</span> len)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> clntCnt = <span class="number">0</span>;</span><br><span class="line">SOCKET clntSocks[MAX_CLNT];</span><br><span class="line">HANDLE hMutex;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> &#123;</span><br><span class="line">	WSADATA wsaData;</span><br><span class="line">	SOCKET hServSock, hClntSock;</span><br><span class="line">	SOCKADDR_IN servAddr, clntAddr;</span><br><span class="line">	<span class="type">int</span> szClntAddr;</span><br><span class="line">	HANDLE hThread;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Usage: %s &lt;port&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (WSAStartup(MAKEWORD(<span class="number">2</span>, <span class="number">2</span>), &amp;wsaData) != <span class="number">0</span>)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;WSAStartup() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    hMutex = CreateMutex(<span class="literal">NULL</span>, FALSE, <span class="literal">NULL</span>);</span><br><span class="line">	hServSock = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">if</span> (hServSock == INVALID_SOCKET)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;socket() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memset</span>(&amp;servAddr, <span class="number">0</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">	<span class="built_in">printf</span>(<span class="string">&quot;servaddr size: %zu\n&quot;</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">	servAddr.sin_family = AF_INET;</span><br><span class="line">	servAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);</span><br><span class="line">	servAddr.sin_port = htons(atoi(argv[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (bind(hServSock, (SOCKADDR*)&amp;servAddr, <span class="keyword">sizeof</span>(servAddr)) == SOCKET_ERROR)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;bind() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (listen(hServSock, <span class="number">5</span>) == SOCKET_ERROR)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;listen() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        szClntAddr = <span class="keyword">sizeof</span>(clntAddr);</span><br><span class="line">        hClntSock = accept(hServSock, (SOCKADDR*)&amp;clntAddr, &amp;szClntAddr);</span><br><span class="line">        <span class="keyword">if</span> (hClntSock == INVALID_SOCKET)</span><br><span class="line">            ErrorHandling(<span class="string">&quot;accept() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">        WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">        clntSocks[clntCnt++] = hClntSock;</span><br><span class="line">        ReleaseMutex(hMutex);</span><br><span class="line"></span><br><span class="line">        hThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, HandleClnt, (<span class="type">void</span>*)&amp;hClntSock, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Connected client IP: %s \n&quot;</span>, inet_ntoa(clntAddr.sin_addr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">	closesocket(hServSock);</span><br><span class="line">	WSACleanup();</span><br><span class="line"></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span> &#123;</span><br><span class="line">	<span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">	fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">HandleClnt</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    SOCKET hClntSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">int</span> strLen = <span class="number">0</span>, i;</span><br><span class="line">    <span class="type">char</span> msg[BUF_SIZE];</span><br><span class="line">    <span class="keyword">while</span> ((strLen = recv(hClntSock, msg, <span class="keyword">sizeof</span>(msg), <span class="number">0</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">        SendMsg(msg, strLen);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; clntCnt; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span> (hClntSock == clntSocks[i]) &#123;</span><br><span class="line">            <span class="keyword">while</span> (i++ &lt; clntCnt - <span class="number">1</span>) &#123;</span><br><span class="line">                clntSocks[i] = clntSocks[i+<span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    clntCnt--;</span><br><span class="line">    ReleaseMutex(hMutex);</span><br><span class="line">    closesocket(hClntSock);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// send to all</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">SendMsg</span><span class="params">(<span class="type">char</span>* msg, <span class="type">int</span> len)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; clntCnt; ++i) &#123;</span><br><span class="line">        send(clntSocks[i], msg, len, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ReleaseMutex(hMutex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// chat_serv_win.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;process.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUF_SIZE 100</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> MAX_CLNT 256</span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">HandleClnt</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">SendMsg</span><span class="params">(<span class="type">char</span>* msg, <span class="type">int</span> len)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> clntCnt = <span class="number">0</span>;</span><br><span class="line">SOCKET clntSocks[MAX_CLNT];</span><br><span class="line">HANDLE hMutex;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> &#123;</span><br><span class="line">    WSADATA wsaData;</span><br><span class="line">    SOCKET hServSock, hClntSock;</span><br><span class="line">    SOCKADDR_IN servAddr, clntAddr;</span><br><span class="line">    <span class="type">int</span> szClntAddr;</span><br><span class="line">    HANDLE hThread;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Usage: %s &lt;port&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (WSAStartup(MAKEWORD(<span class="number">2</span>, <span class="number">2</span>), &amp;wsaData) != <span class="number">0</span>)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;WSAStartup() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    hMutex = CreateMutex(<span class="literal">NULL</span>, FALSE, <span class="literal">NULL</span>);</span><br><span class="line">    hServSock = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (hServSock == INVALID_SOCKET)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;socket() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(&amp;servAddr, <span class="number">0</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;servaddr size: %zu\n&quot;</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">    servAddr.sin_family = AF_INET;</span><br><span class="line">    servAddr.sin_addr.S_un.S_addr = htonl(INADDR_ANY);</span><br><span class="line">    servAddr.sin_port = htons(atoi(argv[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (bind(hServSock, (SOCKADDR*)&amp;servAddr, <span class="keyword">sizeof</span>(servAddr)) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;bind() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (listen(hServSock, <span class="number">5</span>) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;listen() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        szClntAddr = <span class="keyword">sizeof</span>(clntAddr);</span><br><span class="line">        hClntSock = accept(hServSock, (SOCKADDR*)&amp;clntAddr, &amp;szClntAddr);</span><br><span class="line">        <span class="keyword">if</span> (hClntSock == INVALID_SOCKET)</span><br><span class="line">            ErrorHandling(<span class="string">&quot;accept() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">        WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">        clntSocks[clntCnt++] = hClntSock;</span><br><span class="line">        ReleaseMutex(hMutex);</span><br><span class="line"></span><br><span class="line">        hThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, HandleClnt, (<span class="type">void</span>*)&amp;hClntSock, <span class="number">0</span>, <span class="literal">NULL</span>);</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Connected client IP: %s \n&quot;</span>, inet_ntoa(clntAddr.sin_addr));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    closesocket(hServSock);</span><br><span class="line">    WSACleanup();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span> &#123;</span><br><span class="line">    <span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">    fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">HandleClnt</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    SOCKET hClntSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">int</span> strLen = <span class="number">0</span>, i;</span><br><span class="line">    <span class="type">char</span> msg[BUF_SIZE];</span><br><span class="line">    <span class="keyword">while</span> ((strLen = recv(hClntSock, msg, <span class="keyword">sizeof</span>(msg), <span class="number">0</span>)) != <span class="number">0</span>) &#123;</span><br><span class="line">        SendMsg(msg, strLen);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; clntCnt; ++i) &#123;</span><br><span class="line">        <span class="keyword">if</span> (hClntSock == clntSocks[i]) &#123;</span><br><span class="line">            <span class="keyword">while</span> (i++ &lt; clntCnt - <span class="number">1</span>) &#123;</span><br><span class="line">                clntSocks[i] = clntSocks[i+<span class="number">1</span>];</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    clntCnt--;</span><br><span class="line">    ReleaseMutex(hMutex);</span><br><span class="line">    closesocket(hClntSock);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// send to all</span></span><br><span class="line"><span class="type">void</span> <span class="title function_">SendMsg</span><span class="params">(<span class="type">char</span>* msg, <span class="type">int</span> len)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    WaitForSingleObject(hMutex, INFINITE);</span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; clntCnt; ++i) &#123;</span><br><span class="line">        send(clntSocks[i], msg, len, <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    ReleaseMutex(hMutex);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>客户端代码示例：  </p>
-<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// chat_client_win.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;process.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUF_SIZE 100</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NAME_SIZE 20</span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">SendMsg</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">RecvMsg</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> name[NAME_SIZE] = <span class="string">&quot;[DEFAULT]&quot;</span>;</span><br><span class="line"><span class="type">char</span> msg[BUF_SIZE];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> &#123;</span><br><span class="line">	WSADATA wsaData;</span><br><span class="line">	SOCKET hSocket;</span><br><span class="line">	SOCKADDR_IN servAddr;</span><br><span class="line"></span><br><span class="line">	HANDLE hSendThread, hRecvThread;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (argc != <span class="number">4</span>) &#123;</span><br><span class="line">		<span class="built_in">printf</span>(<span class="string">&quot;Usage: %s &lt;ip&gt; &lt;port&gt; &lt;name&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">		<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (WSAStartup(MAKEWORD(<span class="number">2</span>, <span class="number">2</span>), &amp;wsaData) != <span class="number">0</span>)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;WSAStartup() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">sprintf</span>(name, <span class="string">&quot;[%s]&quot;</span>, argv[<span class="number">3</span>]);</span><br><span class="line">	hSocket = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">	<span class="keyword">if</span> (hSocket == INVALID_SOCKET)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;socket() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">	<span class="built_in">memset</span>(&amp;servAddr, <span class="number">0</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">	servAddr.sin_family = AF_INET;</span><br><span class="line">	<span class="comment">// Windows 无 inet_aton，替换为 inet_addr（功能一致）</span></span><br><span class="line">    servAddr.sin_addr.s_addr = inet_addr(argv[<span class="number">1</span>]);</span><br><span class="line">	servAddr.sin_port = htons(atoi(argv[<span class="number">2</span>]));</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span> (connect(hSocket, (SOCKADDR*)&amp;servAddr, <span class="keyword">sizeof</span>(servAddr)) == SOCKET_ERROR)</span><br><span class="line">		ErrorHandling(<span class="string">&quot;connect() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    hSendThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, SendMsg, (<span class="type">void</span>*)&amp;hSocket, <span class="number">0</span>,<span class="literal">NULL</span>);</span><br><span class="line">    hRecvThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, RecvMsg, (<span class="type">void</span>*)&amp;hSocket, <span class="number">0</span>,<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    WaitForSingleObject(hSendThread, INFINITE);</span><br><span class="line">    WaitForSingleObject(hRecvThread, INFINITE);</span><br><span class="line"></span><br><span class="line">	closesocket(hSocket);</span><br><span class="line">	WSACleanup();</span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span> &#123;</span><br><span class="line">	<span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">	fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">	<span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// send thread main</span></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">SendMsg</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    SOCKET hSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">char</span> nameMsg[NAME_SIZE + BUF_SIZE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        fgets(msg, BUF_SIZE, <span class="built_in">stdin</span>);</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(msg, <span class="string">&quot;q\n&quot;</span>) || !<span class="built_in">strcmp</span>(msg, <span class="string">&quot;Q\n&quot;</span>))  &#123;</span><br><span class="line">            closesocket(hSock);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">sprintf</span>(nameMsg, <span class="string">&quot;%s %s&quot;</span>, name, msg);</span><br><span class="line">        send(hSock, nameMsg, <span class="built_in">strlen</span>(nameMsg), <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// read thread main</span></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">RecvMsg</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    <span class="type">int</span> hSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">char</span> nameMsg[NAME_SIZE + BUF_SIZE];</span><br><span class="line">    <span class="type">int</span> strLen;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        strLen = recv(hSock, nameMsg, NAME_SIZE + BUF_SIZE - <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (strLen == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        nameMsg[strLen] = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">fputs</span>(nameMsg, <span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// chat_client_win.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdlib.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;process.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUF_SIZE 100</span></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> NAME_SIZE 20</span></span><br><span class="line"></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">SendMsg</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">RecvMsg</span><span class="params">(<span class="type">void</span>* arg)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">char</span> name[NAME_SIZE] = <span class="string">&quot;[DEFAULT]&quot;</span>;</span><br><span class="line"><span class="type">char</span> msg[BUF_SIZE];</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>** argv)</span> &#123;</span><br><span class="line">    WSADATA wsaData;</span><br><span class="line">    SOCKET hSocket;</span><br><span class="line">    SOCKADDR_IN servAddr;</span><br><span class="line"></span><br><span class="line">    HANDLE hSendThread, hRecvThread;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">4</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Usage: %s &lt;ip&gt; &lt;port&gt; &lt;name&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (WSAStartup(MAKEWORD(<span class="number">2</span>, <span class="number">2</span>), &amp;wsaData) != <span class="number">0</span>)</span><br><span class="line">    ErrorHandling(<span class="string">&quot;WSAStartup() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">sprintf</span>(name, <span class="string">&quot;[%s]&quot;</span>, argv[<span class="number">3</span>]);</span><br><span class="line">    hSocket = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (hSocket == INVALID_SOCKET)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;socket() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(&amp;servAddr, <span class="number">0</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">    servAddr.sin_family = AF_INET;</span><br><span class="line">    <span class="comment">// Windows 无 inet_aton，替换为 inet_addr（功能一致）</span></span><br><span class="line">    servAddr.sin_addr.s_addr = inet_addr(argv[<span class="number">1</span>]);</span><br><span class="line">    servAddr.sin_port = htons(atoi(argv[<span class="number">2</span>]));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (connect(hSocket, (SOCKADDR*)&amp;servAddr, <span class="keyword">sizeof</span>(servAddr)) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;connect() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    hSendThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, SendMsg, (<span class="type">void</span>*)&amp;hSocket, <span class="number">0</span>,<span class="literal">NULL</span>);</span><br><span class="line">    hRecvThread = (HANDLE)_beginthreadex(<span class="literal">NULL</span>, <span class="number">0</span>, RecvMsg, (<span class="type">void</span>*)&amp;hSocket, <span class="number">0</span>,<span class="literal">NULL</span>);</span><br><span class="line"></span><br><span class="line">    WaitForSingleObject(hSendThread, INFINITE);</span><br><span class="line">    WaitForSingleObject(hRecvThread, INFINITE);</span><br><span class="line"></span><br><span class="line">    closesocket(hSocket);</span><br><span class="line">    WSACleanup();</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span> &#123;</span><br><span class="line">    <span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">    fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// send thread main</span></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">SendMsg</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    SOCKET hSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">char</span> nameMsg[NAME_SIZE + BUF_SIZE];</span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        fgets(msg, BUF_SIZE, <span class="built_in">stdin</span>);</span><br><span class="line">        <span class="keyword">if</span> (!<span class="built_in">strcmp</span>(msg, <span class="string">&quot;q\n&quot;</span>) || !<span class="built_in">strcmp</span>(msg, <span class="string">&quot;Q\n&quot;</span>))  &#123;</span><br><span class="line">            closesocket(hSock);</span><br><span class="line">            <span class="built_in">exit</span>(<span class="number">0</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="built_in">sprintf</span>(nameMsg, <span class="string">&quot;%s %s&quot;</span>, name, msg);</span><br><span class="line">        send(hSock, nameMsg, <span class="built_in">strlen</span>(nameMsg), <span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// read thread main</span></span><br><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">RecvMsg</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    <span class="type">int</span> hSock = *((SOCKET*)arg);</span><br><span class="line">    <span class="type">char</span> nameMsg[NAME_SIZE + BUF_SIZE];</span><br><span class="line">    <span class="type">int</span> strLen;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span>(<span class="number">1</span>) &#123;</span><br><span class="line">        strLen = recv(hSock, nameMsg, NAME_SIZE + BUF_SIZE - <span class="number">1</span>, <span class="number">0</span>);</span><br><span class="line">        <span class="keyword">if</span> (strLen == <span class="number">-1</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="number">-1</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        nameMsg[strLen] = <span class="number">0</span>;</span><br><span class="line">        <span class="built_in">fputs</span>(nameMsg, <span class="built_in">stdout</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>运行示例：  </p>
 <figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 终端1</span></span><br><span class="line">.\chat_serv_win.exe <span class="number">9527</span></span><br><span class="line">servaddr size: <span class="number">16</span></span><br><span class="line">Connected client IP: <span class="number">127.0</span>.<span class="number">0.1</span> </span><br><span class="line">Connected client IP: <span class="number">127.0</span>.<span class="number">0.1</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端2</span></span><br><span class="line">.\chat_client_win.exe <span class="number">127.0</span>.<span class="number">0.1</span> <span class="number">9527</span> gmq</span><br><span class="line">hello</span><br><span class="line">[<span class="type">gmq</span>] hello</span><br><span class="line">[<span class="type">cola</span>] 干嘛？</span><br><span class="line">奇变偶不变</span><br><span class="line">[<span class="type">gmq</span>] 奇变偶不变</span><br><span class="line">[<span class="type">cola</span>] 符号看象限</span><br><span class="line">鸡  </span><br><span class="line">[<span class="type">gmq</span>] 鸡</span><br><span class="line">[<span class="type">cola</span>] 你太美</span><br><span class="line">q</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端3</span></span><br><span class="line">.\chat_client_win.exe <span class="number">127.0</span>.<span class="number">0.1</span> <span class="number">9527</span> cola</span><br><span class="line">[<span class="type">gmq</span>] hello</span><br><span class="line">干嘛？</span><br><span class="line">[<span class="type">cola</span>] 干嘛？</span><br><span class="line">[<span class="type">gmq</span>] 奇变偶不变</span><br><span class="line">符号看象限</span><br><span class="line">[<span class="type">cola</span>] 符号看象限</span><br><span class="line">[<span class="type">gmq</span>] 鸡</span><br><span class="line">你太美</span><br><span class="line">[<span class="type">cola</span>] 你太美</span><br><span class="line">q</span><br></pre></td></tr></table></figure>
@@ -4364,6 +4364,451 @@ M&#x27; = (M^{-1})^T
 
 <p>思路很简单，把scanf改变共享变量num的操作分开，先给一个temp输入值，再赋值，这样就不会因为scanf在临界区卡半天了。  </p>
 <figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="type">unsigned</span> WINAPI <span class="title function_">Read</span><span class="params">(<span class="type">void</span>* arg)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    <span class="type">int</span> temp;                          <span class="comment">// 临时变量</span></span><br><span class="line">    <span class="keyword">for</span> (i = <span class="number">0</span>; i &lt; <span class="number">5</span>; ++i) &#123;</span><br><span class="line">        <span class="built_in">fputs</span>(<span class="string">&quot;Input num: &quot;</span>, <span class="built_in">stdout</span>);</span><br><span class="line">        <span class="built_in">scanf</span>(<span class="string">&quot;%d&quot;</span>, &amp;temp);            <span class="comment">// 耗时操作，无锁</span></span><br><span class="line"></span><br><span class="line">        WaitForSingleObject(semTwo, INFINITE);   <span class="comment">// 进入临界区</span></span><br><span class="line">        num = temp;                    <span class="comment">// 仅赋值需要保护</span></span><br><span class="line">        ReleaseSemaphore(semOne, <span class="number">1</span>, <span class="literal">NULL</span>);       <span class="comment">// 通知其他线程</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Chapter21-异步通知I-O模型"><a href="#Chapter21-异步通知I-O模型" class="headerlink" title="Chapter21 异步通知I&#x2F;O模型"></a>Chapter21 异步通知I&#x2F;O模型</h3><p>请注意，我们本章学习的事<strong>异步通知</strong>I&#x2F;O模型。我们常说的异步I&#x2F;O，就是send&#x2F;recv不阻塞，是真正的异步；而<strong>异步通知</strong>，是内核通过事件对象主动通知“有事件发生”，但程序仍需要阻塞等待事件对象，等待期间线程挂起。  </p>
+<p>重点在”通知”二字上，回顾之前学习的<code>select</code>，<code>select</code> 模型被称为 <strong>同步 I&#x2F;O 模型</strong>，原因有二：  </p>
+<ol>
+<li><strong>事件检测是同步的</strong>：你主动调用 <code>select</code>，内核检查 socket 状态，然后返回结果。整个过程是 <strong>“你调用，内核回应”</strong> 的同步交互，不是内核主动通知。  </li>
+<li><strong>数据拷贝是同步的</strong>：<code>select</code> 返回后，你需要自己调用 <code>recv</code>&#x2F;<code>send</code> 来拷贝数据。这些调用也是同步阻塞的（即使数据已就绪，拷贝过程仍由用户线程执行）。</li>
+</ol>
+<p>因此，<strong>“同步”包含两个层面</strong>：  </p>
+<ul>
+<li><strong>通知同步</strong>：程序需要主动调用函数来获取 I&#x2F;O 状态（轮询或一次性检查，本章学习的是异步通知）。  </li>
+<li><strong>I&#x2F;O 同步</strong>：程序自己执行读写操作，且可能阻塞。</li>
+</ul>
+<blockquote>
+<p>Linux 下的 <code>epoll</code> 虽然事件通知效率高，但数据拷贝仍需用户调用 <code>recv</code>&#x2F;<code>send</code>，所以仍属于 <strong>同步 I&#x2F;O</strong>（但常被称为“异步通知”，指事件通知方式）。</p>
+</blockquote>
+<p><strong>Windows 上的异步通知与异步 I&#x2F;O</strong>  </p>
+<p><strong>1. 异步通知（WSAEventSelect &#x2F; WSAAsyncSelect-&gt;和UI相关，本书不研究）</strong>  </p>
+<ul>
+<li><strong>异步通知</strong>：内核主动将事件对象设为有信号（或发送窗口消息），程序不再轮询。</li>
+<li><strong>但仍然是同步 I&#x2F;O</strong>：因为收到通知后，程序仍需调用 <code>recv</code>&#x2F;<code>send</code> 来同步拷贝数据。</li>
+<li><strong>特点</strong>：通知方式异步，I&#x2F;O 操作同步。</li>
+</ul>
+<p><strong>2. 异步 I&#x2F;O（IOCP - I&#x2F;O Completion Port）</strong>  </p>
+<ul>
+<li><strong>真正的异步 I&#x2F;O</strong>：你调用 <code>WSARecv</code> 并提供一个缓冲区，函数立即返回。内核完成数据接收并直接拷贝到你的缓冲区后，将完成通知放入完成端口队列。</li>
+<li><strong>数据拷贝由内核完成</strong>：你的线程不需要执行 <code>recv</code> 来拷贝数据，只需调用 <code>GetQueuedCompletionStatus</code> 取出完成通知，此时数据已经在用户缓冲区中。</li>
+<li><strong>特点</strong>：I&#x2F;O 操作本身是异步的（调用不阻塞，内核完成拷贝）。</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>事件通知方式</th>
+<th>数据拷贝者</th>
+<th>是否同步 I&#x2F;O</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>select</code></td>
+<td>同步（主动调用）</td>
+<td>用户调用 <code>recv</code></td>
+<td>是</td>
+</tr>
+<tr>
+<td><code>WSAEventSelect</code></td>
+<td>异步（内核设置事件）</td>
+<td>用户调用 <code>recv</code></td>
+<td>是（因为拷贝是同步的）</td>
+</tr>
+<tr>
+<td>IOCP</td>
+<td>异步（完成端口）</td>
+<td>内核直接拷贝</td>
+<td>否（真正的异步 I&#x2F;O）</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><strong>关键区别</strong>：异步通知 ≠ 异步 I&#x2F;O。异步 I&#x2F;O 必须是 <strong>内核完成数据拷贝</strong>，且读写调用立即返回。</p>
+</blockquote>
+<p>在 Windows 上，实现真正的异步 I&#x2F;O 需要使用 <strong>IOCP</strong>（或支持重叠 I&#x2F;O 的函数，如 <code>ReadFile</code> + 重叠结构）。而 <code>WSAEventSelect</code> 只能提供异步通知，但仍属于同步 I&#x2F;O 模型。  </p>
+<h4 id="理解异步事件通知模型"><a href="#理解异步事件通知模型" class="headerlink" title="理解异步事件通知模型"></a>理解异步事件通知模型</h4><blockquote>
+<p><strong>说明</strong>：本章节描述的是 Windows 下 <strong>异步事件通知 + 同步 I&#x2F;O 模型</strong>（如 <code>WSAEventSelect</code>）。<br>它比 <code>select</code> 高效：内核主动通过事件对象通知程序，无需每次轮询所有 socket。<br>但数据拷贝仍需程序主动调用 <code>recv</code>&#x2F;<code>send</code>，且等待事件时线程会阻塞。<br>后面章节学习的 <strong>真正异步 I&#x2F;O（IOCP）</strong> 才是“内核完成所有拷贝、调用立即返回”的模型。</p>
+</blockquote>
+<p><strong>一句话总结</strong>：你告诉内核：“某个 socket 有事件（可读&#x2F;可写&#x2F;关闭等）时，请将事件对象设为有信号来通知我”。程序阻塞等待事件对象，收到通知后自己调用 <code>recv</code> 读取数据。</p>
+<p><strong>四种模型对比</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th>等待数据</th>
+<th>拷贝数据</th>
+<th>发起 I&#x2F;O 调用是否阻塞</th>
+<th>线程在事件等待期间能否做其他事</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>同步阻塞</td>
+<td>用户进程</td>
+<td>用户进程</td>
+<td>是（<code>recv</code> 阻塞）</td>
+<td>❌ 不能</td>
+</tr>
+<tr>
+<td>select + 超时</td>
+<td>内核（但需要用户调用 select）</td>
+<td>用户进程</td>
+<td><code>select</code> 阻塞，可超时</td>
+<td>⚠️ 超时后可做，但需循环</td>
+</tr>
+<tr>
+<td><strong>WSAEventSelect（当前学习）</strong></td>
+<td>内核（主动事件通知）</td>
+<td><strong>用户进程</strong>（调用 <code>recv</code>）</td>
+<td>等待事件时阻塞</td>
+<td>❌ 不能（但可一次等待多个事件）</td>
+</tr>
+<tr>
+<td>真正异步 I&#x2F;O（IOCP，后续学习）</td>
+<td>内核</td>
+<td>内核</td>
+<td>否（立即返回）</td>
+<td>✅ 可以（完全解放）</td>
+</tr>
+</tbody></table>
+<p><strong>流程对比图（增加 WSAEventSelect 流程）</strong>  </p>
+<pre class="mermaid">sequenceDiagram
+    participant U as 用户程序
+    participant K as 内核
+    participant D as 设备
+
+    Note over U,D: 同步阻塞
+    U->>K: recv()
+    K->>D: 等待数据
+    D-->>K: 数据到达
+    K->>U: 拷贝数据
+    U->>U: 处理
+
+    Note over U,D: select + 超时
+    loop 循环
+        U->>K: select(超时)
+        K-->>U: 就绪或超时
+        alt 就绪
+            U->>K: recv()
+            K->>U: 拷贝数据
+            U->>U: 处理
+        else 超时
+            U->>U: 做其他事
+        end
+    end
+
+    Note over U,D: WSAEventSelect（异步事件通知）
+    U->>K: WSAEventSelect(注册事件)
+    K-->>U: 立即返回
+    U->>K: WSAWaitForMultipleEvents(阻塞)
+    K->>D: 等待数据（内核检测事件）
+    D-->>K: 数据到达
+    K->>U: 事件对象有信号
+    U->>K: WSAEnumNetworkEvents + recv()
+    K->>U: 拷贝数据
+    U->>U: 处理
+
+    Note over U,D: 真正异步I/O（IOCP）
+    U->>K: WSARecv(缓冲区)
+    K-->>U: 立即返回
+    U->>U: 做其他事（不等待）
+    K->>D: 等待数据
+    D-->>K: 数据到达
+    K->>U: 内核直接拷贝到用户缓冲区
+    K->>U: 完成端口通知
+    U->>U: 直接使用数据</pre>
+
+<p><strong>核心差异总结</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>维度</th>
+<th>同步阻塞</th>
+<th>select + 超时</th>
+<th><strong>WSAEventSelect（当前学习）</strong></th>
+<th>真正异步 I&#x2F;O（后续）</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>发起调用是否阻塞</strong></td>
+<td>是</td>
+<td><code>select</code> 阻塞（可超时）</td>
+<td><code>WSAWaitForMultipleEvents</code> 阻塞</td>
+<td>否（立即返回）</td>
+</tr>
+<tr>
+<td><strong>数据谁拷贝</strong></td>
+<td>用户</td>
+<td>用户</td>
+<td>用户（<code>recv</code> 时拷贝）</td>
+<td>内核</td>
+</tr>
+<tr>
+<td><strong>CPU 利用率</strong></td>
+<td>低（等待时空转）</td>
+<td>中（超时可做别的事）</td>
+<td>中（等待时阻塞，但事件通知减少遍历）</td>
+<td>高（完全解放）</td>
+</tr>
+<tr>
+<td><strong>编程复杂度</strong></td>
+<td>简单</td>
+<td>中等</td>
+<td>中等偏复杂</td>
+<td>复杂（回调&#x2F;完成端口）</td>
+</tr>
+<tr>
+<td><strong>典型场景</strong></td>
+<td>简单脚本</td>
+<td>中等并发、非阻塞</td>
+<td>Windows 下中等并发、事件驱动</td>
+<td>高并发 I&#x2F;O 密集型服务器</td>
+</tr>
+</tbody></table>
+<h4 id="理解和实现异步通知I-O模型"><a href="#理解和实现异步通知I-O模型" class="headerlink" title="理解和实现异步通知I&#x2F;O模型"></a>理解和实现异步通知I&#x2F;O模型</h4><p>两种方法：<code>WSAEventSelect</code> 函数和 <code>WSAAsyncSelect</code> 函数，后者是UI相关内容，只需要知道有这么个函数就行。  </p>
+<h5 id="WSAEventSelect-函数"><a href="#WSAEventSelect-函数" class="headerlink" title="WSAEventSelect 函数"></a><code>WSAEventSelect</code> 函数</h5><p>监听套接字发生的事件，事件对象初始是手动且无信号的，监听到对应事件后，事件对象变为有信号。  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">WSAEventSelect</span><span class="params">(</span></span><br><span class="line"><span class="params">    SOCKET    s,              <span class="comment">// 套接字</span></span></span><br><span class="line"><span class="params">    WSAEVENT  hEventObject,   <span class="comment">// 事件对象句柄</span></span></span><br><span class="line"><span class="params">    <span class="type">long</span>      lNetworkEvents  <span class="comment">// 感兴趣的网络事件掩码</span></span></span><br><span class="line"><span class="params">)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数说明</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>参数</th>
+<th>类型</th>
+<th>含义</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>s</code></td>
+<td><code>SOCKET</code></td>
+<td>要关联的套接字</td>
+</tr>
+<tr>
+<td><code>hEventObject</code></td>
+<td><code>WSAEVENT</code></td>
+<td>由 <code>WSACreateEvent()</code> 创建的事件对象句柄</td>
+</tr>
+<tr>
+<td><code>lNetworkEvents</code></td>
+<td><code>long</code></td>
+<td>位掩码，指定要监听的事件类型（见下表）</td>
+</tr>
+</tbody></table>
+<p><strong>返回值</strong>  </p>
+<ul>
+<li><strong>成功</strong>：返回 <code>0</code></li>
+<li><strong>失败</strong>：返回 <code>SOCKET_ERROR</code>（可调用 <code>WSAGetLastError()</code> 获取错误码）</li>
+</ul>
+<p><strong>第三个参数 <code>lNetworkEvents</code> 可取的事件类型（位掩码）</strong>  </p>
+<table>
+<thead>
+<tr>
+<th>事件标志</th>
+<th>含义</th>
+<th>触发条件</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>FD_READ</code></td>
+<td>可读</td>
+<td>有数据可读（包括带外数据）</td>
+</tr>
+<tr>
+<td><code>FD_WRITE</code></td>
+<td>可写</td>
+<td>连接建立后通常立即触发；发送缓冲区空出空间时触发</td>
+</tr>
+<tr>
+<td><code>FD_ACCEPT</code></td>
+<td>可接受连接</td>
+<td>监听套接字上有新连接请求</td>
+</tr>
+<tr>
+<td><code>FD_CONNECT</code></td>
+<td>连接完成</td>
+<td><code>connect()</code> 异步完成时（非阻塞连接）</td>
+</tr>
+<tr>
+<td><code>FD_CLOSE</code></td>
+<td>连接关闭</td>
+<td>对方关闭连接（优雅关闭）</td>
+</tr>
+<tr>
+<td><code>FD_OOB</code></td>
+<td>带外数据</td>
+<td>收到带外数据</td>
+</tr>
+<tr>
+<td><code>FD_QOS</code></td>
+<td>QoS 变化</td>
+<td>服务质量变化</td>
+</tr>
+<tr>
+<td><code>FD_GROUP_QOS</code></td>
+<td>组QoS变化</td>
+<td>保留</td>
+</tr>
+<tr>
+<td><code>FD_ROUTING_INTERFACE_CHANGE</code></td>
+<td>路由变化</td>
+<td>保留</td>
+</tr>
+<tr>
+<td><code>FD_ADDRESS_LIST_CHANGE</code></td>
+<td>地址列表变化</td>
+<td>保留</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>常用组合：监听套接字监听 <code>FD_ACCEPT</code>；客户端套接字监听 <code>FD_READ | FD_WRITE | FD_CLOSE</code>。</p>
+</blockquote>
+<p><strong>作用机制</strong>  </p>
+<ol>
+<li><strong>关联</strong>：将套接字 <code>s</code> 与事件对象 <code>hEventObject</code> 关联，并指定内核需要监测的网络事件。</li>
+<li><strong>状态变化</strong>：当套接字上发生任何一个 <code>lNetworkEvents</code> 中指定的事件时，内核会<strong>将该事件对象设置为有信号（signaled）</strong>。</li>
+<li><strong>等待</strong>：用户线程可以调用 <code>WSAWaitForMultipleEvents()</code> 等待该事件对象（或多个事件对象）。</li>
+<li><strong>获取详情</strong>：事件对象有信号后，调用 <code>WSAEnumNetworkEvents()</code> 查询具体发生了哪个事件（因为一个事件对象可能对应多个事件类型），同时该函数会<strong>自动重置事件对象为无信号</strong>，以便下一次使用。</li>
+</ol>
+<p><strong>核心优势</strong>：内核不再需要像 <code>select</code> 那样每次传入 fd_set 并遍历，而是<strong>通过事件对象主动通知</strong>，减少了用户&#x2F;内核态切换和内存复制开销。  </p>
+<p><strong>配套辅助函数</strong>  </p>
+<ul>
+<li><code>WSAEVENT WSACreateEvent(void);</code> 创建手动重置事件，初始无信号（比前面<code>CreateEvent</code>方便很多）。</li>
+<li><code>BOOL WSACloseEvent(WSAEVENT hEvent);</code> 关闭事件句柄。</li>
+<li><code>DWORD WSAWaitForMultipleEvents(...);</code> 等待一个或多个事件对象。</li>
+<li><code>int WSAEnumNetworkEvents(SOCKET s, WSAEVENT hEventObject, LPWSANETWORKEVENTS lpNetworkEvents);</code> 获取具体事件并自动重置事件。</li>
+</ul>
+<h5 id="WSAEventSelect-配套辅助函数详解"><a href="#WSAEventSelect-配套辅助函数详解" class="headerlink" title="WSAEventSelect 配套辅助函数详解"></a><code>WSAEventSelect</code> 配套辅助函数详解</h5><p>这四个函数共同构成了 Winsock 事件通知模型的基础，配合 <code>WSAEventSelect</code> 实现异步 I&#x2F;O。</p>
+<h6 id="1-WSACreateEvent"><a href="#1-WSACreateEvent" class="headerlink" title="1. WSACreateEvent"></a>1. WSACreateEvent</h6><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">&lt;winsock2.h&gt;</span><br><span class="line">WSAEVENT <span class="title function_">WSACreateEvent</span><span class="params">(<span class="type">void</span>)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>返回值</strong>：  </p>
+<ul>
+<li>成功：返回一个事件对象句柄（<code>WSAEVENT</code>，本质是 <code>HANDLE</code>）。</li>
+<li>失败：返回 <code>WSA_INVALID_EVENT</code>（即 <code>NULL</code>），可调用 <code>WSAGetLastError()</code> 获取错误码。</li>
+</ul>
+<p><strong>说明</strong>：  </p>
+<ul>
+<li>创建 <strong>手动重置（manual-reset）</strong>、<strong>初始无信号（nonsignaled）</strong> 的事件对象。</li>
+<li>专门用于 Winsock 的事件通知模型，与 <code>WSAEventSelect</code> 配合使用。</li>
+<li>创建的事件对象不能用于 <code>WaitForSingleObject</code> 以外的其他等待函数吗？实际上可以，<code>WSAEVENT</code> 就是 <code>HANDLE</code>，可用于任何等待函数（如 <code>WaitForSingleObject</code>、<code>WaitForMultipleObjects</code>），但推荐使用 <code>WSAWaitForMultipleEvents</code>（它内部处理了 Alertable 等 Winsock 特殊需求）。</li>
+</ul>
+<p><strong>注意</strong>：  </p>
+<ul>
+<li>不需要时调用 <code>WSACloseEvent</code> 关闭。</li>
+<li>每个 socket 通常对应一个独立的事件对象（也可以多个 socket 共享一个事件，但不推荐，因为无法区分具体哪个 socket 就绪）。</li>
+</ul>
+<h6 id="2-WSACloseEvent"><a href="#2-WSACloseEvent" class="headerlink" title="2. WSACloseEvent"></a>2. WSACloseEvent</h6><figure class="highlight c"><table><tr><td class="code"><pre><span class="line">&lt;winsock2.h&gt;</span><br><span class="line"><span class="comment">// 其中 WSAEVENT 是 #difine WSAEVENT HANDLE</span></span><br><span class="line">BOOL <span class="title function_">WSACloseEvent</span><span class="params">(WSAEVENT hEvent)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数</strong>：  </p>
+<ul>
+<li><code>hEvent</code>：要关闭的事件对象句柄。</li>
+</ul>
+<p><strong>返回值</strong>：  </p>
+<ul>
+<li>成功：非零（<code>TRUE</code>）</li>
+<li>失败：<code>FALSE</code>，可调用 <code>WSAGetLastError()</code> 获取错误码。</li>
+</ul>
+<p><strong>说明</strong>：  </p>
+<ul>
+<li>关闭由 <code>WSACreateEvent</code> 创建的事件对象，释放内核资源。</li>
+<li>关闭后该句柄不可再用。</li>
+</ul>
+<p><strong>使用时机</strong>：  </p>
+<ul>
+<li>当套接字关闭时，应先 <code>WSAEventSelect(sock, NULL, 0)</code> 解除关联（避免残留），再关闭事件对象。</li>
+<li>或者直接关闭套接字并关闭事件对象（但解除关联更安全）。</li>
+</ul>
+<h6 id="3-WSAWaitForMultipleEvents"><a href="#3-WSAWaitForMultipleEvents" class="headerlink" title="3. WSAWaitForMultipleEvents"></a>3. WSAWaitForMultipleEvents</h6><p>等待一个或多个事件对象变为有信号。返回满足条件的索引或超时，是事件通知模型的核心等待函数。  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">&lt;winsock2.h&gt;</span><br><span class="line">DWORD <span class="title function_">WSAWaitForMultipleEvents</span><span class="params">(</span></span><br><span class="line"><span class="params">    DWORD cEvents,           <span class="comment">// 事件对象个数（1 ~ WSA_MAXIMUM_WAIT_EVENTS，通常 64）</span></span></span><br><span class="line"><span class="params">    <span class="type">const</span> WSAEVENT *lphEvents, <span class="comment">// 事件对象数组</span></span></span><br><span class="line"><span class="params">    BOOL fWaitAll,           <span class="comment">// 等待模式：TRUE=所有事件有信号，FALSE=任一事件有信号</span></span></span><br><span class="line"><span class="params">    DWORD dwTimeout,         <span class="comment">// 超时（毫秒），WSA_INFINITE 表示无限等待</span></span></span><br><span class="line"><span class="params">    BOOL fAlertable          <span class="comment">// 是否可被 APC 唤醒（通常 FALSE）</span></span></span><br><span class="line"><span class="params">)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>返回值</strong>：  </p>
+<ul>
+<li>成功且 <code>fWaitAll == FALSE</code>：返回 <code>WSA_WAIT_EVENT_0 + 索引</code>（满足条件的最小索引）。</li>
+<li>成功且 <code>fWaitAll == TRUE</code>：返回 <code>WSA_WAIT_EVENT_0</code>（所有事件都有信号）。</li>
+<li>超时：返回 <code>WSA_WAIT_TIMEOUT</code>。</li>
+<li>失败：返回 <code>WSA_WAIT_FAILED</code>，可调用 <code>WSAGetLastError()</code>。</li>
+</ul>
+<p><strong>参数详解</strong>：  </p>
+<ul>
+<li><code>cEvents</code>：事件数组中的元素个数，不能为 0，不能超过 <code>WSA_MAXIMUM_WAIT_EVENTS</code>（64）。</li>
+<li><code>lphEvents</code>：指向事件句柄数组的指针。</li>
+<li><code>fWaitAll</code>：<ul>
+<li><code>TRUE</code>：等待所有事件都变为有信号才返回。实际中很少用，因为不同 socket 的事件独立。</li>
+<li><code>FALSE</code>：任何一个事件有信号即返回，最常用。</li>
+</ul>
+</li>
+<li><code>dwTimeout</code>：毫秒数，<code>WSA_INFINITE</code>（-1）表示无限等待。</li>
+<li><code>fAlertable</code>：<ul>
+<li><code>TRUE</code>：允许 APC（异步过程调用）唤醒等待，用于可等待的 I&#x2F;O 等高级场景。</li>
+<li><code>FALSE</code>：通常设为 <code>FALSE</code>，忽略 APC。</li>
+</ul>
+</li>
+</ul>
+<p><strong>注意</strong>：  </p>
+<ul>
+<li>该函数等待的是事件对象，不是套接字。事件对象由 <code>WSAEventSelect</code> 与套接字关联，当套接字上发生感兴趣的事件时，事件对象变为有信号。</li>
+<li>返回索引后，需要根据索引找到对应的套接字，然后调用 <code>WSAEnumNetworkEvents</code> 获取具体事件类型。</li>
+<li>与 <code>WaitForMultipleObjects</code> 类似，但专门为 Winsock 优化，处理了 <code>WSA_WAIT_EVENT_0</code> 等返回值的定义。</li>
+</ul>
+<p><strong>限制</strong>：  </p>
+<ul>
+<li>最大等待对象数 64。如果需要处理更多套接字，需分组管理或使用 IOCP。</li>
+</ul>
+<h6 id="4-WSAEnumNetworkEvents"><a href="#4-WSAEnumNetworkEvents" class="headerlink" title="4. WSAEnumNetworkEvents"></a>4. WSAEnumNetworkEvents</h6><p><strong>区分事件类型。</strong> 查询套接字上发生的具体网络事件（如 FD_READ、FD_CLOSE），并自动将关联的事件对象重置为无信号。  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">&lt;winsock2.h&gt;</span><br><span class="line"><span class="type">int</span> <span class="title function_">WSAEnumNetworkEvents</span><span class="params">(</span></span><br><span class="line"><span class="params">    SOCKET s,                       <span class="comment">// 套接字</span></span></span><br><span class="line"><span class="params">    WSAEVENT hEventObject,          <span class="comment">// 关联的事件对象（可为 NULL）</span></span></span><br><span class="line"><span class="params">    LPWSANETWORKEVENTS lpNetworkEvents <span class="comment">// 传出参数，接收事件信息</span></span></span><br><span class="line"><span class="params">)</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>参数</strong>：  </p>
+<ul>
+<li><code>s</code>：要查询的套接字。</li>
+<li><code>hEventObject</code>：与该套接字关联的事件对象句柄（由 <code>WSAEventSelect</code> 设置）。如果提供，该函数会<strong>自动将事件对象重置为无信号</strong>。如果不需要重置，可以传 <code>NULL</code>。</li>
+<li><code>lpNetworkEvents</code>：指向 <code>WSANETWORKEVENTS</code> 结构体的指针，用于接收发生的事件及错误码。</li>
+</ul>
+<p><strong>返回值</strong>：  </p>
+<ul>
+<li>成功：0</li>
+<li>失败：<code>SOCKET_ERROR</code>，可调用 <code>WSAGetLastError()</code>。</li>
+</ul>
+<p><strong>WSANETWORKEVENTS 结构体</strong>：  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> _<span class="title">WSANETWORKEVENTS</span> &#123;</span></span><br><span class="line">    <span class="type">long</span> lNetworkEvents;          <span class="comment">// 发生的事件掩码（如 FD_READ | FD_CLOSE）</span></span><br><span class="line">    <span class="type">int</span> iErrorCode[FD_MAX_EVENTS]; <span class="comment">// 每个事件对应的错误码数组</span></span><br><span class="line">&#125; WSANETWORKEVENTS;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><code>lNetworkEvents</code>：位掩码，表示当前发生的所有事件。可以检查 <code>if (netEvents.lNetworkEvents &amp; FD_READ)</code>。</li>
+<li><code>iErrorCode</code>：索引使用 <code>FD_READ_BIT</code>、<code>FD_WRITE_BIT</code> 等宏（定义在 <code>winsock2.h</code> 中），例如 <code>netEvents.iErrorCode[FD_READ_BIT]</code> 如果是 <code>0</code> 表示该事件无错误，否则是相应错误码（如 <code>WSAECONNRESET</code>）。</li>
+</ul>
+<blockquote>
+<p>“如果发生 <strong>FD_XXX</strong> 相关错误，则在 <strong>iErrorCode[FD_XXX_BIT]</strong> 中保存除0以外的其他值”  </p>
+</blockquote>
+<p><strong>说明</strong>：  </p>
+<ul>
+<li>必须在 <code>WSAWaitForMultipleEvents</code> 返回后，对每个有信号的事件对象对应的套接字调用此函数。</li>
+<li>该函数会查询内核中该套接字上已发生的网络事件（一次调用可获取所有待处理事件，不会丢失）。</li>
+<li>如果传入了 <code>hEventObject</code>，函数会<strong>自动将事件对象重置为无信号</strong>，所以之后可以再次等待该事件对象。</li>
+<li>如果没有传入事件对象（<code>NULL</code>），则不会重置事件对象，需要手动重置（但通常都传入）。</li>
+</ul>
+<p><strong>典型用法</strong>：  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">WSANETWORKEVENTS events;</span><br><span class="line"><span class="keyword">if</span> (WSAEnumNetworkEvents(socket, hEvent, &amp;events) == <span class="number">0</span>) &#123;</span><br><span class="line">    <span class="keyword">if</span> (events.lNetworkEvents &amp; FD_READ) &#123;</span><br><span class="line">        <span class="keyword">if</span> (events.iErrorCode[FD_READ_BIT] == <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="comment">// 可以安全调用 recv</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (events.lNetworkEvents &amp; FD_CLOSE) &#123;</span><br><span class="line">        <span class="comment">// 处理关闭</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>注意</strong>：  </p>
+<ul>
+<li>调用 <code>WSAEnumNetworkEvents</code> 后，事件对象被重置，但如果有新的事件在调用之后立即发生，事件对象会再次被内核设为有信号，不会丢失。</li>
+<li>该函数只返回自上次调用之后发生的事件（或关联后尚未处理的事件）。多次调用之间，内核会累积事件，直到被枚举出来。</li>
+</ul>
+<h5 id="工作流程总结"><a href="#工作流程总结" class="headerlink" title="工作流程总结"></a>工作流程总结</h5><ol>
+<li><strong>初始化</strong>：<code>WSAStartup</code></li>
+<li><strong>创建事件</strong>：<code>event = WSACreateEvent()</code></li>
+<li><strong>关联</strong>：<code>WSAEventSelect(socket, event, FD_READ | FD_CLOSE)</code></li>
+<li><strong>收集事件句柄</strong>：将所有 socket 的事件句柄放入数组</li>
+<li><strong>等待</strong>：<code>index = WSAWaitForMultipleEvents(count, events, FALSE, INFINITE, FALSE)</code></li>
+<li><strong>获取详情</strong>：<code>WSAEnumNetworkEvents(socket, event, &amp;netEvents)</code></li>
+<li><strong>处理事件</strong>：根据 <code>netEvents.lNetworkEvents</code> 分支处理</li>
+<li><strong>重复</strong>：回到步骤 5（事件已自动重置，可再次等待）</li>
+<li><strong>清理</strong>：对每个 socket 调用 <code>WSAEventSelect(socket, NULL, 0)</code>（可选），<code>WSACloseEvent(event)</code>，<code>closesocket(socket)</code>，最后 <code>WSACleanup</code></li>
+</ol>
+<p><strong>简单示例片段（演示配套函数）</strong>  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line">WSAEVENT events[MAX_SOCKETS];</span><br><span class="line">SOCKET sockets[MAX_SOCKETS];</span><br><span class="line"><span class="type">int</span> eventCount = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 假设已经创建监听 socket 并关联事件</span></span><br><span class="line">sockets[<span class="number">0</span>] = listenSock;</span><br><span class="line">events[<span class="number">0</span>] = WSACreateEvent();</span><br><span class="line">WSAEventSelect(listenSock, events[<span class="number">0</span>], FD_ACCEPT);</span><br><span class="line">eventCount = <span class="number">1</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">    DWORD idx = WSAWaitForMultipleEvents(eventCount, events, FALSE, INFINITE, FALSE);</span><br><span class="line">    <span class="keyword">if</span> (idx == WSA_WAIT_FAILED) <span class="keyword">break</span>;</span><br><span class="line">    <span class="type">int</span> i = idx - WSA_WAIT_EVENT_0;</span><br><span class="line">    SOCKET s = sockets[i];</span><br><span class="line">    WSANETWORKEVENTS netEvents;</span><br><span class="line">    <span class="keyword">if</span> (WSAEnumNetworkEvents(s, events[i], &amp;netEvents) == <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">if</span> (s == listenSock &amp;&amp; (netEvents.lNetworkEvents &amp; FD_ACCEPT)) &#123;</span><br><span class="line">            <span class="comment">// accept 新连接...</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (netEvents.lNetworkEvents &amp; FD_READ) &#123;</span><br><span class="line">            <span class="comment">// recv 数据...</span></span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (netEvents.lNetworkEvents &amp; FD_CLOSE) &#123;</span><br><span class="line">            <span class="comment">// 关闭连接并清理事件...</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="异步I-O通知模型实现回声服务器端"><a href="#异步I-O通知模型实现回声服务器端" class="headerlink" title="异步I&#x2F;O通知模型实现回声服务器端"></a>异步I&#x2F;O通知模型实现回声服务器端</h4><p>客户端使用<a href="#52-Windows-echo%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%AE%9E%E7%8E%B0">5.2 Windows echo客户端实现</a>  </p>
+<p>下面是服务端代码：  </p>
+<figure class="highlight c"><table><tr><td class="code"><pre><span class="line"><span class="comment">// AsyncNotifyEchoServ_win.c</span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;string.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="keyword">include</span> <span class="string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="keyword">define</span> BUF_SIZE 100</span></span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">CompressSockets</span><span class="params">(SOCKET hSocketArr[], <span class="type">int</span> idx, <span class="type">int</span> total)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">CompressEvents</span><span class="params">(WSAEVENT hEventArr[], <span class="type">int</span> idx, <span class="type">int</span> total)</span>;</span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span>;</span><br><span class="line"></span><br><span class="line"><span class="type">int</span> <span class="title function_">main</span><span class="params">(<span class="type">int</span> argc, <span class="type">char</span>* argv[])</span> &#123;</span><br><span class="line">    WSADATA wsaData;</span><br><span class="line">    SOCKET hServSock, hClntSock;</span><br><span class="line">    SOCKADDR_IN servAddr, clntAddr;</span><br><span class="line"></span><br><span class="line">    SOCKET hSockArr[WSA_MAXIMUM_WAIT_EVENTS];</span><br><span class="line">    WSAEVENT hEventArr[WSA_MAXIMUM_WAIT_EVENTS];</span><br><span class="line">    WSAEVENT newEvent;</span><br><span class="line">    WSANETWORKEVENTS netEvents;</span><br><span class="line"></span><br><span class="line">    <span class="type">int</span> numOfClntSock = <span class="number">0</span>;</span><br><span class="line">    <span class="type">int</span> strLen, i;</span><br><span class="line">    <span class="type">int</span> posInfo, startIdx;</span><br><span class="line">    <span class="type">int</span> szClntAddr;</span><br><span class="line">    <span class="type">char</span> msg[BUF_SIZE];</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (argc != <span class="number">2</span>) &#123;</span><br><span class="line">        <span class="built_in">printf</span>(<span class="string">&quot;Usage: %s &lt;port&gt;\n&quot;</span>, argv[<span class="number">0</span>]);</span><br><span class="line">        <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (WSAStartup(MAKEWORD(<span class="number">2</span>, <span class="number">2</span>), &amp;wsaData) != <span class="number">0</span>)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;WSAStartup() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    hServSock = socket(PF_INET, SOCK_STREAM, <span class="number">0</span>);</span><br><span class="line">    <span class="keyword">if</span> (hServSock == INVALID_SOCKET)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;socket() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="built_in">memset</span>(&amp;servAddr, <span class="number">0</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">    <span class="built_in">printf</span>(<span class="string">&quot;servaddr size: %zu\n&quot;</span>, <span class="keyword">sizeof</span>(servAddr));</span><br><span class="line">    servAddr.sin_family = AF_INET;</span><br><span class="line">    servAddr.sin_addr.s_addr = htonl(INADDR_ANY);</span><br><span class="line">    servAddr.sin_port = htons(atoi(argv[<span class="number">1</span>]));</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (bind(hServSock, (SOCKADDR*)&amp;servAddr, <span class="keyword">sizeof</span>(servAddr)) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;bind() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="keyword">if</span> (listen(hServSock, <span class="number">5</span>) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;listen() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// WSAEventSelect注册异步通知事件（echo服务端注册接受连接事件即可，有新连接来到时将会触发）</span></span><br><span class="line">    <span class="comment">// 内核在事件发生时自动把事件置为signaled</span></span><br><span class="line">    newEvent = WSACreateEvent();</span><br><span class="line">    <span class="keyword">if</span> ( WSAEventSelect(hServSock, newEvent, FD_ACCEPT) == SOCKET_ERROR)</span><br><span class="line">        ErrorHandling(<span class="string">&quot;WSAEventSelect() error!&quot;</span>);</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 事件对象和套接字是配套的</span></span><br><span class="line">    hSockArr[numOfClntSock] = hServSock;</span><br><span class="line">    hEventArr[numOfClntSock] = newEvent;</span><br><span class="line">    numOfClntSock++;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">while</span> (<span class="number">1</span>) &#123;</span><br><span class="line">        <span class="comment">// 阻塞等待事件发生（第三个参数WaitForAll为FALSE，等到第一个就返回）</span></span><br><span class="line">        posInfo = WSAWaitForMultipleEvents(numOfClntSock, hEventArr, FALSE, WSA_INFINITE, FALSE);</span><br><span class="line">        startIdx = posInfo - WSA_WAIT_EVENT_0;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span> (i = startIdx; i &lt; numOfClntSock; ++i) &#123;</span><br><span class="line">            <span class="comment">// 上面检测到第一个事件发生返回了，后面的还是需要检测，于是遍历检测进行后续处理</span></span><br><span class="line">            <span class="type">int</span> sigEventidx = WSAWaitForMultipleEvents(<span class="number">1</span>, &amp;hEventArr[i], TRUE, <span class="number">0</span>, FALSE);</span><br><span class="line">            <span class="keyword">if</span> (sigEventidx == WSA_WAIT_FAILED || sigEventidx == WSA_WAIT_TIMEOUT) &#123;</span><br><span class="line">                <span class="keyword">continue</span>;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">else</span> &#123;</span><br><span class="line">                sigEventidx = i;</span><br><span class="line">                <span class="comment">// 获取具体事件类型，把事件置为non-signaled</span></span><br><span class="line">                WSAEnumNetworkEvents(hSockArr[sigEventidx], hEventArr[sigEventidx], &amp;netEvents);</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 服务端接受连接事件发生 -&gt; 请求连时处理（添加并监听客户端）</span></span><br><span class="line">                <span class="keyword">if</span> (netEvents.lNetworkEvents &amp; FD_ACCEPT) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (netEvents.iErrorCode[FD_ACCEPT_BIT] != <span class="number">0</span>) &#123;</span><br><span class="line">                        <span class="built_in">puts</span>(<span class="string">&quot;Accept Error!&quot;</span>);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    szClntAddr = <span class="keyword">sizeof</span>(clntAddr);</span><br><span class="line">                    hClntSock = accept(hSockArr[sigEventidx], (SOCKADDR*)&amp;clntAddr, &amp;szClntAddr);</span><br><span class="line">                    <span class="keyword">if</span> (hClntSock == INVALID_SOCKET)</span><br><span class="line">                        ErrorHandling(<span class="string">&quot;accept() error!&quot;</span>);</span><br><span class="line">                    <span class="comment">// 使用异步事件对象监听新的客户端（对客户端监测读和关闭事件）</span></span><br><span class="line">                    newEvent = WSACreateEvent();</span><br><span class="line">                    WSAEventSelect(hClntSock, newEvent, FD_READ|FD_CLOSE);</span><br><span class="line"></span><br><span class="line">                    hSockArr[numOfClntSock] = hClntSock;</span><br><span class="line">                    hEventArr[numOfClntSock] = newEvent;</span><br><span class="line">                    numOfClntSock++;</span><br><span class="line">                    <span class="built_in">puts</span>(<span class="string">&quot;connected new client...&quot;</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 接收数据时处理</span></span><br><span class="line">                <span class="keyword">if</span> (netEvents.lNetworkEvents &amp; FD_READ) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (netEvents.iErrorCode[FD_READ_BIT] != <span class="number">0</span>) &#123;</span><br><span class="line">                        <span class="built_in">puts</span>(<span class="string">&quot;Read Error&quot;</span>);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    strLen = recv(hSockArr[sigEventidx], msg, <span class="keyword">sizeof</span>(msg), <span class="number">0</span>);</span><br><span class="line">                    send(hSockArr[sigEventidx], msg, strLen, <span class="number">0</span>);</span><br><span class="line">                &#125;</span><br><span class="line"></span><br><span class="line">                <span class="comment">// 断开连接时处理</span></span><br><span class="line">                <span class="keyword">if</span> (netEvents.lNetworkEvents &amp; FD_CLOSE) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (netEvents.iErrorCode[FD_CLOSE_BIT] != <span class="number">0</span>) &#123;</span><br><span class="line">                        <span class="built_in">puts</span>(<span class="string">&quot;Close Error!&quot;</span>);</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                    WSACloseEvent(hEventArr[sigEventidx]);</span><br><span class="line">                    closesocket(hSockArr[sigEventidx]);</span><br><span class="line"></span><br><span class="line">                    numOfClntSock--;</span><br><span class="line">                    CompressSockets(hSockArr, sigEventidx, numOfClntSock);</span><br><span class="line">                    CompressEvents(hEventArr, sigEventidx, numOfClntSock);</span><br><span class="line">                &#125;    </span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    WSACleanup();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">ErrorHandling</span><span class="params">(<span class="type">char</span>* message)</span> &#123;</span><br><span class="line">    <span class="built_in">fputs</span>(message, <span class="built_in">stderr</span>);</span><br><span class="line">    fputc(<span class="string">&#x27;\n&#x27;</span>, <span class="built_in">stderr</span>);</span><br><span class="line">    <span class="built_in">exit</span>(<span class="number">1</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">CompressSockets</span><span class="params">(SOCKET hSocketArr[], <span class="type">int</span> idx, <span class="type">int</span> total)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = idx; i &lt; total; ++i)</span><br><span class="line">        hSocketArr[i] = hSocketArr[i+<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="type">void</span> <span class="title function_">CompressEvents</span><span class="params">(WSAEVENT hEventArr[], <span class="type">int</span> idx, <span class="type">int</span> total)</span> &#123;</span><br><span class="line">    <span class="type">int</span> i;</span><br><span class="line">    <span class="keyword">for</span> (i = idx; i &lt; total; ++i)</span><br><span class="line">        hEventArr[i] = hEventArr[i+<span class="number">1</span>];</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>运行结果：  </p>
+<figure class="highlight powershell"><table><tr><td class="code"><pre><span class="line"><span class="comment"># 终端1</span></span><br><span class="line">.\AsyncNotifyEchoServ_win.exe <span class="number">9527</span></span><br><span class="line">servaddr size: <span class="number">16</span></span><br><span class="line">connected new client...</span><br><span class="line"></span><br><span class="line"><span class="comment"># 终端2</span></span><br><span class="line">.\client_echo2_win.exe <span class="number">127.0</span>.<span class="number">0.1</span> <span class="number">9527</span></span><br><span class="line">Connected........</span><br><span class="line">Input message(Q to quit): hello</span><br><span class="line">Message from server: hello</span><br><span class="line">Input message(Q to quit): 鸡你太美</span><br><span class="line">Message from server: 鸡你太美</span><br><span class="line">Input message(Q to quit): q</span><br></pre></td></tr></table></figure>
 
 
 <script type="module"> import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs';	mermaid.initialize({startOnLoad: true, flowchart: {curve: 'linear'}}); </script>]]></content>

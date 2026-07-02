@@ -2397,7 +2397,7 @@ M&#x27; = (M^{-1})^T
   <entry>
     <title>tcp/ip编程</title>
     <url>/2026/04/13/tcp-ip%E7%BC%96%E7%A8%8B/</url>
-    <content><![CDATA[<p>代码仓库：<a href="https://github.com/saiumr/tcpip">tcpip</a><br>建议先clone下来配合书籍内容啃食，我的代码全都是能跑，改了书上的错误和一些坑。  </p>
+    <content><![CDATA[<p>代码仓库：<a href="https://github.com/saiumr/tcpip">tcpip</a><br>建议先clone下来配合书籍内容啃食，我的代码全都能跑，改了书上的一些错误。  </p>
 <p>这篇文章是《TCP&#x2F;IP 网络编程》的阅读笔记，一开始我记录得很详细，几乎是抄书，因为前面都是讲解原理，我想越详细越好，但是到后面我不会事无巨细了，我只记录感兴趣的、重要的和不懂的  </p>
 <p>作者同时讲解了linux和windows下的网络编程，笔记中写到的函数声明，其后面的注释一般都是解释返回值的，S代表Success，函数执行成功时的返回值，F代表Failure，函数执行失败时的返回值，但并不是所有的都用S、F这种记法  </p>
 <p>在第一章会给出Linux和Windows下可用的服务端和客户端应用代码，不要过分纠结其中看不懂的东西，因为前四章可以说就是为了说明白第一章的代码而存在的，直接往下看就好  </p>
